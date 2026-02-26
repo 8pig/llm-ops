@@ -4,6 +4,9 @@ from internal.server import Http
 from injector import Injector
 from internal.router import Router
 
+import dotenv
+dotenv.load_dotenv()
+
 injector = Injector()
 
 

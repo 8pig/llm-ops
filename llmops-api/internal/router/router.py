@@ -18,6 +18,8 @@ class Router:
         # 2. url 与控制器绑定
         bp.add_url_rule("/ping", view_func=self.ping, methods=["GET"])
 
+        bp.add_url_rule("/app/completion", methods=["post"], view_func=self.app_handler.completions)
+
         # 3. 应用注册蓝图
         app.register_blueprint(bp)
 
