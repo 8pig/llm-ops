@@ -77,6 +77,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "flask" },
+    { name = "flask-wtf" },
     { name = "injector" },
     { name = "openai" },
     { name = "python-dotenv" },
@@ -85,6 +86,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "flask", specifier = ">=3.1.2" },
+    { name = "flask-wtf", specifier = ">=1.2.2" },
     { name = "injector", specifier = ">=0.24.0" },
     { name = "openai", specifier = ">=2.24.0" },
     { name = "python-dotenv", specifier = ">=1.2.1" },
@@ -105,6 +107,20 @@ dependencies = [
 sdist = { url = "https://mirrors.aliyun.com/pypi/packages/dc/6d/cfe3c0fcc5e477df242b98bfe186a4c34357b4847e87ecaef04507332dab/flask-3.1.2.tar.gz", hash = "sha256:bf656c15c80190ed628ad08cdfd3aaa35beb087855e2f494910aa3774cc4fd87" }
 wheels = [
     { url = "https://mirrors.aliyun.com/pypi/packages/ec/f9/7f9263c5695f4bd0023734af91bedb2ff8209e8de6ead162f35d8dc762fd/flask-3.1.2-py3-none-any.whl", hash = "sha256:ca1d8112ec8a6158cc29ea4858963350011b5c846a414cdb7a954aa9e967d03c" },
+]
+
+[[package]]
+name = "flask-wtf"
+version = "1.2.2"
+source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
+dependencies = [
+    { name = "flask" },
+    { name = "itsdangerous" },
+    { name = "wtforms" },
+]
+sdist = { url = "https://mirrors.aliyun.com/pypi/packages/80/9b/f1cd6e41bbf874f3436368f2c7ee3216c1e82d666ff90d1d800e20eb1317/flask_wtf-1.2.2.tar.gz", hash = "sha256:79d2ee1e436cf570bccb7d916533fa18757a2f18c290accffab1b9a0b684666b" }
+wheels = [
+    { url = "https://mirrors.aliyun.com/pypi/packages/dc/19/354449145fbebb65e7c621235b6ad69bebcfaec2142481f044d0ddc5b5c5/flask_wtf-1.2.2-py3-none-any.whl", hash = "sha256:e93160c5c5b6b571cf99300b6e01b72f9a101027cab1579901f8b10c5daf0b70" },
 ]
 
 [[package]]
@@ -434,4 +450,16 @@ dependencies = [
 sdist = { url = "https://mirrors.aliyun.com/pypi/packages/5a/70/1469ef1d3542ae7c2c7b72bd5e3a4e6ee69d7978fa8a3af05a38eca5becf/werkzeug-3.1.5.tar.gz", hash = "sha256:6a548b0e88955dd07ccb25539d7d0cc97417ee9e179677d22c7041c8f078ce67" }
 wheels = [
     { url = "https://mirrors.aliyun.com/pypi/packages/ad/e4/8d97cca767bcc1be76d16fb76951608305561c6e056811587f36cb1316a8/werkzeug-3.1.5-py3-none-any.whl", hash = "sha256:5111e36e91086ece91f93268bb39b4a35c1e6f1feac762c9c822ded0a4e322dc" },
+]
+
+[[package]]
+name = "wtforms"
+version = "3.2.1"
+source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
+dependencies = [
+    { name = "markupsafe" },
+]
+sdist = { url = "https://mirrors.aliyun.com/pypi/packages/01/e4/633d080897e769ed5712dcfad626e55dbd6cf45db0ff4d9884315c6a82da/wtforms-3.2.1.tar.gz", hash = "sha256:df3e6b70f3192e92623128123ec8dca3067df9cfadd43d59681e210cfb8d4682" }
+wheels = [
+    { url = "https://mirrors.aliyun.com/pypi/packages/08/c9/2088fb5645cd289c99ebe0d4cdcc723922a1d8e1beaefb0f6f76dff9b21c/wtforms-3.2.1-py3-none-any.whl", hash = "sha256:583bad77ba1dd7286463f21e11aa3043ca4869d03575921d1a1698d0715e0fd4" },
 ]

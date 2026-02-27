@@ -2,6 +2,7 @@ import os
 
 from flask import request
 from openai import OpenAI
+from internal.schema.app_schema import  CompletionsReq
 
 
 class AppHandler:
@@ -12,7 +13,9 @@ class AppHandler:
         # 1. 提取用户输入
         # 2. 构建ai客户端发起请求
         # 3. 得到响应  返回前端
-
+        req = CompletionsReq()
+        if not req.validate():
+            return req.errors
         query = request.json.get("query")
         client = OpenAI(
             api_key=os.getenv("OPENAI_API_KEY"),
