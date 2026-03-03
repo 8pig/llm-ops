@@ -6,7 +6,8 @@ from config import Config
 from internal.router import Router
 from internal.exception import CustomException
 from pkg.response import json, Response, HttpCode
-from flask_sqlalchemy import SQLAlchemy
+from pkg.sqlalchemy import SQLAlchemy
+from internal.model import App
 
 
 class Http(Flask):
@@ -22,8 +23,11 @@ class Http(Flask):
         router.register_router(self)
         self.config.from_object(conf)
 
-    # 初始化db
+        # 初始化db
         db.init_app(self)
+        with self.app_context():
+            _ = App()
+            db.create_all()
 
 
 

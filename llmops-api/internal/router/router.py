@@ -20,6 +20,10 @@ class Router:
 
         bp.add_url_rule("/app/completion", methods=["post"], view_func=self.app_handler.completions)
 
+        bp.add_url_rule("/app", methods=["post"], view_func=self.app_handler.create_app)
+        bp.add_url_rule("/app/<id>", methods=["get"], view_func=self.app_handler.get_app)
+        bp.add_url_rule("/app/<id>", methods=["post"], view_func=self.app_handler.update_app)
+        bp.add_url_rule("/app/<id>", methods=["delete"], view_func=self.app_handler.delete_app)
         # 3. 应用注册蓝图
         app.register_blueprint(bp)
 

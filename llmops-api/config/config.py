@@ -14,7 +14,7 @@ class Config:
     """配置类"""
     def __init__(self):
         # 禁用csrf
-        self.WTF_CSRF_ENABLED = False
+        self.WTF_CSRF_ENABLED = _get_bool_env("WTF_CSRF_ENABLED")
 
         # 数据库配置
         self.SQLALCHEMY_DATABASE_URI = os.getenv("SQLALCHEMY_DATABASE_URI")
