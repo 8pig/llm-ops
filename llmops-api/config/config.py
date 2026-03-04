@@ -8,7 +8,7 @@ def _get_env(key: str) -> Any:
 
 def _get_bool_env(key: str):
     value = _get_env(key)
-    return value.lower == "true" if value is not None else False
+    return value.lower() == "true" if value is not None else False
 
 class Config:
     """配置类"""

@@ -23,6 +23,7 @@ class App(db.Model):
     name = Column(String(255), nullable=False, default="")
     icon = Column(String(255), nullable=False, default="")
     description = Column(Text, nullable=False, default="")
+    status=Column(String(255), nullable=False, default="")
     created_at = Column(DateTime, nullable=False, default=datetime.now)
     updated_at = Column(DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
 
