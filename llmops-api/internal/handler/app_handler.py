@@ -8,6 +8,7 @@ from openai import OpenAI
 from internal.schema.app_schema import  CompletionsReq
 from pkg.response import success_json, validate_error_json, success_message
 from internal.service import AppService
+from langchain.agents.structured_output import ToolStrategy
 
 @inject
 @dataclasses.dataclass
@@ -46,12 +47,9 @@ class AppHandler:
         )
 
         response = client.chat.completions.create(
-            model="qwen-plus-2025-12-01",  # 使用聊天模型
+            model="qwen3-max-2026-01-23",  # 使用聊天模型
             messages=[
-                {
-                    "role": "system",
-                    "content": "你是一个贴心小助手, 你叫小黑，请根据用户的输入尽你所能回复对应的信息。"
-                },
+                { "role": "system", "content": "你是一个贴心小助手, 你叫小黑，请根据用户的输入尽你所能回复对应的信息。" },
                 {
                     "role": "user",
                     "content": query
