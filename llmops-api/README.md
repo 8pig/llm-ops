@@ -1,5 +1,9 @@
 
-
+# run project
+```bash
+# dev
+ uv run python app\http\app.py
+```
 
 ## docker postgres 
 

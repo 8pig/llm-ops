@@ -1,4 +1,6 @@
 from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
+import os
+from langchain_openai import ChatOpenAI
 
 # 定义各个子模板
 instruction_prompt = PromptTemplate.from_template("你正在模拟{person}")
@@ -43,3 +45,19 @@ prompt = create_final_prompt(
     input="你最喜欢什么手机"
 )
 print(prompt)
+llm = ChatOpenAI(
+    model="qwen3-max-2026-01-23",
+    api_key="",
+    base_url="",
+)
+
+
+
+
+resp = llm.stream( prompt)
+
+
+for chunk in resp:
+    print(chunk.content, end="", flush=True)
+
+

@@ -1,4 +1,3 @@
-import dotenv
 from pkg.sqlalchemy import SQLAlchemy
 from injector import Injector
 from config import Config
@@ -6,6 +5,7 @@ from internal.router import Router
 from internal.server import Http
 from internal.model.module import ExtensionModule
 from flask_migrate import Migrate
+import dotenv
 
 dotenv.load_dotenv()
 

@@ -4,11 +4,13 @@ import uuid
 
 from flask import request, jsonify
 from injector import inject
+from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
+from langchain_openai import ChatOpenAI
 from openai import OpenAI
 from internal.schema.app_schema import  CompletionsReq
 from pkg.response import success_json, validate_error_json, success_message
 from internal.service import AppService
-from langchain.agents.structured_output import ToolStrategy
+from langchain_core.prompts import ChatPromptTemplate
 
 @inject
 @dataclasses.dataclass
@@ -41,24 +43,20 @@ class AppHandler:
         if not req.validate():
             return validate_error_json(req.errors)
         query = request.json.get("query")
-        client = OpenAI(
+
+
+        prompt = ChatPromptTemplate.from_template("请根据用户的提问进|行回答 \n {query}")
+        parser = StrOutputParser()
+
+        client = ChatOpenAI(
+            model="qwen3-max-2026-01-23",
             api_key=os.getenv("OPENAI_API_KEY"),
             base_url=os.getenv("OPENAI_API_BASE_URL"),
         )
 
-        response = client.chat.completions.create(
-            model="qwen3-max-2026-01-23",  # 使用聊天模型
-            messages=[
-                { "role": "system", "content": "你是一个贴心小助手, 你叫小黑，请根据用户的输入尽你所能回复对应的信息。" },
-                {
-                    "role": "user",
-                    "content": query
-                }
-            ]
-        )
+        ai_message = client.invoke(prompt.invoke({"query": query}))
 
-        # 返回AI的回复
-        # return {"response": response.choices[0].message.content}
-        content = response.choices[0].message.content
+        content = parser.invoke(ai_message)
 
-        return success_json(content)
+
+        return success_json({"content": content})

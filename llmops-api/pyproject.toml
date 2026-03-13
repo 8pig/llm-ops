@@ -1,10 +1,11 @@
 [project]
-name = "fastapi-ai"
+name = "llmops-api"
 version = "0.1.0"
-description = "Add your description here"
+description = "LLMOps API Project"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "dotenv>=0.9.9",
     "flask>=3.1.2",
     "flask-migrate>=4.1.0",
     "flask-sqlalchemy>=3.1.1",
@@ -13,11 +14,16 @@ dependencies = [
     "langchain>=0.2.1",
     "langchain-cli>=0.0.37",
     "langchain-community>=0.2.1",
+    "langchain-openai>=1.1.11",
     "openai>=2.24.0",
     "psycopg2>=2.9.11",
     "pytest>=9.0.2",
     "python-dotenv>=1.2.1",
 ]
+
+[tool.setuptools.packages.find]
+include = ["app*", "config*", "internal*", "pkg*"]
+exclude = ["study*", "test*"]
 
 [[tool.uv.index]]
 url = "https://mirrors.aliyun.com/pypi/simple/"
