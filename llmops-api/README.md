@@ -1,4 +1,40 @@
 
+
+# env config
+```
+OPENAI_API_KEY=
+OPENAI_API_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
+
+FLASK_ENV=development
+FLASK_DEBUG=1
+
+# sql congig
+
+SQLALCHEMY_DATABASE_URI=postgresql://postgres:postgres@localhost:5432/llmops?client_encoding=utf8
+SQLALCHEMY_POOL_SIZE=30
+SQLALCHEMY_POOL_RECYCLE=3600
+SQLALCHEMY_ECHO=True
+WTF_CSRF_ENABLED=False
+
+
+
+
+# LangSmith
+# https://smith.langchain.com/
+
+LANGSMITH_TRACING=true
+LANGSMITH_ENDPOINT=https://api.smith.langchain.com
+LANGSMITH_API_KEY=<your-api-key>
+LANGSMITH_PROJECT="llmops" # project name
+
+
+```
+
+
+
+
+
+
 # run project
 ```bash
 # dev

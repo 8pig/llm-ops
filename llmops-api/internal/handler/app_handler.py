@@ -34,7 +34,7 @@ class AppHandler:
         app = self.app_service.delete_app(id)
         return success_message(f"删除成功: {app.name}")
 
-    def completions(self):
+    def debug(self, app_id: uuid.UUID):
         """聊天接口"""
         # 1. 提取用户输入
         # 2. 构建ai客户端发起请求
@@ -45,7 +45,7 @@ class AppHandler:
         query = request.json.get("query")
 
 
-        prompt = ChatPromptTemplate.from_template("请根据用户的提问进|行回答 \n {query}")
+        prompt = ChatPromptTemplate.from_template("请根据用户的提问进行回答 \n {query}")
         parser = StrOutputParser()
 
         client = ChatOpenAI(
@@ -53,10 +53,11 @@ class AppHandler:
             api_key=os.getenv("OPENAI_API_KEY"),
             base_url=os.getenv("OPENAI_API_BASE_URL"),
         )
+        chain = prompt | client | parser
 
-        ai_message = client.invoke(prompt.invoke({"query": query}))
+        content = chain.invoke({"query": query})
 
-        content = parser.invoke(ai_message)
+        return success_json({"content": content})
 
 
         return success_json({"content": content})
