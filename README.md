@@ -7,6 +7,7 @@
 ```
 
 # env config
+```
 OPENAI_API_KEY=
 OPENAI_API_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
 
