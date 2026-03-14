@@ -1,7 +1,7 @@
 <script setup lang="ts"></script>
 
 <template>
-  <RouterView />
+  <p>授权登录页面</p>
 </template>
 
 <style scoped></style>
