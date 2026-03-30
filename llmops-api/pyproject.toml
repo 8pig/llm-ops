@@ -1,0 +1,40 @@
+[project]
+name = "llmops-api"
+version = "0.1.0"
+description = "LLMOps API Project"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "dashscope>=1.25.15",
+    "docx>=0.2.4",
+    "dotenv>=0.9.9",
+    "flask>=3.1.2",
+    "flask-cors>=6.0.2",
+    "flask-migrate>=4.1.0",
+    "flask-sqlalchemy>=3.1.1",
+    "flask-wtf>=1.2.2",
+    "huggingface-hub>=1.7.1",
+    "injector>=0.24.0",
+    "langchain>=0.2.1",
+    "langchain-cli>=0.0.37",
+    "langchain-community>=0.2.1",
+    "langchain-huggingface>=1.2.1",
+    "langchain-openai>=1.1.11",
+    "langgraph>=1.0.10",
+    "memory>=1.0.0",
+    "openai>=2.24.0",
+    "pdfplumber>=0.11.9",
+    "psycopg2>=2.9.11",
+    "pytest>=9.0.2",
+    "python-dotenv>=1.2.1",
+    "sentence-transformers>=5.3.0",
+    "unstructured>=0.21.5",
+]
+
+[tool.setuptools.packages.find]
+include = ["app*", "config*", "internal*", "pkg*"]
+exclude = ["study*", "test*"]
+
+[[tool.uv.index]]
+url = "https://mirrors.aliyun.com/pypi/simple/"
+default = true

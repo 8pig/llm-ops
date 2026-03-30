@@ -1,0 +1,7 @@
+- name: google
+  label: Google
+  description: 谷歌服务提供商，涵盖了谷歌搜索等工具。
+  icon: icon.svg
+  background: "#E5E7EB"
+  category: search
+  created_at: 1722498386

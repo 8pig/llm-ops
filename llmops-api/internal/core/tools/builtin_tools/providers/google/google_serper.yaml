@@ -1,0 +1,4 @@
+name: google_serper
+label: 谷歌搜索
+description: 谷歌服务提供商，涵盖了谷歌搜索等工具。
+params: [ ]
