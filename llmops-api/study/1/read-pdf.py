@@ -215,9 +215,8 @@ if __name__ == "__main__":
                 print(f"内容：{chunk.page_content[:100]}...")
 
     else:
-        print("\n❌ 所有方法都失败了")
-        print("\n💡 提示:")
-        print("- 如果 PDF 是扫描版，需要使用 OCR 模式")
+        print("\n❌ 失败 ")
+
         print("- 检查 PDF 文件是否损坏")
         print("- 尝试手动打开 PDF 确认文件正常")
 
