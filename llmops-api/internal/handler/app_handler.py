@@ -14,6 +14,8 @@ from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
 from langchain_core.tracers import Run
 from langchain_openai import ChatOpenAI
 from openai import OpenAI
+
+from internal.core.tools.builtin_tools import providers
 from internal.schema.app_schema import  CompletionsReq
 from pkg.response import success_json, validate_error_json, success_message
 from internal.service import AppService
@@ -118,12 +120,17 @@ class AppHandler:
         return success_json({"content": content})
 
     def ping(self):
-        google = self.provider_factory.get_provider("google")
-        google_serper_entity = google.get_tool_entity("google_serper")
-        print(google_serper_entity)
-        # google = self.provider_factory.get_provider("time")
-        # google_serper_entity = google.get_tool_entity("current_time")
-        return success_json()
+
+        providers = self.provider_factory.get_provider_entities()
+
+
+        return success_json({
+            "providers":
+                [
+                    provider.dict()
+                    for provider in providers
+                ]
+        })
         # google_serper = self.provider_factory.get_tool("google", "google_serper")()
         # print(google_serper)
         # print(google_serper.invoke("张雪峰"))

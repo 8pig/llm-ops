@@ -28,3 +28,9 @@
   icon: icon.png
   background: "#e5e7eb"
   category: 实用工具
+- name: wikipedia
+  label: 维基百科
+  description: 维基百科是一个全世界志愿者创建的免费在线百科全书
+  icon: icon.svg
+  background: "#ffffff"
+  category: 百科全书
