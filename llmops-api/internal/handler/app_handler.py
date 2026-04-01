@@ -118,7 +118,13 @@ class AppHandler:
         return success_json({"content": content})
 
     def ping(self):
-        google_serper = self.provider_factory.get_tool("google", "google_serper")()
-        print(google_serper)
-        print(google_serper.invoke("张雪峰"))
+        google = self.provider_factory.get_provider("google")
+        google_serper_entity = google.get_tool_entity("google_serper")
+        print(google_serper_entity)
+        # google = self.provider_factory.get_provider("time")
+        # google_serper_entity = google.get_tool_entity("current_time")
         return success_json()
+        # google_serper = self.provider_factory.get_tool("google", "google_serper")()
+        # print(google_serper)
+        # print(google_serper.invoke("张雪峰"))
+        # return success_json()

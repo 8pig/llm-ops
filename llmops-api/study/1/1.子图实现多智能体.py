@@ -42,20 +42,15 @@ class AgentState(TypedDict):
     messages: Annotated[list, add_messages]
 
 
-class LiveAgentState(TypedDict):
+class LiveAgentState(AgentState):
     """直播文案智能体状态"""
-    query: Annotated[str, reduce_str]
-    live_content: Annotated[str, reduce_str]
-    xhs_content: Annotated[str, reduce_str]
-    messages: Annotated[list, add_messages]
+    pass
 
 
-class XHSAgentState(TypedDict):
+class XHSAgentState(AgentState):
     """小红书文案智能体状态"""
-    query: Annotated[str, reduce_str]
-    live_content: Annotated[str, reduce_str]
-    xhs_content: Annotated[str, reduce_str]
-    messages: Annotated[list, add_messages]
+    pass
+
 
 
 

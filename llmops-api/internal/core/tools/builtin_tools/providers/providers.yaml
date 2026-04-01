@@ -3,5 +3,16 @@
   description: 谷歌服务提供商，涵盖了谷歌搜索等工具。
   icon: icon.svg
   background: "#E5E7EB"
-  category: search
-  created_at: 1722498386
+  category: 网络搜索
+- name: time
+  label: 时间
+  description: 获取当前时间的工具
+  icon: icon.svg
+  background: "#E5E7EB"
+  category: 实用工具
+- name: duckduckgo
+  label: DuckDuckGo
+  description: 一个注重隐私的搜索引擎
+  icon: icon.svg
+  background: "#ffffff"
+  category: 网络搜索
