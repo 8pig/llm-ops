@@ -1,0 +1,27 @@
+name: dalle
+label: dalle-生图工具
+description: dalle 是一个文本生成图像工具
+params:
+  - name: size
+    label: 图片尺寸
+    type: select
+    required: true
+    description: 选择生成图片的尺寸和方向
+    options:
+      - label: 1024x1024
+        value: "方 1024x1024"
+      - label: 1972x1024
+        value: "横屏 1972x1024"
+      - label: 1024x1972
+        value: "竖屏 1024x1972"
+  - name: style
+    label: 图片风格
+    description: 选择图片的视觉风格（生动或自然）
+    type: select
+    default: vivid
+    required: true
+    options:
+      - value: vivid
+        label: "生动"
+      - value: natural
+        label: "自然"

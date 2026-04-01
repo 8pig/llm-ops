@@ -16,3 +16,15 @@
   icon: icon.svg
   background: "#ffffff"
   category: 网络搜索
+- name: dalle
+  label: DALLE-文生图
+  description: 文生图工具
+  icon: icon.png
+  background: "#e5e7b"
+  category: 文生图
+- name: gaode
+  label: 高德工具包
+  description: 内置高德天气预报和ip查询
+  icon: icon.png
+  background: "#e5e7eb"
+  category: 实用工具
