@@ -5,9 +5,12 @@ import requests
 from langchain_core.tools import BaseTool
 from pydantic import BaseModel, Field
 
+from internal.lib.helper import add_attribute
+
 
 class GaodeWeatherArgusSchema(BaseModel):
     city: str = Field(..., description="城市名称 例如: 广告")
+
 
 
 class GaodeWeatherTool(BaseModel):
@@ -70,6 +73,10 @@ class GaodeWeatherTool(BaseModel):
         """调用工具"""
         return self._run(*args, **kwargs)
 
+
+
+
+@add_attribute("args_schema", GaodeWeatherArgusSchema)
 def gaode_weather(**kwargs) -> BaseTool:
     """
     根据传入城市名 获取天气

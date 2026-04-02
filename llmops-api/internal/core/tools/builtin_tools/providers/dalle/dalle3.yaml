@@ -1,4 +1,4 @@
-name: dalle
+name: dalle3
 label: dalle-生图工具
 description: dalle 是一个文本生成图像工具
 params:

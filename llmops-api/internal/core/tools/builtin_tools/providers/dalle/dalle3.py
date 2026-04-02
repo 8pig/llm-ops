@@ -3,11 +3,14 @@ from langchain_community.utilities.dalle_image_generator import DallEAPIWrapper
 from langchain_core.tools import BaseTool
 from pydantic import Field, BaseModel
 
+from internal.lib.helper import add_attribute
+
 
 class Dall3EArgsSchema(BaseModel):
     query: str = Field(..., description="输入是生成图像的文本提示(prompt)")
 
 
+@add_attribute("args_schema", Dall3EArgsSchema)
 def dalle3(**kwargs) -> BaseTool:
     return OpenAIDALLEImageGenerationTool(
         description=(

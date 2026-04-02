@@ -1,11 +1,9 @@
 import dataclasses
 import os
 import uuid
-from operator import itemgetter
 from typing import Any
 
-from flask import request, jsonify
-from flask_migrate import history
+from flask import request
 from injector import inject
 from langchain_classic.base_memory import BaseMemory
 from langchain_classic.memory import ConversationBufferWindowMemory
@@ -15,21 +13,20 @@ from langchain_core.tracers import Run
 from langchain_openai import ChatOpenAI
 from openai import OpenAI
 
-from internal.core.tools.builtin_tools import providers
 from internal.schema.app_schema import  CompletionsReq
 from pkg.response import success_json, validate_error_json, success_message
 from internal.service import AppService
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda, RunnableConfig
 from operator import itemgetter
-from internal.core.tools.builtin_tools.providers import ProviderFactory
+from dataclasses import dataclass
 
 @inject
-@dataclasses.dataclass
+@dataclass
 class AppHandler:
     app_service: AppService
 
-    provider_factory: ProviderFactory
+    # provider_factory: ProviderFactory
 
     """应用控制器"""
     def create_app(self):
@@ -120,18 +117,5 @@ class AppHandler:
         return success_json({"content": content})
 
     def ping(self):
+        return success_json({"message": "pong"})
 
-        providers = self.provider_factory.get_provider_entities()
-
-
-        return success_json({
-            "providers":
-                [
-                    provider.dict()
-                    for provider in providers
-                ]
-        })
-        # google_serper = self.provider_factory.get_tool("google", "google_serper")()
-        # print(google_serper)
-        # print(google_serper.invoke("张雪峰"))
-        # return success_json()
