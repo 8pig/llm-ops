@@ -30,8 +30,12 @@ class Router:
         # 3. 应用注册蓝图
 
         # 内置插件广场模块
-        bp.add_url_rule("/builtin-tools", methods=["get"], view_func=self.builtin_tool_handler.get_builtin_tools)
-        bp.add_url_rule("/builtin-tools/<string:provider_name>/tools/tool_name", methods=["get"], view_func=self.builtin_tool_handler.get_provider_tool)
+        bp.add_url_rule(
+            "/builtin-tools", methods=["get"],
+            view_func=self.builtin_tool_handler.get_builtin_tools)
+        bp.add_url_rule(
+            "/builtin-tools/<string:provider_name>/tools/<string:tool_name>",
+            methods=["get"], view_func=self.builtin_tool_handler.get_provider_tool)
 
 
 

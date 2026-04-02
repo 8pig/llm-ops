@@ -6,14 +6,15 @@ params:
     label: 图片尺寸
     type: select
     required: true
+    default: 1024x1024
     description: 选择生成图片的尺寸和方向
     options:
-      - label: 1024x1024
-        value: "方 1024x1024"
-      - label: 1972x1024
-        value: "横屏 1972x1024"
-      - label: 1024x1972
-        value: "竖屏 1024x1972"
+      - value: 1024x1024
+        label: "方 1024x1024"
+      - value: 1972x1024
+        label: "横屏 1972x1024"
+      - value: 1024x1972
+        label: "竖屏 1024x1972"
   - name: style
     label: 图片风格
     description: 选择图片的视觉风格（生动或自然）
