@@ -1,3 +1,8 @@
+import mimetypes
+import os.path
+
+from dashscope.tokenizers.tokenizer import root_path
+from flask import current_app
 from injector import inject
 from dataclasses import dataclass
 from internal.exception import NotFoundException
@@ -66,6 +71,48 @@ class BuiltinToolService:
             "create_at": provider_entity.create_at,
             "inputs": self.get_tool_inputs(tool)
         }
+
+
+    def get_provider_icon(self, provider_name: str):
+        """根据name获取 icon"""
+        provider = self.builtin_tool_manager.get_provider(provider_name)
+        if provider is None:
+            raise NotFoundException(f"未找到供应商: {provider_name}")
+
+        """获取项目根路径"""
+        root_path = os.path.dirname(os.path.dirname(current_app.root_path))
+
+        # 拼接
+        provider_path = os.path.join(
+            root_path,
+            "internal",
+            "core",
+            "tools",
+            "builtin_tools",
+            "providers",
+            provider_name,
+        )
+        icon_path = os.path.join(provider_path, "_asset", provider.provider_entity.icon)
+        print(icon_path)
+
+        if not os.path.exists(icon_path):
+            return NotFoundException(f"未找到图标: {provider_name}")
+
+        mimetype, _ = mimetypes.guess_type(icon_path) or "application/octet-stream"
+
+        with open(icon_path, "rb") as f:
+            return f.read(), mimetype
+
+
+
+        return provider.provider_entity.icon
+
+
+    def get_categories(self):
+
+
+        pass
+
 
 
     @classmethod

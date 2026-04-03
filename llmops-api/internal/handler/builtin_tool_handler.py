@@ -1,3 +1,7 @@
+import io
+import mimetypes
+
+from flask import send_file
 from injector import inject
 from dataclasses import dataclass
 from internal.service import BuiltinToolService
@@ -21,3 +25,13 @@ class BuiltinToolHandler:
         """根据供应商名+工具名 获取指定工具信息"""
         bt = self.builtin_tools_service.get_provider_tool(provider_name, tool_name)
         return success_json(bt)
+
+    def get_provider_icon(self, provider_name: str):
+        """ """
+        icon, mimetype = self.builtin_tools_service.get_provider_icon(provider_name)
+
+        return send_file(io.BytesIO(icon), mimetype=mimetype)
+
+    def get_provider_categories(self):
+        """获取所有分类"""
+        pass
