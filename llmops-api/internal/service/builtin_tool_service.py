@@ -22,7 +22,7 @@ class BuiltinToolService:
         for provider in providers:
             provider_entity = provider.provider_entity
             builtin_tool = {
-                **provider_entity.model_dump(exclude=["icon"]),
+                **provider_entity.model_dump(exclude={"icon"}),
                 "tools": []
             }
             # 循环便利提取提供者的所有工具实体
