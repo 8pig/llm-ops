@@ -1,8 +1,9 @@
 import os.path
-from typing import Any
+from typing import Any, Optional
 
 import yaml
 from injector import inject, singleton
+
 from internal.core.tools.builtin_tools.entities import ProviderEntity, Provider
 
 
@@ -19,7 +20,7 @@ class BuiltinProviderManager:
         """构造函数初始化对应的providermap"""
         self._get_provider_tool_map()
 
-    def get_provider(self, provider_name: str) -> Provider:
+    def get_provider(self, provider_name: str) -> Optional[Provider]:
         """根据服务提供商名字获取服务提供商"""
         return self.provider_map.get(provider_name)
 

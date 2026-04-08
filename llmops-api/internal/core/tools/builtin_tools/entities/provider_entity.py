@@ -15,7 +15,7 @@ class ProviderEntity(BaseModel):
     icon: str
     background: str
     category: str
-    create_at: int = 0  # 创建时间
+    created_at: int = 0  # 创建时间
 
 
 

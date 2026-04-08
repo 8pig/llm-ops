@@ -1,9 +1,10 @@
-from dataclasses import field
+from dataclasses import dataclass, field
 from typing import Any
 
 from pkg.response import HttpCode
 
 
+@dataclass
 class CustomException(Exception):
     """基础自定义异常"""
 
@@ -11,11 +12,10 @@ class CustomException(Exception):
     message: str = ""
     data: Any = field(default_factory=dict)
 
-
-    def ___init__(self,  message: str = "", data: Any = None):
-        super().__init__()
+    def __init__(self, message: str = "", data: Any = None):
+        super().__init__(message)
         self.message = message
-        self.data = data
+        self.data = data if data is not None else {}
 
 
 

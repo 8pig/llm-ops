@@ -40,6 +40,8 @@ class BuiltinToolService:
                 }
                 # 从提供者获取工具函数
 
+                current_app.logger.debug(root_path)
+                current_app.logger.debug(f"📂 目录")
 
                 #检测工具是否有args args_schema
 
@@ -66,14 +68,14 @@ class BuiltinToolService:
         provider_entity = provider.provider_entity
         tool = provider.get_tool(tool_name)
         return {
-           "provider": {**provider_entity.model_dump(exclude={"icon","create_at"})} ,
+           "provider": {**provider_entity.model_dump(exclude={"icon","created_at"})} ,
             **tool_entity.model_dump(),
-            "create_at": provider_entity.create_at,
+            "created_at": provider_entity.created_at,
             "inputs": self.get_tool_inputs(tool)
         }
 
 
-    def get_provider_icon(self, provider_name: str):
+    def get_provider_icon(self, provider_name: str)-> tuple[bytes, str]:
         """根据name获取 icon"""
         provider = self.builtin_tool_manager.get_provider(provider_name)
         if provider is None:
@@ -81,6 +83,8 @@ class BuiltinToolService:
 
         """获取项目根路径"""
         root_path = os.path.dirname(os.path.dirname(current_app.root_path))
+        current_app.logger.debug(root_path)
+        current_app.logger.info('%s logged in successfully', )
 
         # 拼接
         provider_path = os.path.join(
@@ -93,10 +97,10 @@ class BuiltinToolService:
             provider_name,
         )
         icon_path = os.path.join(provider_path, "_asset", provider.provider_entity.icon)
-        print(icon_path)
+
 
         if not os.path.exists(icon_path):
-            return NotFoundException(f"未找到图标: {provider_name}")
+            raise NotFoundException(f"未找到图标: {provider_name}")
 
         mimetype, _ = mimetypes.guess_type(icon_path) or "application/octet-stream"
 
