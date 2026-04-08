@@ -1,5 +1,6 @@
 import mimetypes
 import os.path
+from typing import Any
 
 from dashscope.tokenizers.tokenizer import root_path
 from flask import current_app
@@ -11,6 +12,7 @@ from pydantic import BaseModel
 
 from internal.core.tools.builtin_tools.entities import provider_entity, tool_entity
 from internal.core.tools.builtin_tools.providers import BuiltinProviderManager
+from internal.core.tools.builtin_tools.categories import BuiltinCategoryManager
 
 
 @inject
@@ -19,6 +21,7 @@ class BuiltinToolService:
     """内置工具服务"""
 
     builtin_tool_manager: BuiltinProviderManager
+    builtin_category_manager: BuiltinCategoryManager
 
     def get_builtin_tools(self) -> list:
         """获取llmops内置工具列表"""
@@ -112,10 +115,18 @@ class BuiltinToolService:
         return provider.provider_entity.icon
 
 
-    def get_categories(self):
+    def get_categories(self) -> list[dict[str, Any]]:
+        category_map = self.builtin_category_manager.get_category_map()
+        return [
+            {
+                "name": category["category"].name,
+                #与 builtin_category_manager 中的键名一致
+                "category": category["category"].category,
+                "icon": category["icon"],
+            }
+            for category in category_map.values()
+        ]
 
-
-        pass
 
 
 

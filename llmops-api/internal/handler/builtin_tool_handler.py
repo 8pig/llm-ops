@@ -4,6 +4,8 @@ import mimetypes
 from flask import send_file
 from injector import inject
 from dataclasses import dataclass
+
+from internal.core.tools.builtin_tools import categories
 from internal.service import BuiltinToolService
 from pkg.response import success_json
 
@@ -34,4 +36,5 @@ class BuiltinToolHandler:
 
     def get_provider_categories(self):
         """获取所有分类"""
-        pass
+        categories = self.builtin_tools_service.get_categories()
+        return success_json(categories)

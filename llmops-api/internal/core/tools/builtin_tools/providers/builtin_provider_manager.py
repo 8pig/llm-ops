@@ -3,6 +3,7 @@ from typing import Any, Optional
 
 import yaml
 from injector import inject, singleton
+from pydantic import Field, BaseModel
 
 from internal.core.tools.builtin_tools.entities import ProviderEntity, Provider
 
@@ -11,13 +12,14 @@ from internal.core.tools.builtin_tools.entities import ProviderEntity, Provider
 
 @singleton
 @inject
-class BuiltinProviderManager:
+class BuiltinProviderManager(BaseModel):
     """"""
 
-    provider_map: dict[str, Provider] = {}
+    provider_map: dict[str, Provider] = Field(default_factory=dict)
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         """构造函数初始化对应的providermap"""
+        super().__init__(**kwargs)
         self._get_provider_tool_map()
 
     def get_provider(self, provider_name: str) -> Optional[Provider]:
