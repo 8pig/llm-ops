@@ -60,7 +60,10 @@ class Router:
             view_func=self.api_tool_handler.create_api_tool,
         )
 
-
+        bp.add_url_rule(
+            "/api-tools/<uuid:provider_id>",
+            view_func=self.api_tool_handler.get_api_tool_provider,
+        )
 
         app.register_blueprint(bp)
 

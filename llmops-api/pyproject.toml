@@ -22,6 +22,7 @@ dependencies = [
     "langchain-huggingface>=1.2.1",
     "langchain-openai>=1.1.11",
     "langgraph>=1.0.10",
+    "marshmallow>=3.26.2",
     "memory>=1.0.0",
     "openai>=2.24.0",
     "pdfplumber>=0.11.9",

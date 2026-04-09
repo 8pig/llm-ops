@@ -1,9 +1,11 @@
 from flask_wtf import FlaskForm
+from marshmallow import Schema, fields, pre_dump
 from wtforms import StringField
 from wtforms.validators import DataRequired, URL, length
 
 from .schema import ListField
 from ..exception import ValidateException
+from ..model import ApiToolProvider
 
 
 class ValidateOpenAPISchema(FlaskForm):
@@ -43,3 +45,23 @@ class CreateApiToolReq(FlaskForm):
                 raise ValidateException("必须为key value")
 
 
+class GetApiToolProviderResp(Schema):
+    """获取api工具提供者 响应信息"""
+    id = fields.UUID()
+    name = fields.String()
+    icon = fields.String()
+    openapi_schema = fields.String()
+    headers = fields.List(fields.Dict, default=[])
+    created_at = fields.Integer(default=0)
+
+    @pre_dump
+    def process_data(self, obj: ApiToolProvider, **kwargs):
+        """预处理数据"""
+        return {
+            "id": obj.id,
+            "name": obj.name,
+            "icon": obj.icon,
+            "openapi_schema": obj.openapi_schema,
+            "headers": obj.headers,
+            "created_at":  int(obj.created_at.timestamp())
+        }

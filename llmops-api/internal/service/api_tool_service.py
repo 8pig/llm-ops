@@ -5,8 +5,8 @@ from injector import inject
 import json
 
 from internal.core.tools.api_tools.entities import OpenAPISchema
-from internal.exception import ValidateException
-from internal.model import ApiToolProvider, ApiTool
+from internal.exception import ValidateException, NotFoundException
+from internal.model import ApiToolProvider, ApiTool, api_tool
 from internal.schema.api_tool_schema import CreateApiToolReq
 from pkg.sqlalchemy import SQLAlchemy
 
@@ -16,6 +16,21 @@ class ApiToolService:
     """ 自定义api服务 """
 
     db: SQLAlchemy
+
+
+    def get_api_tool_provider(self, provider_id) -> ApiToolProvider:
+        account_id = "550e8400-e29b-41d4-a716-446655440000"
+
+
+
+        api_tool_provider = self.db.session.query(ApiToolProvider).get(
+            provider_id
+        )
+        if api_tool_provider is None or str(api_tool_provider.account_id) != account_id:
+            raise NotFoundException("该工具提供者不存在")
+
+        return api_tool_provider
+
 
 
     def create_api_tool(self, req: CreateApiToolReq):
