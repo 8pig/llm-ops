@@ -1,10 +1,10 @@
 # AI 智能体开发平台技术栈
 
 
----
-# api 概览
-> https://ptrb24jefd.apifox.cn/
----
+
+#### api 概览
+ *https://ptrb24jefd.apifox.cn/*
+
 
 
 > 《LLMOps平台：AI应用构建器》是新一代 AI 原生应用开发服务平台，可在平台上搭建基于 AI 模型的各类问答应用、工作 流应用，从解决简单的问答到处理复杂的逻辑任务。还可将 AI 应用一键发布到对应的社交平台、Web网页、可供第三方调用的MCP服务，甚至是基于平台的开放 API 进行二次开发。
@@ -12,7 +12,7 @@
 
 ## 🛠️ 核心技术栈
 
-### 1. AI 与大模型基础
+### 1. AI 与 基础
 - **Prompt 提示词**: 提示词工程与优化
 - **LangChain / LangGraph**: 大模型应用开发框架
 - **RAG 知识库与优化**: 检索增强生成技术
@@ -20,7 +20,7 @@
 - **LLM 提供商**: 对接各大模型接口
 - **微调基础**: Fine-tuning 
 
-### 2. Agent 与架构协议
+### 2. Agent 与 协议
 - **单/多 Agent**: 智能体架构设计
 - **Workflow 工作流**: 业务流程编排
 - **MCP 协议**: Model Context Protocol 标准
@@ -58,15 +58,9 @@
 4. **图片转 HTML 前端智能工具**: 视觉稿转代码
 5. **虚拟数字人口播**: 视频/直播推流
 
-```
 
 
-# api-doc
->https://ptrb24jefd.apifox.cn/
-
-```
-
-# env config
+### env config
 ```
 OPENAI_API_KEY=
 OPENAI_API_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
@@ -85,7 +79,7 @@ WTF_CSRF_ENABLED=False
 
 
 
-# LangSmith
+#### LangSmith
 # https://smith.langchain.com/
 
 LANGSMITH_TRACING=true
@@ -101,18 +95,18 @@ LANGSMITH_PROJECT="llmops" # project name
 
 
 
-# run project
+#### run project
 ```bash
 # dev
  uv run python app\http\app.py
 ```
 
-## docker postgres 
+#### docker postgres 
 
 > docker run  --name postgres-dev -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -d postgres
 
 
-# 初始化生成迁移脚本
+##### 初始化生成迁移脚本
 ```bash
 flask --app app.http.app db init 
 flask --app app.http.app db migrate 
