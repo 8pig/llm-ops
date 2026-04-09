@@ -1,6 +1,6 @@
 from injector import inject
 from flask import Flask, Blueprint
-from internal.handler import AppHandler, BuiltinToolHandler
+from internal.handler import AppHandler, BuiltinToolHandler, ApiToolHandler
 from dataclasses import dataclass
 
 
@@ -9,6 +9,7 @@ from dataclasses import dataclass
 class Router:
     app_handler: AppHandler
     builtin_tool_handler: BuiltinToolHandler
+    api_tool_handler: ApiToolHandler
 
 
 
@@ -44,6 +45,19 @@ class Router:
         bp.add_url_rule(
             "/builtin-tools/categories",
             view_func=self.builtin_tool_handler.get_provider_categories
+        )
+
+        #  自定义api插件模块
+        bp.add_url_rule(
+            "/api-tools/validate-openapi-schema",
+            methods=["post"],
+            view_func=self.api_tool_handler.validate_openapi_schema,
+        )
+
+        bp.add_url_rule(
+            "/api-tools",
+            methods=["post"],
+            view_func=self.api_tool_handler.create_api_tool,
         )
 
 
