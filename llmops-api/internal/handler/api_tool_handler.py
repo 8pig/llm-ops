@@ -1,7 +1,9 @@
+from uuid import UUID
+
 from injector import inject
 from dataclasses import dataclass
 
-from pyarrow.lib import UUID
+
 
 from internal.schema.api_tool_schema import ValidateOpenAPISchema, GetApiToolProviderResp, CreateApiToolReq
 from internal.service import ApiToolService
