@@ -2,6 +2,7 @@ from uuid import UUID
 
 from injector import inject
 from dataclasses import dataclass
+from flask import request
 
 from internal.model import api_tool
 from internal.schema.api_tool_schema import ValidateOpenAPISchema, GetApiToolProviderResp, CreateApiToolReq, \
@@ -16,6 +17,15 @@ class ApiToolHandler:
     """ 自定义api """
     api_tool_service: ApiToolService
 
+
+
+    def get_api_tool_providers_with_page(self):
+        """ 获取api工具提供者列表 """
+        req = GetApiToolProviderWithPageResp(request.args)
+        if not req.validate():
+            return validate_error_json(req.errors)
+
+        self.api_tool_service.get_api_tool_providers_with_page(req)
 
 
 

@@ -1,7 +1,8 @@
 import os
 from pathlib import Path
 from typing import List, Optional
-
+from langchain_community.document_loaders import ImageCaptionLoader
+from langchain_community.document_loaders import UnstructuredPDFLoader
 
 def read_pdf_with_langchain_pypdf(pdf_path: str) -> List:
     """
@@ -99,8 +100,7 @@ def read_pdf_with_ocr(pdf_path: str, lang: str = 'chi_sim') -> List:
         Document 对象列表
     """
     try:
-        from langchain_community.document_loaders import ImageCaptionLoader
-        from langchain_community.document_loaders import UnstructuredPDFLoader
+
 
         # 使用 UnstructuredPDFLoader（支持 OCR）
         loader = UnstructuredPDFLoader(pdf_path, mode="single", strategy="ocr_only")

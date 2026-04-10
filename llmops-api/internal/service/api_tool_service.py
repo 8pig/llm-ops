@@ -9,6 +9,7 @@ from internal.core.tools.api_tools.entities import OpenAPISchema
 from internal.exception import ValidateException, NotFoundException
 from internal.model import ApiToolProvider, ApiTool, api_tool
 from internal.schema.api_tool_schema import CreateApiToolReq
+from pkg.paginator import Paginator
 from pkg.sqlalchemy import SQLAlchemy
 
 @inject
@@ -17,6 +18,17 @@ class ApiToolService:
     """ 自定义api服务 """
 
     db: SQLAlchemy
+
+    def create_api_tool_providers_with_page(self, req: GetApiToolProviderWithPageReq):
+        account_id = "550e8400-e29b-41d4-a716-446655440000"
+
+    #     !分页查询
+        paginator = Paginator(db=self.db, req=req)
+    # 构建筛选器
+        filter_ = [ApiToolProvider.account_id == account_id]
+    # 执行分页 获取数据
+
+
 
 
     def get_api_tool(self, provider_id, tool_name):

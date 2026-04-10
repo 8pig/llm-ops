@@ -1,8 +1,9 @@
 from flask_wtf import FlaskForm
 from marshmallow import Schema, fields, pre_dump
 from wtforms import StringField
-from wtforms.validators import DataRequired, URL, length
+from wtforms.validators import DataRequired, URL, length, Optional
 
+from pkg.paginator import PaginatorReq
 from .schema import ListField
 from ..exception import ValidateException
 from ..model import ApiToolProvider, ApiTool
@@ -90,3 +91,9 @@ class GetApiToolResp(Schema):
                 "headers": provider.headers,
             }
         }
+
+
+class GetApiToolProviderWithPageReq(PaginatorReq):
+    search_word = StringField("search_word", validators=[
+        Optional()
+    ])
