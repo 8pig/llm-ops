@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from uuid import UUID
 
 from injector import inject
 
@@ -96,6 +97,26 @@ class ApiToolService:
                     )
                     self.db.session.add(api_tool)
 
+    def delete_api_tool_provider(self, provider_id: UUID):
+
+        account_id = "550e8400-e29b-41d4-a716-446655440000"
+
+        api_tool_provider = self.db.session.query(ApiToolProvider).get(provider_id)
+        print("1111")
+        if api_tool_provider is None or str(api_tool_provider.account_id) != account_id:
+            raise NotFoundException("该工具提供者不存在")
+
+        with self.db.auto_commit():
+            self.db.session.query(ApiTool).filter(
+                ApiTool.provider_id == provider_id,
+                ApiTool.account_id == account_id
+            ).delete()
+
+            self.db.session.delete(api_tool_provider)
+
+
+
+        pass
 
 
     @classmethod
@@ -110,4 +131,5 @@ class ApiToolService:
             raise ValidateException("传递数据必须符合OpenAPI规范")
 
         return OpenAPISchema(**data)
+
 

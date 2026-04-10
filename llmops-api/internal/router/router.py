@@ -70,6 +70,12 @@ class Router:
             view_func=self.api_tool_handler.get_api_tool,
         )
 
+        bp.add_url_rule(
+            "/api-tools/<uuid:provider_id>/delete",
+            methods=["post"],
+            view_func=self.api_tool_handler.delete_api_tool_provider,
+        )
+
         app.register_blueprint(bp)
 
     def ping(self):

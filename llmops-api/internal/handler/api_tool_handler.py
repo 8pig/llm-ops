@@ -17,6 +17,8 @@ class ApiToolHandler:
     api_tool_service: ApiToolService
 
 
+
+
     def create_api_tool(self):
         """ 创建api """
 
@@ -47,9 +49,10 @@ class ApiToolHandler:
             GetApiToolProviderResp().dump(api_tool_provider)
         )
 
-
-
-
+    def delete_api_tool_provider(self, provider_id: UUID):
+        """ 删除api工具提供者 """
+        self.api_tool_service.delete_api_tool_provider(provider_id)
+        return success_message("删除成功")
 
 
 
