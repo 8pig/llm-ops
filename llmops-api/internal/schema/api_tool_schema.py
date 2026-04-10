@@ -5,7 +5,7 @@ from wtforms.validators import DataRequired, URL, length
 
 from .schema import ListField
 from ..exception import ValidateException
-from ..model import ApiToolProvider
+from ..model import ApiToolProvider, ApiTool
 
 
 class ValidateOpenAPISchema(FlaskForm):
@@ -64,4 +64,29 @@ class GetApiToolProviderResp(Schema):
             "openapi_schema": obj.openapi_schema,
             "headers": obj.headers,
             "created_at":  int(obj.created_at.timestamp())
+        }
+
+class GetApiToolResp(Schema):
+    """获取api工具 响应信息"""
+    id = fields.UUID()
+    name = fields.String()
+    description = fields.String()
+    inputs = fields.List(fields.Dict, default=[])
+    provider = fields.Dict(default={})  # ✅ 正确：定义为字典
+
+    @pre_dump
+    def process_data(self, data: ApiTool, **kwargs):
+        provider = data.provider
+        return {
+            "id": data.id,
+            "name": data.name,
+            "description": data.description,
+            "inputs": [{k: v for k, v in parameter.items() if k != "in"} for parameter in data.parameters],
+            "provider": {
+                "id": provider.id,
+                "name": provider.name,
+                "icon": provider.icon,
+                "description": provider.description,
+                "headers": provider.headers,
+            }
         }

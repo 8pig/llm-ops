@@ -18,6 +18,20 @@ class ApiToolService:
     db: SQLAlchemy
 
 
+    def get_api_tool(self, provider_id, tool_name):
+        """根据id name 获取对应工具参数详情"""
+        account_id = "550e8400-e29b-41d4-a716-446655440000"
+        api_tool = self.db.session.query(ApiTool).filter_by(
+            provider_id=provider_id,
+            name=tool_name
+        ).one_or_none()
+        if api_tool is None or str(api_tool.account_id) != account_id:
+            raise NotFoundException(f"该工具不存在{tool_name}")
+
+        return api_tool
+
+
+
     def get_api_tool_provider(self, provider_id) -> ApiToolProvider:
         account_id = "550e8400-e29b-41d4-a716-446655440000"
 
@@ -84,10 +98,6 @@ class ApiToolService:
 
 
 
-
-
-
-
     @classmethod
     def parse_openapi_schema(cls, openapi_schema_str: str):
         """ 验证openapi_schema str """
@@ -100,3 +110,4 @@ class ApiToolService:
             raise ValidateException("传递数据必须符合OpenAPI规范")
 
         return OpenAPISchema(**data)
+

@@ -3,9 +3,9 @@ from uuid import UUID
 from injector import inject
 from dataclasses import dataclass
 
-
-
-from internal.schema.api_tool_schema import ValidateOpenAPISchema, GetApiToolProviderResp, CreateApiToolReq
+from internal.model import api_tool
+from internal.schema.api_tool_schema import ValidateOpenAPISchema, GetApiToolProviderResp, CreateApiToolReq, \
+    GetApiToolResp
 from internal.service import ApiToolService
 from pkg.response import validate_error_json, success_message, success_json
 
@@ -28,6 +28,15 @@ class ApiToolHandler:
         self.api_tool_service.create_api_tool(req)
 
         return success_message("创建自定义API成功")
+
+
+
+    def get_api_tool(self, provider_id: UUID, tool_name: str):
+        """"""
+
+        api_tool_t = self.api_tool_service.get_api_tool(provider_id, tool_name)
+        resp = GetApiToolResp()
+        return success_json(resp.dump(api_tool_t))
 
 
     def get_api_tool_provider(self, provider_id: UUID):
