@@ -36,12 +36,13 @@ class ApiToolService:
             ApiToolProvider.name == req.name.data,
             ApiToolProvider.id != provider_id
         ).one_or_none()
+
         if db_provider:
             raise ValidateException(f"该名称已存在{req.name.data}")
         #  先删除 后填加
         with self.db.auto_commit():
             self.db.session.query(ApiTool).filter(
-                ApiTool.provider_id == api_tool_provider.id,
+                ApiTool.provider_id == provider_id,
                 ApiTool.account_id == account_id
             ).delete()
 
@@ -54,7 +55,7 @@ class ApiToolService:
 
             for path, path_item in openapi_schema.paths.items():
                 for method, method_item in path_item.items():
-                    api_tool = ApiTool(
+                    new_api_tool = ApiTool(
                         account_id=account_id,
                         provider_id=api_tool_provider.id,
                         name=method_item.get("operationId"),
@@ -63,7 +64,7 @@ class ApiToolService:
                         method=method,
                         parameters=method_item.get("parameters"),
                     )
-                    self.db.session.add(api_tool)
+                    self.db.session.add(new_api_tool)
 
 
     def create_api_tool_providers_with_page(self, req: GetApiToolProviderWithPageReq)-> tuple[list[Any],Paginator]:
