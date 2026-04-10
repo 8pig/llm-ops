@@ -8,8 +8,8 @@ from flask import request
 from internal.core.tools.builtin_tools import providers
 from internal.model import api_tool
 from internal.schema.api_tool_schema import (
-ValidateOpenAPISchema, GetApiToolProviderResp, CreateApiToolReq,
-    GetApiToolResp, GetApiToolProviderWithPageReq, GetApiToolProviderWithPageResp
+    ValidateOpenAPISchema, GetApiToolProviderResp, CreateApiToolReq,
+    GetApiToolResp, GetApiToolProviderWithPageReq, GetApiToolProviderWithPageResp, UpdateApiToolProviderReq
 )
 from internal.service import ApiToolService
 from pkg.paginator import paginator, PageModel
@@ -23,6 +23,13 @@ class ApiToolHandler:
     api_tool_service: ApiToolService
 
 
+    def update_api_tool_provider(self, provider_id: UUID):
+        req = UpdateApiToolProviderReq()
+        if not req.validate():
+            return validate_error_json(req.errors)
+
+        self.api_tool_service.update_api_tool_provider(provider_id, req)
+        return success_message("更新成功")
 
     def get_api_tool_providers_with_page(self):
         """ 获取api工具提供者列表 """
