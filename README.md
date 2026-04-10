@@ -62,7 +62,7 @@
 
 ### env config
 ```
-OPENAI_API_KEY=
+OPENAI_API_KEY=<your-api-key>
 OPENAI_API_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
 
 FLASK_ENV=development
@@ -166,3 +166,5 @@ flask --app app.http.app db downgrade
 [langchain Docs(py) ](https://docs.langchain.com/oss/python/langchain/quickstart) 
 
 [langchain Docs中文文档) ](https://langchain-doc.cn/) 
+
+[uv/pip) ](https://uv.oaix.tech/blog/2025/06/17/quickly-set-uv-package-index-is-china-mirror/#__tabbed_1_3) 

@@ -97,3 +97,36 @@ class GetApiToolProviderWithPageReq(PaginatorReq):
     search_word = StringField("search_word", validators=[
         Optional()
     ])
+
+
+class GetApiToolProviderWithPageResp(Schema):
+    """获取api工具提供者列表 响应值"""
+    id = fields.UUID()
+    name = fields.String()
+    icon = fields.String()
+    description = fields.String()
+    headers = fields.List(fields.Dict, default=[])
+    tools = fields.List(fields.Dict, default=[])
+    created_at = fields.Integer(default=0)
+
+
+    @pre_dump
+    def process_data(self, obj: ApiToolProvider, **kwargs):
+        tools = obj.tools
+        return {
+            "id": obj.id,
+            "name": obj.name,
+            "icon": obj.icon,
+            "description": obj.description,
+            "headers": obj.headers,
+            "tools": [
+                {
+                    "id": tool.id,
+                    "name": tool.name,
+                    "description": tool.description,
+                    "inputs": [{k: v for k, v in parameter.items() if k != "in"} for parameter in tool.parameters]
+                } for tool in tools
+            ],
+            "created_at": int(obj.created_at.timestamp())
+        }
+

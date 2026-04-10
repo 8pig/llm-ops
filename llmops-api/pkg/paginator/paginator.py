@@ -38,10 +38,10 @@ class Paginator:
         self.db = db
 
     def paginate(self, select) -> list[Any]:
-        p =  self.db.paginate(select, self.current_page, self.page_size,error_out=True)
+        p = select.paginate(page=self.current_page, per_page=self.page_size, error_out=True)
         self.total_record = p.total
-        self.total_page = math.ceil(p.total/p.pages)
-        return  p.items
+        self.total_page = math.ceil(p.total / p.pages) if p.pages > 0 else 0
+        return p.items
 
 
 @dataclass

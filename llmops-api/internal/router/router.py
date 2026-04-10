@@ -48,6 +48,14 @@ class Router:
         )
 
         #  自定义api插件模块
+
+        bp.add_url_rule(
+            "/api-tools",
+            view_func=self.api_tool_handler.get_api_tool_providers_with_page,
+        )
+
+
+
         bp.add_url_rule(
             "/api-tools/validate-openapi-schema",
             methods=["post"],
@@ -75,6 +83,8 @@ class Router:
             methods=["post"],
             view_func=self.api_tool_handler.delete_api_tool_provider,
         )
+
+
 
         app.register_blueprint(bp)
 

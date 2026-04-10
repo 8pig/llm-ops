@@ -1,13 +1,18 @@
+from typing import Any
 from uuid import UUID
 
 from injector import inject
 from dataclasses import dataclass
 from flask import request
 
+from internal.core.tools.builtin_tools import providers
 from internal.model import api_tool
-from internal.schema.api_tool_schema import ValidateOpenAPISchema, GetApiToolProviderResp, CreateApiToolReq, \
-    GetApiToolResp
+from internal.schema.api_tool_schema import (
+ValidateOpenAPISchema, GetApiToolProviderResp, CreateApiToolReq,
+    GetApiToolResp, GetApiToolProviderWithPageReq, GetApiToolProviderWithPageResp
+)
 from internal.service import ApiToolService
+from pkg.paginator import paginator, PageModel
 from pkg.response import validate_error_json, success_message, success_json
 
 
@@ -21,12 +26,16 @@ class ApiToolHandler:
 
     def get_api_tool_providers_with_page(self):
         """ 获取api工具提供者列表 """
-        req = GetApiToolProviderWithPageResp(request.args)
+        req = GetApiToolProviderWithPageReq(request.args)
         if not req.validate():
             return validate_error_json(req.errors)
 
-        self.api_tool_service.get_api_tool_providers_with_page(req)
+        api_tool_providers, paginator = self.api_tool_service.create_api_tool_providers_with_page(req)
 
+        resp = GetApiToolProviderWithPageResp(many=True)
+        return success_json(
+            PageModel(list=resp.dump(api_tool_providers), paginator=paginator)
+        )
 
 
     def create_api_tool(self):
