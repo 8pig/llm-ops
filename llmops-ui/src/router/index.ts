@@ -1,7 +1,7 @@
-import { createRouter, createWebHistory } from 'vue-router';
-import DefaultLayout from '@/views/layouts/DefaultLayout.vue';
-import BlankLayout from '@/views/layouts/BlankLayout.vue';
-import { isLogin } from '@/utils/auth.ts';
+import { createRouter, createWebHistory } from 'vue-router'
+import { isLogin } from '@/utils/auth'
+import DefaultLayout from '@/views/layouts/DefaultLayout.vue'
+import BlankLayout from '@/views/layouts/BlankLayout.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -12,7 +12,7 @@ const router = createRouter({
       children: [
         {
           path: '',
-          redirect: '/home',
+          redirect: 'home',
         },
         {
           path: 'home',
@@ -20,9 +20,45 @@ const router = createRouter({
           component: () => import('@/views/pages/HomeView.vue'),
         },
         {
-          path: 'space/apps',
-          name: 'space-apps-list',
-          component: () => import('@/views/space/apps/ListView.vue'),
+          path: 'space',
+          component: () => import('@/views/space/SpaceLayoutView.vue'),
+          children: [
+            {
+              path: 'apps',
+              name: 'space-apps-list',
+              component: () => import('@/views/space/apps/ListView.vue'),
+            },
+            {
+              path: 'tools',
+              name: 'space-tools-list',
+              component: () => import('@/views/space/tools/ListView.vue'),
+            },
+            {
+              path: 'workflows',
+              name: 'space-workflows-list',
+              component: () => import('@/views/space/workflows/ListView.vue'),
+            },
+            {
+              path: 'datasets',
+              name: 'space-datasets-list',
+              component: () => import('@/views/space/datasets/ListView.vue'),
+            },
+          ],
+        },
+        {
+          path: 'store/apps',
+          name: 'store-apps-list',
+          component: () => import('@/views/store/apps/ListView.vue'),
+        },
+        {
+          path: 'store/tools',
+          name: 'store-tools-list',
+          component: () => import('@/views/store/tools/ListView.vue'),
+        },
+        {
+          path: 'open',
+          name: 'open-index',
+          component: () => import('@/views/open/IndexView.vue'),
         },
       ],
     },
@@ -43,13 +79,12 @@ const router = createRouter({
       ],
     },
   ],
-});
-router.beforeEach((to, from) => {
-  console.log(to);
-  console.log(from);
-  if (!isLogin() && to.name != 'auth-login') {
-    return { path: '/auth/login' };
-  }
-});
+})
 
-export default router;
+// todo:路由守卫逻辑还未实现
+router.beforeEach(async (to, from) => {
+  if (!isLogin() && to.name != 'auth-login') {
+    return { path: '/auth/login' }
+  }
+})
+export default router

@@ -1,7 +1,7 @@
 <script setup lang="ts"></script>
 
 <template>
-  <router-view />
+  <p>知识库列表页</p>
 </template>
 
 <style scoped></style>

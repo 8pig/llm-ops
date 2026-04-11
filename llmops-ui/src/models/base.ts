@@ -1,16 +1,17 @@
-/* 基础*/
+// 基础响应数据格式
 export type BaseResponse<T> = {
-  code: String;
-  data: T;
-  message: string;
-};
+  code: string
+  message: string
+  data: T
+}
 
+// 基础分页响应数据格式
 export type BasePaginatorResponse<T> = BaseResponse<{
-  list: Array<T>;
+  list: Array<T>
   paginator: {
-    total_page: number;
-    current_page: number;
-    page_size: number;
-    total_record: number;
-  };
-}>;
+    total_page: number
+    total_record: number
+    current_page: number
+    page_size: number
+  }
+}>

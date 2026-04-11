@@ -1,26 +1,25 @@
-import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { defineStore } from 'pinia'
+import { ref } from 'vue'
 
-const initialState = {
-  name: '',
-  email: '',
+// 初始值
+const initAccount = {
+  name: '慕小课',
+  email: 'imooc@163.com',
   avatar: '',
-};
+}
 
 export const useAccountStore = defineStore('account', () => {
-  const account = ref({ ...initialState });
+  // 1.定义数据
+  const account = ref({ ...initAccount })
 
-  const update = (data: Partial<typeof initialState>) => {
-    Object.assign(account.value, data);
-  };
+  // 2.函数/动作
+  function update(params: any) {
+    Object.assign(account.value, params)
+  }
 
-  const clear = () => {
-    account.value = { ...initialState };
-  };
+  function clear() {
+    account.value = { ...initAccount }
+  }
 
-  return {
-    account,
-    update,
-    clear,
-  };
-});
+  return { account, update, clear }
+})
