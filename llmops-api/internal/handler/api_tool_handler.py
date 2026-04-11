@@ -45,7 +45,7 @@ class ApiToolHandler:
         )
 
 
-    def create_api_tool(self):
+    def create_api_tool_provider(self):
         """ 创建api """
 
         # 1. 校验
