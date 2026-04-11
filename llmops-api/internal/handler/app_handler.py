@@ -15,7 +15,7 @@ from openai import OpenAI
 
 from internal.schema.app_schema import  CompletionsReq
 from pkg.response import success_json, validate_error_json, success_message
-from internal.service import AppService
+from internal.service import AppService, ApiToolService
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda, RunnableConfig
 from operator import itemgetter
@@ -25,7 +25,7 @@ from dataclasses import dataclass
 @dataclass
 class AppHandler:
     app_service: AppService
-
+    api_tool_service: ApiToolService
     # provider_factory: ProviderFactory
 
     """应用控制器"""
@@ -117,5 +117,5 @@ class AppHandler:
         return success_json({"content": content})
 
     def ping(self):
-        return success_json({"message": "pong"})
-
+        # return success_json({"message": "pong"})
+        return self.api_tool_service.api_tool_invoke()
