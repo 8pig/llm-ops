@@ -21,6 +21,7 @@ dependencies = [
     "langchain-community>=0.2.1",
     "langchain-huggingface>=1.2.1",
     "langchain-openai>=1.1.11",
+    "langchain-weaviate>=0.0.6",
     "langgraph>=1.0.10",
     "marshmallow>=3.26.2",
     "memory>=1.0.0",

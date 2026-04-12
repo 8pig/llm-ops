@@ -182,6 +182,6 @@ flask --app app.http.app db downgrade
 
 [langchain Docs(py) ](https://docs.langchain.com/oss/python/langchain/quickstart) 
 
-[langchain Docs中文文档) ](https://langchain-doc.cn/) 
+[langchain Docs中文文档 ](https://langchain-doc.cn/) 
 
-[uv/pip) ](https://uv.oaix.tech/blog/2025/06/17/quickly-set-uv-package-index-is-china-mirror/#__tabbed_1_3) 
+[uv/pip](https://uv.oaix.tech/blog/2025/06/17/quickly-set-uv-package-index-is-china-mirror/#__tabbed_1_3) 

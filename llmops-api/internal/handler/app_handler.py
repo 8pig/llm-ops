@@ -1,6 +1,7 @@
 import dataclasses
 import os
 import uuid
+from pathlib import Path
 from typing import Any
 
 from flask import request
@@ -15,7 +16,7 @@ from openai import OpenAI
 
 from internal.schema.app_schema import  CompletionsReq
 from pkg.response import success_json, validate_error_json, success_message
-from internal.service import AppService, ApiToolService
+from internal.service import AppService, ApiToolService, VectorDatabaseService
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda, RunnableConfig
 from operator import itemgetter
@@ -27,6 +28,7 @@ class AppHandler:
     app_service: AppService
     api_tool_service: ApiToolService
     # provider_factory: ProviderFactory
+    # vector_database_service: VectorDatabaseService
 
     """应用控制器"""
     def create_app(self):
@@ -64,21 +66,15 @@ class AppHandler:
         if configurable_memory is not None and isinstance(configurable_memory, BaseMemory):
             configurable_memory.save_context(run_obj.inputs, run_obj.outputs)
 
-
-
-
     def debug(self, app_id: uuid.UUID):
         """聊天接口"""
-        # 1. 提取用户输入
-        # 2. 构建ai客户端发起请求
-        # 3. 得到响应  返回前端
         req = CompletionsReq()
         if not req.validate():
             return validate_error_json(req.errors)
         query = request.json.get("query")
 
         prompt = ChatPromptTemplate.from_messages([
-            ("system", "你是一个强大且有丰富敢情的聊天机器人, 能更具用户的提问回复对应的问题"),
+            ("system", "你是一个强大且有丰富感情的聊天机器人, 能根据用户的提问回复对应的问题, 精准且幽默."),
             MessagesPlaceholder(variable_name="history"),
             ("human", query)
         ])
@@ -93,8 +89,7 @@ class AppHandler:
         )
         # 创建模型
         llm = ChatOpenAI(
-            # model="MiniMax-M2.1",
-            model="qwen3-max-2026-01-23",
+            model="qwen3.6-plus-2026-04-02",
             api_key=os.getenv("OPENAI_API_KEY"),
             base_url=os.getenv("OPENAI_API_BASE_URL"),
         )
@@ -112,7 +107,6 @@ class AppHandler:
                 "memory": memory
             }
         })
-
 
         return success_json({"content": content})
 
