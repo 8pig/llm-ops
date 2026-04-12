@@ -9,7 +9,7 @@ from internal.lib.helper import add_attribute
 
 
 class GaodeWeatherArgusSchema(BaseModel):
-    city: str = Field(..., description="城市名称 例如: 广告")
+    city: str = Field(..., description="城市名称 例如: 广州")
 
 
 
