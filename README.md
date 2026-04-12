@@ -27,9 +27,10 @@
 - **Celery 消息队列**: 异步任务处理
 
 ### 3. 全栈开发
-- **前端**: VUE + TypeScript
-- **后端**: Flask (Python)
+- **前端**: VUE / TypeScript / acro 
+- **后端**: Flask (Python) 
 - **部署**: 本地/云服务部署
+- 数据库: postgres / Weaviate
 
 ---
 
@@ -92,18 +93,34 @@ LANGSMITH_PROJECT="llmops" # project name
 
 
 
+Weaviate
+
+
+
+#### docker postgres 
+
+> docker run  --name postgres-dev -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -d postgres 
+
+3
+
+#### docker Weaviate
+
+> ```bash
+> docker run -d --name weaviate-dev  -p 8080:8080 -p 50051:50051 cr.weaviate.io/semitechnologies/weaviate:1.35.3
+> ```
+
+
 
 
 
 #### run project
+
 ```bash
 # dev
  uv run python app\http\app.py
 ```
 
-#### docker postgres 
 
-> docker run  --name postgres-dev -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -d postgres
 
 
 ##### 初始化生成迁移脚本
@@ -152,7 +169,7 @@ flask --app app.http.app db downgrade
                                                       └──────────────┘
 ```
 
----													  
+---
 ![image](./v2-de187d0b3ac4b7975731b2f1229d67f5_1440w.png)
 
 ---
