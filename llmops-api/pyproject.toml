@@ -5,6 +5,9 @@ description = "LLMOps API Project"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "cos-python-sdk-v5>=1.9.41",
+    "dashscope>=1.25.15",
+    "deepagents>=0.5.2",
     "dashscope>=1.25.15",
     "docx>=0.2.4",
     "dotenv>=0.9.9",

@@ -1,3 +1,4 @@
+import logging
 import os
 
 from flask import Flask, send_from_directory
@@ -9,7 +10,7 @@ from internal.router import Router
 from internal.exception import CustomException
 from pkg.response import json, Response, HttpCode
 from pkg.sqlalchemy import SQLAlchemy
-from internal.model import App
+from internal.extension import logging_extension
 from flask_migrate import Migrate
 
 
@@ -46,13 +47,15 @@ class Http(Flask):
         #     _ = App()
         # db.create_all()
 
+        logging_extension.init_app(self)
+
     def _favicon(self):
         """返回默认的 favicon"""
         return '', 204
 
     def _register_error_handler(self, error: Exception):
         """注册异常处理"""
-        print("异常", error)
+        logging.error("an error occurred: %s", error, exc_info=True )
 
         # 处理 404 错误
         if isinstance(error, NotFound):

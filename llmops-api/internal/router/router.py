@@ -1,6 +1,9 @@
 from injector import inject
 from flask import Flask, Blueprint
-from internal.handler import AppHandler, BuiltinToolHandler, ApiToolHandler
+from internal.handler import (
+AppHandler, BuiltinToolHandler, ApiToolHandler,
+UploadFileHandler
+)
 from dataclasses import dataclass
 
 
@@ -10,6 +13,7 @@ class Router:
     app_handler: AppHandler
     builtin_tool_handler: BuiltinToolHandler
     api_tool_handler: ApiToolHandler
+    upload_file_handler: UploadFileHandler
 
 
 
@@ -90,7 +94,19 @@ class Router:
             view_func=self.api_tool_handler.delete_api_tool_provider,
         )
 
+        # 上传文件模块
+        bp.add_url_rule(
+            "/upload-files/file",
+            methods=["post"],
+            view_func=self.upload_file_handler.upload_file
+        )
 
+
+        bp.add_url_rule(
+            "/upload-files/image",
+            methods=["post"],
+            view_func=self.upload_file_handler.upload_image
+        )
 
         app.register_blueprint(bp)
 

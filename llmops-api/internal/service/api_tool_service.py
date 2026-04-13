@@ -15,7 +15,7 @@ from internal.schema.api_tool_schema import CreateApiToolReq, GetApiToolProvider
 from internal.service.base_service import BaseService
 from pkg.paginator import Paginator
 from pkg.sqlalchemy import SQLAlchemy
-from providers import ApiProviderManager
+from internal.core.tools.api_tools.providers import ApiProviderManager
 
 
 @inject
