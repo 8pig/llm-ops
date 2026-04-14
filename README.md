@@ -93,24 +93,26 @@ LANGSMITH_PROJECT="llmops" # project name
 
 
 
-Weaviate
-
 
 
 #### docker postgres 
+```bash
+docker run  --name postgres-dev -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -d postgres 
+```
 
-> docker run  --name postgres-dev -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -d postgres 
-
-3
 
 #### docker Weaviate
 
-> ```bash
-> docker run -d --name weaviate-dev  -p 8080:8080 -p 50051:50051 cr.weaviate.io/semitechnologies/weaviate:1.35.3
-> ```
+```bash
+ docker run -d --name weaviate-dev  -p 8080:8080 -p 50051:50051 cr.weaviate.io/semitechnologies/weaviate:1.35.3
+```
 
 
 
+#### docker redis
+```bash
+docker run  --name redis-dev -d -p 6379:6379 redis 
+```
 
 
 #### run project

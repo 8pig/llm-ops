@@ -10,7 +10,7 @@ from internal.router import Router
 from internal.exception import CustomException
 from pkg.response import json, Response, HttpCode
 from pkg.sqlalchemy import SQLAlchemy
-from internal.extension import logging_extension
+from internal.extension import logging_extension, redis_extension
 from flask_migrate import Migrate
 
 
@@ -43,9 +43,8 @@ class Http(Flask):
         # 初始化db
         db.init_app(self)
         migrate.init_app(self, db, directory="internal/migration")
-        # with self.app_context():
-        #     _ = App()
-        # db.create_all()
+        
+        redis_extension.init_app(self)
 
         logging_extension.init_app(self)
 

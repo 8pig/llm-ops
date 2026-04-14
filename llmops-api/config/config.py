@@ -23,3 +23,12 @@ class Config:
             "pool_recycle": int(_get_env("SQLALCHEMY_POOL_RECYCLE"))
         }
         self.SQLALCHEMY_ECHO = _get_bool_env("SQLALCHEMY_ECHO")
+
+        #REDIS
+        self.REDIS_HOST = _get_env("REDIS_HOST")
+        self.REDIS_PORT = int(_get_env("REDIS_PORT"))
+        self.REDIS_PASSWORD = _get_env("REDIS_PASSWORD")
+        self.REDIS_USERNAME = _get_bool_env("REDIS_USERNAME")
+        self.REDIS_USE_SSL = _get_bool_env("REDIS_USE_SSL")
+        self.REDIS_DB = int(_get_env("REDIS_DB"))
+
