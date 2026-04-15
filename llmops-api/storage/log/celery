@@ -1,0 +1,93 @@
+[2026-04-14 23:42:21,491: INFO/MainProcess] Connected to redis://127.0.0.1:6379/1
+[2026-04-14 23:42:21,493: INFO/MainProcess] mingle: searching for neighbors
+[2026-04-14 23:42:22,532: INFO/MainProcess] mingle: all alone
+[2026-04-14 23:42:22,548: INFO/MainProcess] pidbox: Connected to redis://127.0.0.1:6379/1.
+[2026-04-14 23:42:22,555: INFO/MainProcess] celery@DESKTOP-420QJ79 ready.
+[2026-04-14 23:42:24,335: INFO/MainProcess] Task internal.task.demo_task.demo_task[b3353d5c-e93c-4721-ae3e-807a3caa9896] received
+[2026-04-14 23:42:24,335: INFO/MainProcess] 睡5秒
+[2026-04-14 23:42:29,340: INFO/MainProcess] id: 7fd654ca-e235-4ab0-be5e-24ba408aee32
+[2026-04-14 23:42:29,387: ERROR/MainProcess] Task internal.task.demo_task.demo_task[b3353d5c-e93c-4721-ae3e-807a3caa9896] raised unexpected: TypeError("unhashable type: 'Config'")
+Traceback (most recent call last):
+  File "D:\code\llm-ops\llmops-api\.venv\Lib\site-packages\celery\app\trace.py", line 585, in trace_task
+    R = retval = fun(*args, **kwargs)
+                 ~~~^^^^^^^^^^^^^^^^^
+  File "D:\code\llm-ops\llmops-api\internal\extension\celery_exetension.py", line 12, in __call__
+    return self.run(*args, **kwargs)
+           ~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\code\llm-ops\llmops-api\internal\task\demo_task.py", line 16, in demo_task
+    logging.info({current_app.config})
+                 ^^^^^^^^^^^^^^^^^^^^
+TypeError: unhashable type: 'Config'
+[2026-04-14 23:43:52,340: INFO/MainProcess] Task internal.task.demo_task.demo_task[22a18047-c299-49e0-b70f-26b85be1338d] received
+[2026-04-14 23:43:52,341: INFO/MainProcess] 睡5秒
+[2026-04-14 23:43:57,346: INFO/MainProcess] id: 2589a878-695e-46f3-bc2d-46326b628100
+[2026-04-14 23:43:57,367: ERROR/MainProcess] Task internal.task.demo_task.demo_task[22a18047-c299-49e0-b70f-26b85be1338d] raised unexpected: TypeError("unhashable type: 'Config'")
+Traceback (most recent call last):
+  File "D:\code\llm-ops\llmops-api\.venv\Lib\site-packages\celery\app\trace.py", line 585, in trace_task
+    R = retval = fun(*args, **kwargs)
+                 ~~~^^^^^^^^^^^^^^^^^
+  File "D:\code\llm-ops\llmops-api\internal\extension\celery_exetension.py", line 12, in __call__
+    return self.run(*args, **kwargs)
+           ~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\code\llm-ops\llmops-api\internal\task\demo_task.py", line 16, in demo_task
+    logging.info(current_app.config)
+                 ^^^^^^^^^^^^^^^^^^^
+TypeError: unhashable type: 'Config'
+[2026-04-14 23:45:35,460: INFO/MainProcess] Task internal.task.demo_task.demo_task[88a91a89-d7b2-468e-a217-1990b2980d21] received
+[2026-04-14 23:45:35,460: INFO/MainProcess] 睡5秒
+[2026-04-14 23:45:40,461: INFO/MainProcess] id: 6e5db311-52f0-4753-9dc6-2d677c4dce5f
+[2026-04-14 23:45:40,496: ERROR/MainProcess] Task internal.task.demo_task.demo_task[88a91a89-d7b2-468e-a217-1990b2980d21] raised unexpected: TypeError("unhashable type: 'Config'")
+Traceback (most recent call last):
+  File "D:\code\llm-ops\llmops-api\.venv\Lib\site-packages\celery\app\trace.py", line 585, in trace_task
+    R = retval = fun(*args, **kwargs)
+                 ~~~^^^^^^^^^^^^^^^^^
+  File "D:\code\llm-ops\llmops-api\internal\extension\celery_exetension.py", line 12, in __call__
+    return self.run(*args, **kwargs)
+           ~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\code\llm-ops\llmops-api\internal\task\demo_task.py", line 16, in demo_task
+    logging.info(f"{current_app.config}")
+                 ^^^^^^^^^^^^^^^^^^^^
+TypeError: unhashable type: 'Config'
+[2026-04-14 23:46:30,615: INFO/MainProcess] Task internal.task.demo_task.demo_task[a4b4e950-a14e-4308-8c6a-e40466561bb7] received
+[2026-04-14 23:46:30,616: INFO/MainProcess] 睡5秒
+[2026-04-14 23:46:35,617: INFO/MainProcess] id: d8b01329-3936-4736-b611-f008174ea091
+[2026-04-14 23:46:35,649: ERROR/MainProcess] Task internal.task.demo_task.demo_task[a4b4e950-a14e-4308-8c6a-e40466561bb7] raised unexpected: TypeError("unhashable type: 'Config'")
+Traceback (most recent call last):
+  File "D:\code\llm-ops\llmops-api\.venv\Lib\site-packages\celery\app\trace.py", line 585, in trace_task
+    R = retval = fun(*args, **kwargs)
+                 ~~~^^^^^^^^^^^^^^^^^
+  File "D:\code\llm-ops\llmops-api\internal\extension\celery_exetension.py", line 12, in __call__
+    return self.run(*args, **kwargs)
+           ~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\code\llm-ops\llmops-api\internal\task\demo_task.py", line 16, in demo_task
+    logging.info(f"config: {dict(current_app.config)}")
+                 ^^^^^^^^^^^^^^^^^^^^
+TypeError: unhashable type: 'Config'
+[2026-04-14 23:47:47,982: INFO/MainProcess] Connected to redis://127.0.0.1:6379/1
+[2026-04-14 23:47:47,986: INFO/MainProcess] mingle: searching for neighbors
+[2026-04-14 23:47:49,008: INFO/MainProcess] mingle: all alone
+[2026-04-14 23:47:49,015: INFO/MainProcess] celery@DESKTOP-420QJ79 ready.
+[2026-04-14 23:47:49,021: INFO/MainProcess] pidbox: Connected to redis://127.0.0.1:6379/1.
+[2026-04-14 23:47:57,752: INFO/MainProcess] Task internal.task.demo_task.demo_task[00ea1c3f-95d1-4215-ae1b-a4df06e92e11] received
+[2026-04-14 23:47:57,753: INFO/MainProcess] 睡5秒
+[2026-04-14 23:48:02,761: INFO/MainProcess] id: 9975a269-579f-41c7-a8bb-b087ca7c73ca
+[2026-04-14 23:48:02,761: INFO/MainProcess] config: {'DEBUG': True, 'TESTING': False, 'PROPAGATE_EXCEPTIONS': None, 'SECRET_KEY': None, 'SECRET_KEY_FALLBACKS': None, 'PERMANENT_SESSION_LIFETIME': datetime.timedelta(days=31), 'USE_X_SENDFILE': False, 'TRUSTED_HOSTS': None, 'SERVER_NAME': None, 'APPLICATION_ROOT': '/', 'SESSION_COOKIE_NAME': 'session', 'SESSION_COOKIE_DOMAIN': None, 'SESSION_COOKIE_PATH': None, 'SESSION_COOKIE_HTTPONLY': True, 'SESSION_COOKIE_SECURE': False, 'SESSION_COOKIE_PARTITIONED': False, 'SESSION_COOKIE_SAMESITE': None, 'SESSION_REFRESH_EACH_REQUEST': True, 'MAX_CONTENT_LENGTH': None, 'MAX_FORM_MEMORY_SIZE': 500000, 'MAX_FORM_PARTS': 1000, 'SEND_FILE_MAX_AGE_DEFAULT': None, 'TRAP_BAD_REQUEST_ERRORS': None, 'TRAP_HTTP_EXCEPTIONS': False, 'EXPLAIN_TEMPLATE_LOADING': False, 'PREFERRED_URL_SCHEME': 'http', 'TEMPLATES_AUTO_RELOAD': None, 'MAX_COOKIE_SIZE': 4093, 'PROVIDE_AUTOMATIC_OPTIONS': True, 'CELERY': {'broker_url': 'redis://127.0.0.1:6379/1', 'result_backend': 'redis://127.0.0.1:6379/1', 'task_ignore_result': False, 'result_expires': 3600, 'broker_connection_retry_on_startup': True}, 'REDIS_DB': 0, 'REDIS_HOST': '127.0.0.1', 'REDIS_PASSWORD': '', 'REDIS_PORT': 6379, 'REDIS_USERNAME': False, 'REDIS_USE_SSL': False, 'SQLALCHEMY_DATABASE_URI': 'postgresql://postgres:postgres@localhost:5432/llmops?client_encoding=utf8', 'SQLALCHEMY_ECHO': True, 'WTF_CSRF_ENABLED': False, 'SQLALCHEMY_ENGINE_OPTIONS': {}, 'SQLALCHEMY_BINDS': {}, 'SQLALCHEMY_RECORD_QUERIES': False, 'SQLALCHEMY_TRACK_MODIFICATIONS': False}
+[2026-04-14 23:48:02,762: WARNING/MainProcess] demo task
+[2026-04-14 23:48:02,788: INFO/MainProcess] Task internal.task.demo_task.demo_task[00ea1c3f-95d1-4215-ae1b-a4df06e92e11] succeeded in 5.0358263999951305s: 'demo task'
+[2026-04-14 23:51:16,599: INFO/MainProcess] Connected to redis://127.0.0.1:6379/1
+[2026-04-14 23:51:16,602: INFO/MainProcess] mingle: searching for neighbors
+[2026-04-14 23:51:17,624: INFO/MainProcess] mingle: all alone
+[2026-04-14 23:51:17,631: INFO/MainProcess] celery@DESKTOP-420QJ79 ready.
+[2026-04-14 23:51:17,634: INFO/MainProcess] pidbox: Connected to redis://127.0.0.1:6379/1.
+[2026-04-14 23:52:05,389: INFO/MainProcess] Task internal.task.demo_task.demo_task[602ad4bd-368f-4932-a7ce-bfb3405f6cd0] received
+[2026-04-14 23:52:05,390: INFO/MainProcess] 睡5秒
+[2026-04-14 23:52:10,405: INFO/MainProcess] id: 4e86f0ba-a9c1-4502-b484-b23c55e20fde
+[2026-04-14 23:52:10,405: INFO/MainProcess] config: {'DEBUG': True, 'TESTING': False, 'PROPAGATE_EXCEPTIONS': None, 'SECRET_KEY': None, 'SECRET_KEY_FALLBACKS': None, 'PERMANENT_SESSION_LIFETIME': datetime.timedelta(days=31), 'USE_X_SENDFILE': False, 'TRUSTED_HOSTS': None, 'SERVER_NAME': None, 'APPLICATION_ROOT': '/', 'SESSION_COOKIE_NAME': 'session', 'SESSION_COOKIE_DOMAIN': None, 'SESSION_COOKIE_PATH': None, 'SESSION_COOKIE_HTTPONLY': True, 'SESSION_COOKIE_SECURE': False, 'SESSION_COOKIE_PARTITIONED': False, 'SESSION_COOKIE_SAMESITE': None, 'SESSION_REFRESH_EACH_REQUEST': True, 'MAX_CONTENT_LENGTH': None, 'MAX_FORM_MEMORY_SIZE': 500000, 'MAX_FORM_PARTS': 1000, 'SEND_FILE_MAX_AGE_DEFAULT': None, 'TRAP_BAD_REQUEST_ERRORS': None, 'TRAP_HTTP_EXCEPTIONS': False, 'EXPLAIN_TEMPLATE_LOADING': False, 'PREFERRED_URL_SCHEME': 'http', 'TEMPLATES_AUTO_RELOAD': None, 'MAX_COOKIE_SIZE': 4093, 'PROVIDE_AUTOMATIC_OPTIONS': True, 'CELERY': {'broker_url': 'redis://127.0.0.1:6379/1', 'result_backend': 'redis://127.0.0.1:6379/1', 'task_ignore_result': False, 'result_expires': 3600, 'broker_connection_retry_on_startup': True}, 'REDIS_DB': 0, 'REDIS_HOST': '127.0.0.1', 'REDIS_PASSWORD': '', 'REDIS_PORT': 6379, 'REDIS_USERNAME': False, 'REDIS_USE_SSL': False, 'SQLALCHEMY_DATABASE_URI': 'postgresql://postgres:postgres@localhost:5432/llmops?client_encoding=utf8', 'SQLALCHEMY_ECHO': True, 'WTF_CSRF_ENABLED': False, 'SQLALCHEMY_ENGINE_OPTIONS': {}, 'SQLALCHEMY_BINDS': {}, 'SQLALCHEMY_RECORD_QUERIES': False, 'SQLALCHEMY_TRACK_MODIFICATIONS': False}
+[2026-04-14 23:52:10,406: WARNING/MainProcess] demo task
+[2026-04-14 23:52:10,423: INFO/MainProcess] Task internal.task.demo_task.demo_task[602ad4bd-368f-4932-a7ce-bfb3405f6cd0] succeeded in 5.033341800000926s: 'demo task'
+[2026-04-14 23:56:42,306: INFO/MainProcess] Task internal.task.demo_task.demo_task[cc2a8065-5be3-44cf-84ed-2a738ca48ee0] received
+[2026-04-14 23:56:42,306: INFO/MainProcess] 睡5秒
+[2026-04-14 23:56:47,317: INFO/MainProcess] id: 5f88c5ef-edab-4c08-b176-5428c26ca5be
+[2026-04-14 23:56:47,318: INFO/MainProcess] config: {'DEBUG': True, 'TESTING': False, 'PROPAGATE_EXCEPTIONS': None, 'SECRET_KEY': None, 'SECRET_KEY_FALLBACKS': None, 'PERMANENT_SESSION_LIFETIME': datetime.timedelta(days=31), 'USE_X_SENDFILE': False, 'TRUSTED_HOSTS': None, 'SERVER_NAME': None, 'APPLICATION_ROOT': '/', 'SESSION_COOKIE_NAME': 'session', 'SESSION_COOKIE_DOMAIN': None, 'SESSION_COOKIE_PATH': None, 'SESSION_COOKIE_HTTPONLY': True, 'SESSION_COOKIE_SECURE': False, 'SESSION_COOKIE_PARTITIONED': False, 'SESSION_COOKIE_SAMESITE': None, 'SESSION_REFRESH_EACH_REQUEST': True, 'MAX_CONTENT_LENGTH': None, 'MAX_FORM_MEMORY_SIZE': 500000, 'MAX_FORM_PARTS': 1000, 'SEND_FILE_MAX_AGE_DEFAULT': None, 'TRAP_BAD_REQUEST_ERRORS': None, 'TRAP_HTTP_EXCEPTIONS': False, 'EXPLAIN_TEMPLATE_LOADING': False, 'PREFERRED_URL_SCHEME': 'http', 'TEMPLATES_AUTO_RELOAD': None, 'MAX_COOKIE_SIZE': 4093, 'PROVIDE_AUTOMATIC_OPTIONS': True, 'CELERY': {'broker_url': 'redis://127.0.0.1:6379/1', 'result_backend': 'redis://127.0.0.1:6379/1', 'task_ignore_result': False, 'result_expires': 3600, 'broker_connection_retry_on_startup': True}, 'REDIS_DB': 0, 'REDIS_HOST': '127.0.0.1', 'REDIS_PASSWORD': '', 'REDIS_PORT': 6379, 'REDIS_USERNAME': False, 'REDIS_USE_SSL': False, 'SQLALCHEMY_DATABASE_URI': 'postgresql://postgres:postgres@localhost:5432/llmops?client_encoding=utf8', 'SQLALCHEMY_ECHO': True, 'WTF_CSRF_ENABLED': False, 'SQLALCHEMY_ENGINE_OPTIONS': {}, 'SQLALCHEMY_BINDS': {}, 'SQLALCHEMY_RECORD_QUERIES': False, 'SQLALCHEMY_TRACK_MODIFICATIONS': False}
+[2026-04-14 23:56:47,318: WARNING/MainProcess] demo task
+[2026-04-14 23:56:47,339: INFO/MainProcess] Task internal.task.demo_task.demo_task[cc2a8065-5be3-44cf-84ed-2a738ca48ee0] succeeded in 5.032842699998582s: 'demo task'

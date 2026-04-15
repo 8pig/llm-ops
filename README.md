@@ -118,6 +118,9 @@ docker run  --name redis-dev -d -p 6379:6379 redis
 #### run project
 
 ```bash
+# celery 异步任务处理
+celery -A app.http.app.celery worker -l info --pool eventlet --logfile storage/log/celery.log
+
 # dev
  uv run python app\http\app.py
 ```

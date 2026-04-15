@@ -37,6 +37,8 @@ dependencies = [
     "sentence-transformers>=5.3.0",
     "unstructured>=0.21.5",
     "redis>=7.4.0",
+    "celery>=5.6.3",
+    "eventlet>=0.41.0",
 ]
 
 [tool.setuptools.packages.find]

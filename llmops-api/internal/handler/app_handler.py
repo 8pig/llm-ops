@@ -15,6 +15,7 @@ from langchain_openai import ChatOpenAI
 from openai import OpenAI
 
 from internal.schema.app_schema import  CompletionsReq
+from internal.task.demo_task import demo_task
 from pkg.response import success_json, validate_error_json, success_message
 from internal.service import AppService, ApiToolService, VectorDatabaseService
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -112,4 +113,5 @@ class AppHandler:
 
     def ping(self):
         # return success_json({"message": "pong"})
+        demo_task.delay(uuid.uuid4())
         return self.api_tool_service.api_tool_invoke()
