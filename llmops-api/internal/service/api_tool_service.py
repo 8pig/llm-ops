@@ -126,13 +126,6 @@ class ApiToolService(BaseService):
         account_id = "550e8400-e29b-41d4-a716-446655440000"
 
         openapi_schema = self.parse_openapi_schema(req.openapi_schema.data)
-        print("111")
-        print({
-            'name': req.name.data,
-            'icon': req.icon.data,
-            'openapi_schema': req.openapi_schema.data[:100] + '...',  # 只打印前100字符
-            'headers': req.headers.data
-        })
 
         api_tool_provider = self.db.session.query(ApiToolProvider).filter(
             ApiToolProvider.account_id == account_id,

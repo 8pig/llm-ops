@@ -16,7 +16,6 @@ from sqlalchemy.dialects.postgresql import JSONB
 from internal.extension.database_extension import db
 from .app import AppDatasetJoin
 
-
 class Dataset(db.Model):
     """知识库表"""
     __tablename__ = "dataset"
@@ -60,6 +59,7 @@ class Dataset(db.Model):
     @property
     def related_app_count(self) -> int:
         """只读属性，获取该知识库关联的应用数"""
+
         return (
             db.session.
             query(func.count(AppDatasetJoin.id)).

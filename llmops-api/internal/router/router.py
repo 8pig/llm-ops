@@ -1,8 +1,8 @@
 from injector import inject
 from flask import Flask, Blueprint
 from internal.handler import (
-AppHandler, BuiltinToolHandler, ApiToolHandler,
-UploadFileHandler
+    AppHandler, BuiltinToolHandler, ApiToolHandler,
+    UploadFileHandler, DatasetHandler
 )
 from dataclasses import dataclass
 
@@ -14,6 +14,7 @@ class Router:
     builtin_tool_handler: BuiltinToolHandler
     api_tool_handler: ApiToolHandler
     upload_file_handler: UploadFileHandler
+    dataset_handler: DatasetHandler
 
 
 
@@ -107,6 +108,30 @@ class Router:
             methods=["post"],
             view_func=self.upload_file_handler.upload_image
         )
+
+        # 知识库模块
+        bp.add_url_rule(
+            "/datasets",
+            methods=["get"],
+            view_func=self.dataset_handler.get_datasets_with_page
+        )
+        bp.add_url_rule(
+            "/datasets",
+            methods=["post"],
+            view_func=self.dataset_handler.create_dataset
+        )
+        bp.add_url_rule(
+            "/datasets/<uuid:dataset_id>",
+            methods=["get"],
+            view_func=self.dataset_handler.get_dataset
+        )
+        bp.add_url_rule(
+            "/datasets/<uuid:dataset_id>",
+            methods=["post"],
+            view_func=self.dataset_handler.update_dataset
+        )
+
+
 
         app.register_blueprint(bp)
 
