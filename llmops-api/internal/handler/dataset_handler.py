@@ -1,14 +1,22 @@
 import logging
+from flask import request
+from gitdb.util import mman
 
 from injector import inject
 from dataclasses import dataclass
 
+from pyarrow.lib import UUID
+
 from internal.schema.dataset_schema import (
-CreateDatasetReq
+    CreateDatasetReq,
+    GetDatasetResp,
+    UpdateDatasetReq,
+    GetDatasetsWithPageReq,
+    GetDatasetWithPageResp
 )
+from pkg.paginator import PageModel
 from pkg.response import validate_error_json, success_message, success_json
 from internal.service import DatasetService
-from schema.dataset_schema import GetDatasetResp
 
 
 @inject
@@ -35,12 +43,26 @@ class DatasetHandler:
         return success_json(resp.dump(dataset))
 
 
-    def update_dataset(self, dataset_id: str):
-        """"""
-        pass
+    def update_dataset(self, dataset_id: UUID):
+        req = UpdateDatasetReq()
+        if not req.validate():
+            return validate_error_json(req.errors)
+
+        dataset = self.dataset_service.update_dataset(dataset_id, req)
+        return success_message(f"{dataset.name}更新成功")
+
 
 
 
     def get_datasets_with_page(self):
         """"""
-        pass
+        req = GetDatasetsWithPageReq(request.args)
+
+        if not req.validate():
+            return validate_error_json(req.errors)
+
+        datasets, paginator = self.dataset_service.get_datasets_with_page(req)
+
+        resp = GetDatasetWithPageResp(many=True)
+
+        return success_json(PageModel(list=resp.dump(datasets), paginator=paginator))
