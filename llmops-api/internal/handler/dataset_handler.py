@@ -34,7 +34,7 @@ class DatasetHandler:
         """测试embedding"""
         try:
             print("开始处理文件")
-            file_id = "a1aa0764-6429-461d-9dc1-decd4fcd53d6"
+            file_id = "11cdbd5c-5555-4b9b-8f26-45ab2c84f793"
             print(f"开始查询文件: {file_id}")
 
             upload_file = self.db.session.query(UploadFile).get(file_id)

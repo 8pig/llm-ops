@@ -4,6 +4,8 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Union
+from langchain_community.document_loaders import PyMuPDFLoader
+
 
 import requests
 from injector import inject
@@ -81,7 +83,7 @@ class FileExtractor:
         elif file_extension == ".pdf":
             print("aaaa")
             logging.info("123")
-            loader = UnstructuredPDFLoader(file_path)
+            loader = PyMuPDFLoader(file_path)
         elif file_extension in [".md", ".markdown"]:
             loader = UnstructuredMarkdownLoader(file_path)
         elif file_extension in [".htm", ".html"]:

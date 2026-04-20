@@ -41,6 +41,7 @@ dependencies = [
     "langchain-ollama>=1.1.0",
     "jieba>=0.42.1",
     "unstructured-inference>=1.6.6",
+    "pymupdf>=1.27.2.2",
 ]
 
 [tool.setuptools.packages.find]
