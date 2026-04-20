@@ -121,6 +121,8 @@ COS_SCHEME=https
 COS_DOMAIN=
 
 
+EMBEDDING_MODEL=qwen3-embedding:0.6b
+OLLAMA_BASE_URL=http://127.0.0.1:11434
 
 ```
 
@@ -146,6 +148,9 @@ docker run  --name postgres-dev -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGR
 ```bash
 docker run  --name redis-dev -d -p 6379:6379 redis 
 ```
+
+#### embedding  local
+> 开发环境使用ollama运行qw3-embedding:0.6b, 根据实际情况选择模型
 
 
 #### run project

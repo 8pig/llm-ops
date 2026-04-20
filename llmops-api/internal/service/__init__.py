@@ -6,6 +6,7 @@ from .vector_database_service import VectorDatabaseService
 from .upload_file_service import UploadFileService
 from .cos_service import CosService
 from .dataset_service import DatasetService
+from .embeddings_service import EmbeddingsService
 __all__ = [
     "BaseService",
     "AppService",
@@ -15,4 +16,6 @@ __all__ = [
     "UploadFileService",
     "CosService",
     "DatasetService",
+    "EmbeddingsService",
+
    ]

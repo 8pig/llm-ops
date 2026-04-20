@@ -16,13 +16,22 @@ from internal.schema.dataset_schema import (
 )
 from pkg.paginator import PageModel
 from pkg.response import validate_error_json, success_message, success_json
-from internal.service import DatasetService
+from internal.service import DatasetService,EmbeddingsService
 
 
 @inject
 @dataclass
 class DatasetHandler:
     dataset_service: DatasetService
+    embedding_service: EmbeddingsService
+
+
+
+    def embedding_query(self):
+        """测试embedding"""
+        query = request.args.get("query")
+        vectors = self.embedding_service.cache_backed_embeddings.embed_query(query)
+        return success_json({"vectors": vectors})
 
     def create_dataset(self):
 
