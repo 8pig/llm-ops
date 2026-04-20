@@ -1,8 +1,9 @@
 from injector import inject
 from flask import Flask, Blueprint
+
 from internal.handler import (
     AppHandler, BuiltinToolHandler, ApiToolHandler,
-    UploadFileHandler, DatasetHandler
+    UploadFileHandler, DatasetHandler, DocumentHandler
 )
 from dataclasses import dataclass
 
@@ -15,6 +16,7 @@ class Router:
     api_tool_handler: ApiToolHandler
     upload_file_handler: UploadFileHandler
     dataset_handler: DatasetHandler
+    document_handler: DocumentHandler
 
 
 
@@ -134,6 +136,12 @@ class Router:
         bp.add_url_rule(
             "/datasets/embeddings",
             view_func=self.dataset_handler.embedding_query
+        )
+
+        bp.add_url_rule(
+            "/datasets/<uuid:dataset_id>/documents",
+            methods=["post"],
+            view_func=self.document_handler.create_document
         )
 
 

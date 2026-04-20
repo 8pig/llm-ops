@@ -8,6 +8,8 @@ from .cos_service import CosService
 from .dataset_service import DatasetService
 from .embeddings_service import EmbeddingsService
 from .jieba_service import JiebaService
+from .document_service import DocumentService
+
 __all__ = [
     "BaseService",
     "AppService",
@@ -19,5 +21,5 @@ __all__ = [
     "DatasetService",
     "EmbeddingsService",
     "JiebaService",
-
+    "DocumentService"
    ]
