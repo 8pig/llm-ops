@@ -7,6 +7,7 @@ from .upload_file_service import UploadFileService
 from .cos_service import CosService
 from .dataset_service import DatasetService
 from .embeddings_service import EmbeddingsService
+from .jieba_service import JiebaService
 __all__ = [
     "BaseService",
     "AppService",
@@ -17,5 +18,6 @@ __all__ = [
     "CosService",
     "DatasetService",
     "EmbeddingsService",
+    "JiebaService",
 
    ]

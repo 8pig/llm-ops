@@ -1,7 +1,6 @@
 import dataclasses
 import os
 import uuid
-from pathlib import Path
 from typing import Any
 
 from flask import request
@@ -12,7 +11,6 @@ from langchain_community.chat_message_histories import FileChatMessageHistory
 from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
 from langchain_core.tracers import Run
 from langchain_openai import ChatOpenAI
-from openai import OpenAI
 
 from internal.schema.app_schema import  CompletionsReq
 from internal.task.demo_task import demo_task

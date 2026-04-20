@@ -1,9 +1,8 @@
-import logging
+﻿import logging
+
 from flask import request
-from gitdb.util import mman
 
 from injector import inject
-from dataclasses import dataclass
 
 from pyarrow.lib import UUID
 
@@ -14,24 +13,54 @@ from internal.schema.dataset_schema import (
     GetDatasetsWithPageReq,
     GetDatasetWithPageResp
 )
+from internal.model import UploadFile
 from pkg.paginator import PageModel
 from pkg.response import validate_error_json, success_message, success_json
-from internal.service import DatasetService,EmbeddingsService
-
+from internal.service import DatasetService,EmbeddingsService, JiebaService
+from internal.core.file_extractor import FileExtractor
+from pkg.db import SQLAlchemy
+from dataclasses import dataclass
 
 @inject
 @dataclass
 class DatasetHandler:
     dataset_service: DatasetService
     embedding_service: EmbeddingsService
-
-
+    jieba_service: JiebaService
+    file_extractor: FileExtractor
+    db: SQLAlchemy
 
     def embedding_query(self):
         """测试embedding"""
-        query = request.args.get("query")
-        vectors = self.embedding_service.cache_backed_embeddings.embed_query(query)
-        return success_json({"vectors": vectors})
+        try:
+            print("开始处理文件")
+            file_id = "a1aa0764-6429-461d-9dc1-decd4fcd53d6"
+            print(f"开始查询文件: {file_id}")
+
+            upload_file = self.db.session.query(UploadFile).get(file_id)
+
+            if not upload_file:
+                print(f"文件不存在: {file_id}")
+                return success_json({"error": "文件不存在", "file_id": file_id})
+
+            print(f"文件信息: name={upload_file.name}, key={upload_file.key}, extension={upload_file.extension}")
+
+            content = self.file_extractor.load(upload_file, True)
+
+            print(f"文件内容长度: {len(content) if content else 0}")
+
+            query = request.args.get("query", content[:100] if content else "")
+
+
+            return success_json({
+                "content": content,
+            })
+        except Exception as e:
+            logging.error(f"处理文件时出错: {str(e)}", exc_info=True)
+            return success_json({
+                "error": f"处理文件失败: {str(e)}",
+                "error_type": type(e).__name__
+            })
 
     def create_dataset(self):
 

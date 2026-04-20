@@ -1,6 +1,6 @@
 import uuid
 
-from pkg.sqlalchemy import SQLAlchemy
+from pkg.db import SQLAlchemy
 from injector import inject
 from dataclasses import dataclass
 from internal.model import App

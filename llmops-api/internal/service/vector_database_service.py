@@ -9,7 +9,7 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_weaviate import WeaviateVectorStore
 from weaviate import WeaviateClient
 
-from service import EmbeddingsService
+from .embeddings_service import EmbeddingsService
 
 
 @inject

@@ -1,2 +1,2 @@
-from pkg.sqlalchemy.sqlalchemy import SQLAlchemy
+from pkg.db.sqlalchemy import SQLAlchemy
 db = SQLAlchemy()

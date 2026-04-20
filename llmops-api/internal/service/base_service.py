@@ -1,7 +1,7 @@
 from typing import Any, Optional
 
 from internal.exception import FailException
-from pkg.sqlalchemy import SQLAlchemy
+from pkg.db import SQLAlchemy
 
 
 class BaseService:

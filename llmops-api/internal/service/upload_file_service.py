@@ -14,7 +14,7 @@ from internal.entity.upload_file_entity import ALLOWED_DOCUMENT_EXTENSIONS, ALLO
 from internal.exception import FailException
 from internal.model import UploadFile
 from internal.service import BaseService
-from pkg.sqlalchemy import SQLAlchemy
+from pkg.db import SQLAlchemy
 
 
 @inject

@@ -34,17 +34,20 @@ dependencies = [
     "pydantic>=2.12.5",
     "pytest>=9.0.2",
     "python-dotenv>=1.2.1",
-    "sentence-transformers>=5.3.0",
-    "unstructured>=0.21.5",
+    "unstructured[all-docs]>=0.21.5",
     "redis>=7.4.0",
     "celery>=5.6.3",
     "eventlet>=0.41.0",
     "langchain-ollama>=1.1.0",
+    "jieba>=0.42.1",
 ]
 
 [tool.setuptools.packages.find]
 include = ["app*", "config*", "internal*", "pkg*"]
 exclude = ["study*", "test*"]
+
+[tool.uv]
+link-mode = "copy"
 
 [[tool.uv.index]]
 url = "https://mirrors.aliyun.com/pypi/simple/"

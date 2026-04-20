@@ -10,7 +10,7 @@ from exception import FailException, ValidateException
 from internal.model import Dataset
 from pkg.paginator import Paginator
 from pkg.response import success_json
-from pkg.sqlalchemy import SQLAlchemy
+from pkg.db import SQLAlchemy
 from schema.dataset_schema import CreateDatasetReq, GetDatasetResp, UpdateDatasetReq, GetDatasetsWithPageReq
 from .base_service import BaseService
 

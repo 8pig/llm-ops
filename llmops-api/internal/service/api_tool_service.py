@@ -14,7 +14,7 @@ from internal.model import ApiToolProvider, ApiTool, api_tool
 from internal.schema.api_tool_schema import CreateApiToolReq, GetApiToolProviderWithPageReq, UpdateApiToolProviderReq
 from internal.service.base_service import BaseService
 from pkg.paginator import Paginator
-from pkg.sqlalchemy import SQLAlchemy
+from pkg.db import SQLAlchemy
 from internal.core.tools.api_tools.providers import ApiProviderManager
 
 

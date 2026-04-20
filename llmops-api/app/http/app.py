@@ -1,10 +1,17 @@
-from pkg.sqlalchemy import SQLAlchemy
+﻿import warnings
+# 忽略第三方库的警告
+warnings.filterwarnings("ignore", category=SyntaxWarning, module="jieba")
+warnings.filterwarnings("ignore", category=UserWarning, module="jieba")
+warnings.filterwarnings("ignore", category=ResourceWarning)
+
+
 from injector import Injector
 from config import Config
 from internal.router import Router
 from internal.server import Http
 from internal.model.module import ExtensionModule
 from flask_migrate import Migrate
+from pkg.db import SQLAlchemy
 import dotenv
 dotenv.load_dotenv()
 
@@ -31,4 +38,4 @@ celery = app.extensions["celery"]
 
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=5000, debug=True)
+    app.run(host='127.0.0.1', port=5000, debug=False)

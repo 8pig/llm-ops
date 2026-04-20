@@ -3,7 +3,7 @@ from redis import Redis
 
 from internal.extension.database_extension import db
 from internal.extension.redis_extension import redis_client
-from pkg.sqlalchemy import SQLAlchemy
+from pkg.db import SQLAlchemy
 from flask_migrate import  Migrate
 from internal.extension.migrate_extension import  migrate
 

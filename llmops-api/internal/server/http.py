@@ -9,7 +9,7 @@ from config import Config
 from internal.router import Router
 from internal.exception import CustomException
 from pkg.response import json, Response, HttpCode
-from pkg.sqlalchemy import SQLAlchemy
+from pkg.db import SQLAlchemy
 from internal.extension import logging_extension, redis_extension, celery_exetension
 from flask_migrate import Migrate
 

@@ -6,7 +6,7 @@ from flask_wtf import FlaskForm
 from wtforms import IntegerField
 from wtforms.validators import Optional, NumberRange
 
-from pkg.sqlalchemy import SQLAlchemy
+from pkg.db import SQLAlchemy
 
 
 class PaginatorReq(FlaskForm):
