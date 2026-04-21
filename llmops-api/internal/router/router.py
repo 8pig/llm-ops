@@ -145,6 +145,12 @@ class Router:
         )
 
 
+        bp.add_url_rule(
+            "/datasets/<uuid:dataset_id>/hit",
+            methods=["post"],
+            view_func=self.dataset_handler.hit
+        )
+
 
         app.register_blueprint(bp)
 

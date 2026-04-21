@@ -4,7 +4,7 @@ from flask import request
 
 from injector import inject
 
-from pyarrow.lib import UUID
+from uuid import UUID
 
 from internal.schema.dataset_schema import (
     CreateDatasetReq,
@@ -16,7 +16,7 @@ from internal.schema.dataset_schema import (
 from internal.model import UploadFile
 from pkg.paginator import PageModel
 from pkg.response import validate_error_json, success_message, success_json
-from internal.service import DatasetService,EmbeddingsService, JiebaService
+from internal.service import DatasetService,EmbeddingsService, JiebaService, VectorDatabaseService
 from internal.core.file_extractor import FileExtractor
 from pkg.db import SQLAlchemy
 from dataclasses import dataclass
@@ -24,11 +24,13 @@ from dataclasses import dataclass
 @inject
 @dataclass
 class DatasetHandler:
+    db: SQLAlchemy
     dataset_service: DatasetService
     embedding_service: EmbeddingsService
     jieba_service: JiebaService
     file_extractor: FileExtractor
-    db: SQLAlchemy
+    vector_database_service: VectorDatabaseService
+
 
     def embedding_query(self):
         """测试embedding"""
@@ -61,6 +63,34 @@ class DatasetHandler:
                 "error": f"处理文件失败: {str(e)}",
                 "error_type": type(e).__name__
             })
+
+    def hit(self, dataset_id: UUID):
+        from weaviate.classes.query import  Filter
+        query = "Agent"
+        retriever = self.vector_database_service.vector_store.as_retriever(
+            search_type="mmr",
+            search_kwargs={
+                "k": 10,
+                "filters": Filter.all_of([
+                    Filter.by_property("document_enabled").equal(True),
+                    Filter.by_property("segment_enabled").equal(True),
+                    Filter.any_of([
+                        Filter.by_property("dataset_id").equal("713cd447-c59c-4368-9f9e-c9d06e1cc0f6"),
+                        Filter.by_property("dataset_id").equal("113cd447-c59c-4368-9f9e-c9d06e1cc0f6")
+                    ])
+                ])
+            }
+        )
+        documents = retriever.invoke(query)
+        return success_json({"document": [
+            {
+                "page_content": document.page_content,
+                "metadata": document.metadata
+            } for document in documents
+        ]})
+
+
+
 
     def create_dataset(self):
 
