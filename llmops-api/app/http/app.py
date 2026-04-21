@@ -12,6 +12,7 @@ from internal.server import Http
 from internal.model.module import ExtensionModule
 from flask_migrate import Migrate
 from pkg.db import SQLAlchemy
+from internal.model.module import injector
 import dotenv
 dotenv.load_dotenv()
 
@@ -19,9 +20,7 @@ conf = Config()
 
 
 
-injector = Injector([
-    ExtensionModule
-])
+
 
 
 

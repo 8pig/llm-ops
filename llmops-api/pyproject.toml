@@ -42,6 +42,7 @@ dependencies = [
     "jieba>=0.42.1",
     "unstructured-inference>=1.6.6",
     "pymupdf>=1.27.2.2",
+    "celery-types>=0.26.0",
 ]
 
 [tool.setuptools.packages.find]

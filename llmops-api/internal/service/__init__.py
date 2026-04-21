@@ -9,6 +9,7 @@ from .dataset_service import DatasetService
 from .embeddings_service import EmbeddingsService
 from .jieba_service import JiebaService
 from .document_service import DocumentService
+from .indexing_service import IndexingService
 
 __all__ = [
     "BaseService",
@@ -21,5 +22,6 @@ __all__ = [
     "DatasetService",
     "EmbeddingsService",
     "JiebaService",
-    "DocumentService"
+    "DocumentService",
+    "IndexingService"
    ]
