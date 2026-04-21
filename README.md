@@ -218,7 +218,23 @@ flask --app app.http.app db downgrade
 ---
 
 
+
+#### PARSING Error
+
+> he words “dog”, “cat” and “banana” are all pretty common in English, so they’re part of the pipeline’s vocabulary, and come with a vector. The word “afskfsd” on the other hand is a lot less common and out-of-vocabulary – so its vector representation consists of 300 dimensions of `0`, which means it’s practically nonexistent. If your application will benefit from a large vocabulary with more vectors, you should consider using one of the larger pipeline packages or loading in a full vector package, for example, [`en_core_web_lg`](https://spacy.io/models/en#en_core_web_lg), which includes 685k unique vectors.
+>
+> [spacy](https://release-assets.githubusercontent.com/github-production-release-asset/84940268/15132ab6-4050-4914-8fe8-ac2c2fdcb9cf?sp=r&sv=2018-11-09&sr=b&spr=https&se=2026-04-21T16%3A41%3A16Z&rscd=attachment%3B+filename%3Den_core_web_sm-3.8.0-py3-none-any.whl&rsct=application%2Foctet-stream&skoid=96c2d410-5711-43a1-aedd-ab1947aa7ab0&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skt=2026-04-21T15%3A41%3A12Z&ske=2026-04-21T16%3A41%3A16Z&sks=b&skv=2018-11-09&sig=aHrTt9wj8TfEgObDEoIzzNVlpSij42nozL%2BwdsAW34c%3D&jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmVsZWFzZS1hc3NldHMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwia2V5Ijoia2V5MSIsImV4cCI6MTc3Njc4Nzg3MiwibmJmIjoxNzc2Nzg2MDcyLCJwYXRoIjoicmVsZWFzZWFzc2V0cHJvZHVjdGlvbi5ibG9iLmNvcmUud2luZG93cy5uZXQifQ.ZhgBi8DhMZDGxlME2M_MlPB7iubVUKFXdStaeWcZwd0&response-content-disposition=attachment%3B%20filename%3Den_core_web_sm-3.8.0-py3-none-any.whl&response-content-type=application%2Foctet-stream)
+
+```
+pip install en_core_web_sm-3.8.0-py3-none-any.whl
+```
+
+
+
+
+
 #### 参考文档
+
 [Hello-Agents](https://datawhalechina.github.io/hello-agents/#/) 
 
 [langchain Docs(TS) ](https://docs.langchain.com/oss/javascript/langchain/quickstart) 
