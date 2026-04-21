@@ -116,17 +116,13 @@ class Document(db.Model):
 
     @property
     def upload_file(self) -> "UploadFile":
-        return UploadFile.query(
-            UploadFile
-        ).filter(
+        return db.session.query(UploadFile).filter(
             UploadFile.id == self.upload_file_id
         ).one_or_none()
 
     @property
     def process_rule(self) -> "ProcessRule":
-        return ProcessRule.query(
-            ProcessRule
-        ).filter(
+        return db.session.query(ProcessRule).filter(
             ProcessRule.id == self.process_rule_id
         ).one_or_none()
 

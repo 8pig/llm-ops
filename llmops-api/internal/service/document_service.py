@@ -10,7 +10,7 @@ from sqlalchemy import desc
 
 from pkg.db import SQLAlchemy
 from internal.entity.upload_file_entity import ALLOWED_DOCUMENT_EXTENSIONS
-from exception import ForbiddenException
+from internal.exception import ForbiddenException
 from internal.exception import FailException
 from internal.entity.dataset_entity import ProcessType
 from internal.service import BaseService

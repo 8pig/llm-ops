@@ -5,13 +5,13 @@ from dataclasses import dataclass
 
 from pyarrow.lib import UUID
 
-from entity.dataset_entity import DEFAULT_DATASET_DESCRIPTION_FORMATTER
-from exception import FailException, ValidateException
+from internal.entity.dataset_entity import DEFAULT_DATASET_DESCRIPTION_FORMATTER
+from internal.exception import FailException, ValidateException
 from internal.model import Dataset
 from pkg.paginator import Paginator
 from pkg.response import success_json
 from pkg.db import SQLAlchemy
-from schema.dataset_schema import CreateDatasetReq, GetDatasetResp, UpdateDatasetReq, GetDatasetsWithPageReq
+from internal.schema.dataset_schema import CreateDatasetReq, GetDatasetResp, UpdateDatasetReq, GetDatasetsWithPageReq
 from .base_service import BaseService
 
 

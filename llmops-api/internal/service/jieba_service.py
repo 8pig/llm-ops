@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 from jieba.analyse import default_tfidf
 
-from entity.jieba_entity import STOPWORD_SET
+from internal.entity.jieba_entity import STOPWORD_SET
 
 
 @inject
