@@ -140,8 +140,30 @@ class Router:
 
         bp.add_url_rule(
             "/datasets/<uuid:dataset_id>/documents",
+            view_func=self.document_handler.get_documents_with_page
+        )
+
+
+        bp.add_url_rule(
+            "/datasets/<uuid:dataset_id>/documents",
             methods=["post"],
             view_func=self.document_handler.create_document
+        )
+        bp.add_url_rule(
+            "/datasets/<uuid:dataset_id>/documents/<uuid:document_id>",
+            view_func=self.document_handler.get_document
+        )
+
+        bp.add_url_rule(
+            "/datasets/<uuid:dataset_id>/documents/<uuid:document_id>",
+            methods=["post"],
+            view_func=self.document_handler.update_document_name
+        )
+
+
+        bp.add_url_rule(
+            "/datasets/<uuid:dataset_id>/batch/<string:batch>",
+            view_func=self.document_handler.get_document_status
         )
 
 

@@ -6,16 +6,21 @@ from uuid import UUID
 from injector import inject
 from dataclasses import dataclass
 
-from sqlalchemy import desc
+from sqlalchemy import desc, asc, func
 
+from internal.lib.helper import datetime_to_timestamp
+from internal.model import Segment
+from paginator import Paginator
 from pkg.db import SQLAlchemy
 from internal.entity.upload_file_entity import ALLOWED_DOCUMENT_EXTENSIONS
 from internal.exception import ForbiddenException
 from internal.exception import FailException
-from internal.entity.dataset_entity import ProcessType
+from internal.entity.dataset_entity import ProcessType, SegmentStatus
 from internal.service import BaseService
 from internal.model import UploadFile, ProcessRule, Dataset, Document
 from internal.task.document_task import build_document
+from internal.schema.document_schema import GetDocumentsWithPageReq
+
 
 @inject
 @dataclass
@@ -82,9 +87,107 @@ class DocumentService(BaseService):
         #返回文档列表与批次
         return documents, batch
 
+    def get_document_status(self, dataset_id, batch) -> list[dict]:
+
+        account_id = "550e8400-e29b-41d4-a716-446655440000"
+        dataset = self.get(Dataset, dataset_id)
+        if dataset is None or str(dataset.account_id) != account_id:
+            raise ForbiddenException("知识库不存在或无权限")
+
+    #     查询批次下文档
+        documents = self.db.session.query(Document).filter(
+            Document.dataset_id == dataset_id,
+            Document.batch == batch
+        ).order_by(asc("position")).all()
+
+        if documents is None or len(documents) == 0:
+            raise ModuleNotFoundError("批次下无文档")
+
+        document_list_status = []
+
+        for document in documents:
+            # 4.查询每个文档的总片段数和已构建完成的片段数
+            segment_count = self.db.session.query(func.count(Segment.id)).filter(
+                Segment.document_id == document.id,
+            ).scalar()
+            completed_segment_count = self.db.session.query(func.count(Segment.id)).filter(
+                Segment.document_id == document.id,
+                Segment.status == SegmentStatus.COMPLETED,
+            ).scalar()
+
+            upload_file = document.upload_file
+            document_list_status.append({
+                "id": str(document.id),
+                "name": document.name,
+                "size": upload_file.size,
+                "extension": upload_file.extension,
+                "mime_type": upload_file.mime_type,
+                "position": document.position,
+                "segment_count": segment_count,
+                "completed_segment_count": completed_segment_count,
+                "error": document.error,
+                "status": document.status,
+                "processing_started_at": datetime_to_timestamp(document.processing_started_at),
+                "parsing_completed_at": datetime_to_timestamp(document.parsing_completed_at),
+                "splitting_completed_at": datetime_to_timestamp(document.splitting_completed_at),
+                "indexing_completed_at": datetime_to_timestamp(document.indexing_completed_at),
+                "completed_at": datetime_to_timestamp(document.completed_at),
+                "stopped_at": datetime_to_timestamp(document.stopped_at),
+                "created_at": datetime_to_timestamp(document.created_at),
+            })
+
+        return document_list_status
+
+
+
 
     def get_latest_position(self, dataset_id: UUID) -> int:
         document = self.db.session.query(Document).filter(
             Document.dataset_id == dataset_id
         ).order_by(desc("position")).first()
         return document.position if document else 0
+
+    def get_document(self, dataset_id, document_id) -> Document:
+
+        account_id = "550e8400-e29b-41d4-a716-446655440000"
+        document = self.get(Document, document_id)
+        if document is None:
+            raise ForbiddenException("document不存在")
+        if str(document.dataset_id) != str(dataset_id) or str(document.account_id) != account_id:
+            raise ForbiddenException("document不存在或无权限")
+
+        return  document
+
+    def update_document_name(self, dataset_id, document_id, **kwargs):
+        account_id = "550e8400-e29b-41d4-a716-446655440000"
+        document = self.get(Document, document_id)
+        if document is None:
+            raise ForbiddenException("document不存在")
+        if str(document.dataset_id) != str(dataset_id) or str(document.account_id) != account_id:
+            raise ForbiddenException("document不存在或无权限修改")
+
+        return self.update(
+            document,
+            **kwargs
+        )
+
+    def get_documents_with_page(self, dataset_id: UUID, req: GetDocumentsWithPageReq):
+        """分页文档分页数据"""
+
+        account_id = "550e8400-e29b-41d4-a716-446655440000"
+        dataset = self.get(Dataset, dataset_id)
+        if dataset is None or str(dataset.account_id) != account_id:
+            raise ForbiddenException("知识库不存在或无权限")
+
+        paginator = Paginator(db=self.db, req=req)
+        filters = [
+            Document.dataset_id == dataset_id,
+            Document.account_id == account_id,
+        ]
+        if req.search_word.data:
+            filters.append(Document.name.ilike(f"%{req.search_word.data}%"))
+
+        documents = paginator.paginate(
+            self.db.session.query(Document).filter(*filters).order_by(desc("created_at"))
+        )
+        return  documents, paginator

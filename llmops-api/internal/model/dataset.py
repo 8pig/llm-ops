@@ -126,6 +126,18 @@ class Document(db.Model):
             ProcessRule.id == self.process_rule_id
         ).one_or_none()
 
+    @property
+    def segment_count(self) -> int:
+        return db.session.query(func.count(Segment.id)).filter(
+            Segment.document_id == self.id,
+        ).scalar()
+
+    @property
+    def hit_count(self) -> int:
+        return db.session.query(func.coalesce(func.sum(Segment.hit_count), 0)).filter(
+            Segment.document_id == self.id,
+        ).scalar()
+
 
 class Segment(db.Model):
     """片段表模型"""
