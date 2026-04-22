@@ -1,6 +1,7 @@
 import logging
 import random
 import time
+from datetime import datetime
 from uuid import UUID
 
 from injector import inject
@@ -10,22 +11,25 @@ from sqlalchemy import desc, asc, func
 
 from internal.lib.helper import datetime_to_timestamp
 from internal.model import Segment
-from paginator import Paginator
+from pkg.paginator import Paginator
 from pkg.db import SQLAlchemy
 from internal.entity.upload_file_entity import ALLOWED_DOCUMENT_EXTENSIONS
 from internal.exception import ForbiddenException
 from internal.exception import FailException
-from internal.entity.dataset_entity import ProcessType, SegmentStatus
+from internal.entity.dataset_entity import ProcessType, SegmentStatus, DocumentStatus
 from internal.service import BaseService
 from internal.model import UploadFile, ProcessRule, Dataset, Document
-from internal.task.document_task import build_document
+from internal.task.document_task import build_document, update_document_enabled
 from internal.schema.document_schema import GetDocumentsWithPageReq
+from internal.entity.cache_entity import LOCK_DOCUMENT_UPDATE_ENABLED, LOCK_EXPIRE_TIME
+from redis import Redis
 
 
 @inject
 @dataclass
 class DocumentService(BaseService):
     db:SQLAlchemy
+    redis_client: Redis
 
 
     def create_documents(
@@ -170,6 +174,37 @@ class DocumentService(BaseService):
             document,
             **kwargs
         )
+
+    def update_document_enabled(self, dataset_id: UUID, document_id: UUID, enabled: bool)-> Document:
+        """ 修改状态 且 加锁"""
+        account_id = "550e8400-e29b-41d4-a716-446655440000"
+
+        document = self.get(Document, document_id)
+        if document is None:
+            raise ForbiddenException("document不存在")
+        if str(document.dataset_id) != str(dataset_id) or str(document.account_id) != account_id:
+            raise ForbiddenException("document不存在或无权限修改")
+        # 判断是否可修改  只有构建完成才可以
+        if document.status != DocumentStatus.COMPLETED:
+            raise ForbiddenException("文档状态未构建完成，稍后重试")
+
+        if document.enabled == enabled:
+            raise FailException("当前状态无需修改")
+
+        #  获取状态的缓存  并检测是否上锁
+        cache_key = LOCK_DOCUMENT_UPDATE_ENABLED.format(document_id=document_id)
+        cache_value = self.redis_client.get(cache_key)
+        if cache_value is not None:
+            raise FailException("当前文档正在修改中，请稍后重试")
+        self.update(document,enabled=enabled, disabled_at=None if enabled else datetime.now())
+        self.redis_client.setex(cache_key, LOCK_EXPIRE_TIME, 1)
+
+        # 启用异步
+        update_document_enabled.delay(document_id)
+
+        return  document
+
+        pass
 
     def get_documents_with_page(self, dataset_id: UUID, req: GetDocumentsWithPageReq):
         """分页文档分页数据"""

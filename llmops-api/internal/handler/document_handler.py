@@ -8,7 +8,8 @@ from pkg.response import validate_error_json, success_json,success_message
 from pkg.paginator import PageModel
 from internal.schema.document_schema import (
     CreateDocumentsReq, CreateDocumentsResp, GetDocumentResp,
-    UpdateDocumentNameReq, GetDocumentsWithPageReq, GetDocumentsWithPageResp
+    UpdateDocumentNameReq, GetDocumentsWithPageReq, GetDocumentsWithPageResp,
+    UpdateDocumentEnabledReq
 )
 from internal.service import DocumentService
 
@@ -66,3 +67,15 @@ class DocumentHandler:
         documents_status = self.document_service.get_document_status(dataset_id, batch)
 
         return success_json(documents_status)
+
+
+    def update_document_enabled(self, dataset_id, document_id):
+        """更新文档启用状态"""
+        req = UpdateDocumentEnabledReq()
+        if not req.validate():
+            return validate_error_json(req.errors)
+        self.document_service.update_document_enabled(dataset_id, document_id, req.enabled.data)
+
+        return success_message("更改状态成功")
+
+

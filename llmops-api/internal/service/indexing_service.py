@@ -2,6 +2,7 @@ import logging
 import re
 import uuid
 from datetime import datetime
+from typing import Any
 from uuid import UUID
 from sqlalchemy import func
 from injector import inject
@@ -9,6 +10,7 @@ from dataclasses import dataclass
 from concurrent.futures import ThreadPoolExecutor
 from flask import Flask, current_app
 
+from internal.exception import NotFoundException
 from internal.core.file_extractor import FileExtractor
 from pkg.db import SQLAlchemy
 from internal.entity.dataset_entity import DocumentStatus, SegmentStatus
@@ -22,12 +24,15 @@ from langchain_core.documents import Document as LCDocument
 from .embeddings_service import EmbeddingsService
 from internal.model import Document, Segment, KeywordTable, DatasetQuery
 from .vector_database_service import VectorDatabaseService
+from internal.entity.cache_entity import LOCK_DOCUMENT_UPDATE_ENABLED, LOCK_EXPIRE_TIME
+from redis import Redis
 
 
 @inject
 @dataclass
 class IndexingService(BaseService):
     db: SQLAlchemy
+    redis_client: Redis
     file_extractor: FileExtractor
     process_rule_service: ProcessRuleService
     embeddings_service: EmbeddingsService
@@ -69,6 +74,48 @@ class IndexingService(BaseService):
                     error=str(e),
                     stopped_at=datetime.now(),
                 )
+
+    def update_document_enabled(self, document_id: UUID) -> None:
+        """根据docid 获取文档并更新enabled  同时修改向量库的状态"""
+        cache_key = LOCK_DOCUMENT_UPDATE_ENABLED.format(document_id=document_id)
+
+        document = self.get(Document, document_id)
+        if document is None:
+            logging.exception(f"document不存在，document_id: {document_id}")
+            raise NotFoundException("document不存在")
+
+        # 查询当前文档所有关联的片段的节点id
+        # self.db.session.query(Segment).with_entities(Segment.node_id).filter(
+        #     Segment.document_id == document_id
+        # ).all()
+        node_ids = [
+            node_id for node_id, in self.db.session.query(Segment.node_id).filter(
+                Segment.document_id == document_id
+            ).all()
+        ]
+
+        try:
+            collection = self.vector_database_service.collection
+            for node_id in node_ids:
+                collection.data.update(
+                    uuid=node_id,
+                    properties={
+                        "document_enabled": document.enabled
+                    }
+                )
+        except Exception as e:
+            #  修改原来状态
+            logging.exception(f"更新向量库状态发生错误,id{document_id}，错误信息：{str(e)}")
+            origin_enabled = not document.enabled
+            self.update(
+                document,
+                status=origin_enabled,
+                disabled_at=None if origin_enabled else datetime.now(),
+            )
+        finally:
+            # 清空缓存  成功失败
+            self.redis_client.delete(cache_key)
+
 
 
     def _parsing(self, document: Document) -> list[LCDocument]:
