@@ -244,3 +244,8 @@ pip install en_core_web_sm-3.8.0-py3-none-any.whl
 [langchain Docs中文文档 ](https://langchain-doc.cn/) 
 
 [uv/pip](https://uv.oaix.tech/blog/2025/06/17/quickly-set-uv-package-index-is-china-mirror/#__tabbed_1_3) 
+
+[weaviate](https://docs.weaviate.org.cn/deploy)
+
+[flask](https://flask.org.cn/en/stable/)
+
