@@ -5,13 +5,16 @@ from dataclasses import dataclass
 
 from pyarrow.lib import UUID
 
+from internal.exception import NotFoundException
 from internal.entity.dataset_entity import DEFAULT_DATASET_DESCRIPTION_FORMATTER
 from internal.exception import FailException, ValidateException
 from internal.model import Dataset
+from internal.lib.helper import datetime_to_timestamp
+from internal.model import Segment
 from pkg.paginator import Paginator
-from pkg.response import success_json
 from pkg.db import SQLAlchemy
-from internal.schema.dataset_schema import CreateDatasetReq, GetDatasetResp, UpdateDatasetReq, GetDatasetsWithPageReq
+from internal.schema.dataset_schema import CreateDatasetReq, GetDatasetResp, UpdateDatasetReq, GetDatasetsWithPageReq, \
+    HitReq
 from .base_service import BaseService
 
 
@@ -94,3 +97,65 @@ class DatasetService(BaseService):
         datasets = paginator.paginate(datasetsq)
 
         return datasets, paginator
+
+
+    def hit(self, dataset_id: UUID, req: HitReq) -> list[dict]:
+        """根据传递的知识库id+请求执行召回测试"""
+        # todo:等待授权认证模块完成进行切换调整
+        account_id = "46db30d1-3199-4e79-a0cd-abf12fa6858f"
+
+        # 1.检测知识库是否存在并校验
+        dataset = self.get(Dataset, dataset_id)
+        if dataset is None or str(dataset.account_id) != account_id:
+            raise NotFoundException("该知识库不存在")
+
+        # 2.调用检索服务执行检索
+        lc_documents = self.retrieval_service.search_in_datasets(
+            dataset_ids=[dataset_id],
+            **req.data,
+        )
+        lc_document_dict = {str(lc_document.metadata["segment_id"]): lc_document for lc_document in lc_documents}
+
+        # 3.根据检索到的数据查询对应的片段信息
+        segments = self.db.session.query(Segment).filter(
+            Segment.id.in_([str(lc_document.metadata["segment_id"]) for lc_document in lc_documents])
+        ).all()
+        segment_dict = {str(segment.id): segment for segment in segments}
+
+        # 4.排序片段数据
+        sorted_segments = [
+            segment_dict[str(lc_document.metadata["segment_id"])]
+            for lc_document in lc_documents
+            if str(lc_document.metadata["segment_id"]) in segment_dict
+        ]
+
+        # 5.组装响应数据
+        hit_result = []
+        for segment in sorted_segments:
+            document = segment.document
+            upload_file = document.upload_file
+            hit_result.append({
+                "id": segment.id,
+                "document": {
+                    "id": document.id,
+                    "name": document.name,
+                    "extension": upload_file.extension,
+                    "mime_type": upload_file.mime_type,
+                },
+                "dataset_id": segment.dataset_id,
+                "score": lc_document_dict[str(segment.id)].metadata["score"],
+                "position": segment.position,
+                "content": segment.content,
+                "keywords": segment.keywords,
+                "character_count": segment.character_count,
+                "token_count": segment.token_count,
+                "hit_count": segment.hit_count,
+                "enabled": segment.enabled,
+                "disabled_at": datetime_to_timestamp(segment.disabled_at),
+                "status": segment.status,
+                "error": segment.error,
+                "updated_at": datetime_to_timestamp(segment.updated_at),
+                "created_at": datetime_to_timestamp(segment.created_at),
+            })
+
+        return hit_result

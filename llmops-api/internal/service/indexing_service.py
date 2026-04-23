@@ -146,6 +146,15 @@ class IndexingService(BaseService):
     #         便利判断更新
             for keyword, ids in keyword_table.items():
                 ids_set = set(ids)
+                # 获取交集 删除
+                if segment_ids_to_delete.intersection(ids_set):
+                    keyword_table[keyword] = list(ids_set.difference(segment_ids_to_delete))
+                    if not keyword_table[keyword]:  # 为空的话删除
+                        keyword_to_delete.add(keyword)
+            # 检测空关键词数据并删除（关键词并没有映射任何字段id的数据）
+            for keyword in keyword_to_delete:
+                del keyword_table[keyword]
+            self.update(keyword_table_record, keyword_table=keyword_table)
 
 
     def _parsing(self, document: Document) -> list[LCDocument]:

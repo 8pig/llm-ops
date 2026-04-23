@@ -214,8 +214,8 @@ class DocumentService(BaseService):
         if str(document.dataset_id) != str(dataset_id) or str(document.account_id) != account_id:
             raise ForbiddenException("document不存在或无权限删除")
 
-        if document.status in [DocumentStatus.COMPLETED, DocumentStatus.ERROR]:
-            raise FailException("文档状态未构建完成 不可删除，稍后重试")
+        if document.status not in [DocumentStatus.COMPLETED, DocumentStatus.ERROR]:
+            raise FailException("文档状态未构建完成不可删除，稍后重试")
 
     #     删除 postgres 信息
         self.delete(document)
