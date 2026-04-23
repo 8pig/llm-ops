@@ -14,15 +14,15 @@ from internal.model import Segment
 from pkg.paginator import Paginator
 from pkg.db import SQLAlchemy
 from internal.entity.upload_file_entity import ALLOWED_DOCUMENT_EXTENSIONS
-from internal.exception import ForbiddenException
-from internal.exception import FailException
+from internal.exception import FailException, ForbiddenException, NotFoundException
 from internal.entity.dataset_entity import ProcessType, SegmentStatus, DocumentStatus
 from internal.service import BaseService
 from internal.model import UploadFile, ProcessRule, Dataset, Document
-from internal.task.document_task import build_document, update_document_enabled
+from internal.task.document_task import build_document, update_document_enabled, delete_document_task
 from internal.schema.document_schema import GetDocumentsWithPageReq
 from internal.entity.cache_entity import LOCK_DOCUMENT_UPDATE_ENABLED, LOCK_EXPIRE_TIME
 from redis import Redis
+
 
 
 @inject
@@ -204,7 +204,28 @@ class DocumentService(BaseService):
 
         return  document
 
-        pass
+    def delete_document(self, dataset_id: UUID, document_id: UUID) -> Document:
+        """加锁删除  文档片段 关键词 weaviate"""
+
+        account_id = "550e8400-e29b-41d4-a716-446655440000"
+        document = self.get(Document, document_id)
+        if document is None:
+            raise NotFoundException("document不存在")
+        if str(document.dataset_id) != str(dataset_id) or str(document.account_id) != account_id:
+            raise ForbiddenException("document不存在或无权限删除")
+
+        if document.status in [DocumentStatus.COMPLETED, DocumentStatus.ERROR]:
+            raise FailException("文档状态未构建完成 不可删除，稍后重试")
+
+    #     删除 postgres 信息
+        self.delete(document)
+    #     调用异步任务删除 关键词  weaviate
+        delete_document_task.delay(dataset_id, document_id)
+
+        return  document
+
+
+
 
     def get_documents_with_page(self, dataset_id: UUID, req: GetDocumentsWithPageReq):
         """分页文档分页数据"""

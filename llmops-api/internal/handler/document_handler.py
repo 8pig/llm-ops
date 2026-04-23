@@ -79,3 +79,9 @@ class DocumentHandler:
         return success_message("更改状态成功")
 
 
+    def delete_document(self, dataset_id, document_id):
+        """删除文档"""
+        self.document_service.delete_document(dataset_id, document_id)
+        return success_message("删除成功")
+
+

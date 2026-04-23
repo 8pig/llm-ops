@@ -2,7 +2,6 @@ import logging
 import re
 import uuid
 from datetime import datetime
-from typing import Any
 from uuid import UUID
 from sqlalchemy import func
 from injector import inject
@@ -15,7 +14,6 @@ from internal.core.file_extractor import FileExtractor
 from pkg.db import SQLAlchemy
 from internal.entity.dataset_entity import DocumentStatus, SegmentStatus
 from internal.lib.helper import generate_text_hash
-from . import keyword_table_service
 from .keyword_table_service import KeywordTableService
 from .process_rule_service import ProcessRuleService
 from .base_service  import BaseService
@@ -24,8 +22,9 @@ from langchain_core.documents import Document as LCDocument
 from .embeddings_service import EmbeddingsService
 from internal.model import Document, Segment, KeywordTable, DatasetQuery
 from .vector_database_service import VectorDatabaseService
-from internal.entity.cache_entity import LOCK_DOCUMENT_UPDATE_ENABLED, LOCK_EXPIRE_TIME
+from internal.entity.cache_entity import LOCK_DOCUMENT_UPDATE_ENABLED,LOCK_KEYWORD_TABLE_UPDATE_KEYWORD_TABLE, LOCK_EXPIRE_TIME
 from redis import Redis
+from weaviate.classes.query import  Filter
 
 
 @inject
@@ -116,6 +115,37 @@ class IndexingService(BaseService):
             # 清空缓存  成功失败
             self.redis_client.delete(cache_key)
 
+
+    def delete_document(self, dataset_id: UUID, document_id: UUID):
+        """删除文档"""
+        # 查找文档下所有片段列表
+        segments = self.db.session.query(Segment).with_entities(Segment.id).filter(
+            Segment.document_id == document_id
+        ).all()
+        segment_ids = [str(segment.id) for segment in segments]
+
+    #     调用向量库 删除
+
+        collection = self.vector_database_service.collection
+        collection.data.delete_many(
+            where=Filter.by_property("document_id").equal(document_id)
+        )
+
+        with self.db.auto_commit():
+            self.db.session.query(Segment).filter(
+                Segment.document_id == document_id
+            ).delete()
+    #     删除关键词
+        segment_ids_to_delete = set(segment_ids)
+        keyword_to_delete = set()
+    #     更新关键词 上锁
+        cache_key = LOCK_KEYWORD_TABLE_UPDATE_KEYWORD_TABLE.format(dataset_id=dataset_id)
+        with self.redis_client.lock(cache_key, timeout=LOCK_EXPIRE_TIME):
+            keyword_table_record = self.keyword_table_service.get_keyword_table_from_dataset_id(dataset_id)
+            keyword_table = keyword_table_record.keyword_table.copy()
+    #         便利判断更新
+            for keyword, ids in keyword_table.items():
+                ids_set = set(ids)
 
 
     def _parsing(self, document: Document) -> list[LCDocument]:

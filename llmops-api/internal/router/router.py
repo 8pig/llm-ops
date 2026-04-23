@@ -166,6 +166,12 @@ class Router:
             view_func=self.document_handler.update_document_enabled
         )
 
+        bp.add_url_rule(
+            "/datasets/<uuid:dataset_id>/documents/<uuid:document_id>/delete",
+            methods=["post"],
+            view_func=self.document_handler.delete_document
+        )
+
 
         bp.add_url_rule(
             "/datasets/<uuid:dataset_id>/batch/<string:batch>",
