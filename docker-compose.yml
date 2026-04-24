@@ -1,0 +1,43 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres
+    container_name: postgres-dev
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  weaviate:
+    image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/semitechnologies/weaviate:1.31.0
+    container_name: weaviate-dev
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+      - "50051:50051"
+    environment:
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "true"
+      PERSISTENCE_DATA_PATH: /var/lib/weaviate
+      DEFAULT_VECTORIZER_MODULE: none
+      ENABLE_API_BASED_MODULES: "true"
+    volumes:
+      - weaviate_data:/var/lib/weaviate
+
+  redis:
+    image: redis
+    container_name: redis-dev
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  weaviate_data:
+  redis_data:
