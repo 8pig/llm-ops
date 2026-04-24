@@ -43,7 +43,7 @@ class SegmentService(BaseService):
     def create_segment(self, dataset_id: UUID, document_id: UUID, req: CreateSegmentReq) -> Segment:
         """根据传递的信息新增文档片段信息"""
         # todo:等待授权认证模块完成进行切换调整
-        account_id = "46db30d1-3199-4e79-a0cd-abf12fa6858f"
+        account_id = "550e8400-e29b-41d4-a716-446655440000"
 
         # 1.校验上传内容的token长度总数，不能超过1000
         token_count = self.embeddings_service.calculate_token_count(req.content.data)
