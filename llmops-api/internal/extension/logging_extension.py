@@ -1,10 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-"""
-@Time    : 2024/8/13 21:57
-@Author  : thezehui@gmail.com
-@File    : logging_extension.py
-"""
+
 import logging
 import os.path
 from logging.handlers import TimedRotatingFileHandler

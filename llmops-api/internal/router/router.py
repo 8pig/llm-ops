@@ -3,7 +3,7 @@ from flask import Flask, Blueprint
 
 from internal.handler import (
     AppHandler, BuiltinToolHandler, ApiToolHandler,
-    UploadFileHandler, DatasetHandler, DocumentHandler
+    UploadFileHandler, DatasetHandler, DocumentHandler, SegmentHandler
 )
 from dataclasses import dataclass
 
@@ -17,6 +17,7 @@ class Router:
     upload_file_handler: UploadFileHandler
     dataset_handler: DatasetHandler
     document_handler: DocumentHandler
+    segment_handler: SegmentHandler
 
 
 
@@ -177,6 +178,37 @@ class Router:
             "/datasets/<uuid:dataset_id>/batch/<string:batch>",
             view_func=self.document_handler.get_document_status
         )
+
+
+        bp.add_url_rule(
+            "/datasets/<uuid:dataset_id>/documents/<uuid:document_id>/segments",
+            view_func=self.segment_handler.get_segments_with_page,
+        )
+        bp.add_url_rule(
+            "/datasets/<uuid:dataset_id>/documents/<uuid:document_id>/segments",
+            methods=["POST"],
+            view_func=self.segment_handler.create_segment,
+        )
+        bp.add_url_rule(
+            "/datasets/<uuid:dataset_id>/documents/<uuid:document_id>/segments/<uuid:segment_id>",
+            view_func=self.segment_handler.get_segment,
+        )
+        bp.add_url_rule(
+            "/datasets/<uuid:dataset_id>/documents/<uuid:document_id>/segments/<uuid:segment_id>",
+            methods=["POST"],
+            view_func=self.segment_handler.update_segment,
+        )
+        bp.add_url_rule(
+            "/datasets/<uuid:dataset_id>/documents/<uuid:document_id>/segments/<uuid:segment_id>/enabled",
+            methods=["POST"],
+            view_func=self.segment_handler.update_segment_enabled,
+        )
+        bp.add_url_rule(
+            "/datasets/<uuid:dataset_id>/documents/<uuid:document_id>/segments/<uuid:segment_id>/delete",
+            methods=["POST"],
+            view_func=self.segment_handler.delete_segment,
+        )
+
 
 
         bp.add_url_rule(

@@ -6,6 +6,7 @@ from .api_tool_handler import ApiToolHandler
 from .dataset_handler import DatasetHandler
 from .document_handler import DocumentHandler
 from .upload_file_handler import UploadFileHandler
+from .segment_handler import SegmentHandler
 
 
 __all__ = [
@@ -14,5 +15,6 @@ __all__ = [
     "ApiToolHandler",
     "UploadFileHandler",
     "DatasetHandler",
-    "DocumentHandler"
+    "DocumentHandler",
+    "SegmentHandler"
 ]
