@@ -1,4 +1,4 @@
-
+import logging
 
 from injector import inject
 from dataclasses import dataclass
@@ -15,6 +15,7 @@ from pkg.paginator import Paginator
 from pkg.db import SQLAlchemy
 from internal.schema.dataset_schema import CreateDatasetReq, GetDatasetResp, UpdateDatasetReq, GetDatasetsWithPageReq, \
     HitReq
+from .retrieval_service import RetrievalService
 from .base_service import BaseService
 
 
@@ -22,6 +23,7 @@ from .base_service import BaseService
 @dataclass
 class DatasetService(BaseService):
     db: SQLAlchemy
+    retrieval_service: RetrievalService
 
 
     def create_dataset(self, req: CreateDatasetReq) -> Dataset:
@@ -102,7 +104,7 @@ class DatasetService(BaseService):
     def hit(self, dataset_id: UUID, req: HitReq) -> list[dict]:
         """根据传递的知识库id+请求执行召回测试"""
         # todo:等待授权认证模块完成进行切换调整
-        account_id = "46db30d1-3199-4e79-a0cd-abf12fa6858f"
+        account_id = "550e8400-e29b-41d4-a716-446655440000"
 
         # 1.检测知识库是否存在并校验
         dataset = self.get(Dataset, dataset_id)
@@ -114,20 +116,30 @@ class DatasetService(BaseService):
             dataset_ids=[dataset_id],
             **req.data,
         )
+        logging.error("lc_documents")
+        logging.error(lc_documents)
         lc_document_dict = {str(lc_document.metadata["segment_id"]): lc_document for lc_document in lc_documents}
-
+        logging.error(lc_document_dict)
         # 3.根据检索到的数据查询对应的片段信息
         segments = self.db.session.query(Segment).filter(
             Segment.id.in_([str(lc_document.metadata["segment_id"]) for lc_document in lc_documents])
         ).all()
-        segment_dict = {str(segment.id): segment for segment in segments}
+        logging.error(segments)
 
+        # segment_dict = {}
+        # for segment in segments:
+        #     segment_id_str = str(segment.id)
+        #     segment_dict[segment_id_str] = segment
+
+        segment_dict = {str(segment.id): segment for segment in segments}
+        logging.error(segment_dict)
         # 4.排序片段数据
         sorted_segments = [
             segment_dict[str(lc_document.metadata["segment_id"])]
             for lc_document in lc_documents
             if str(lc_document.metadata["segment_id"]) in segment_dict
         ]
+        logging.error(sorted_segments)
 
         # 5.组装响应数据
         hit_result = []

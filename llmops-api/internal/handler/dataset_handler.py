@@ -65,29 +65,13 @@ class DatasetHandler:
             })
 
     def hit(self, dataset_id: UUID):
-        from weaviate.classes.query import  Filter
-        query = "信息安全"
-        retriever = self.vector_database_service.vector_store.as_retriever(
-            search_type="mmr",
-            search_kwargs={
-                "k": 10,
-                # "filters": Filter.all_of([
-                #     Filter.by_property("document_enabled").equal(True),
-                #     Filter.by_property("segment_enabled").equal(True),
-                #     Filter.any_of([
-                #         Filter.by_property("dataset_id").equal("713cd447-c59c-4368-9f9e-c9d06e1cc0f6"),
-                #         Filter.by_property("dataset_id").equal("113cd447-c59c-4368-9f9e-c9d06e1cc0f6")
-                #     ])
-                # ])
-            }
-        )
-        documents = retriever.invoke(query)
-        return success_json({"document": [
-            {
-                "page_content": document.page_content,
-                "metadata": document.metadata
-            } for document in documents
-        ]})
+        req = HitReq()
+        if not req.validate():
+            return validate_error_json(req.errors)
+
+        result = self.dataset_service.hit(dataset_id, req)
+        return success_json(result)
+
 
 
 

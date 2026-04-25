@@ -1,5 +1,5 @@
 
-from sqlalchemy import (
+        from sqlalchemy import (
     Column,
     UUID,
     String,
@@ -14,8 +14,8 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB
 
 from internal.extension.database_extension import db
-from .upload_file import UploadFile
 from .app import AppDatasetJoin
+from .upload_file import UploadFile
 
 class Dataset(db.Model):
     """知识库表"""
@@ -60,7 +60,6 @@ class Dataset(db.Model):
     @property
     def related_app_count(self) -> int:
         """只读属性，获取该知识库关联的应用数"""
-
         return (
             db.session.
             query(func.count(AppDatasetJoin.id)).
@@ -117,13 +116,13 @@ class Document(db.Model):
     @property
     def upload_file(self) -> "UploadFile":
         return db.session.query(UploadFile).filter(
-            UploadFile.id == self.upload_file_id
+            UploadFile.id == self.upload_file_id,
         ).one_or_none()
 
     @property
     def process_rule(self) -> "ProcessRule":
         return db.session.query(ProcessRule).filter(
-            ProcessRule.id == self.process_rule_id
+            ProcessRule.id == self.process_rule_id,
         ).one_or_none()
 
     @property
@@ -173,6 +172,10 @@ class Segment(db.Model):
         server_onupdate=text('CURRENT_TIMESTAMP(0)'),
     )
     created_at = Column(DateTime, nullable=False, server_default=text('CURRENT_TIMESTAMP(0)'))
+
+    @property
+    def document(self) -> "Document":
+        return db.session.query(Document).get(self.document_id)
 
 
 class KeywordTable(db.Model):
