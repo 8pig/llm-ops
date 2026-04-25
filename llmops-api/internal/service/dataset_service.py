@@ -4,11 +4,12 @@ from injector import inject
 from dataclasses import dataclass
 
 from pyarrow.lib import UUID
+from sqlalchemy import desc
 
 from internal.exception import NotFoundException
 from internal.entity.dataset_entity import DEFAULT_DATASET_DESCRIPTION_FORMATTER
 from internal.exception import FailException, ValidateException
-from internal.model import Dataset
+from internal.model import Dataset, DatasetQuery, AppDatasetJoin
 from internal.lib.helper import datetime_to_timestamp
 from internal.model import Segment
 from pkg.paginator import Paginator
@@ -17,6 +18,7 @@ from internal.schema.dataset_schema import CreateDatasetReq, GetDatasetResp, Upd
     HitReq
 from .retrieval_service import RetrievalService
 from .base_service import BaseService
+from internal.task.dataset_task import delete_dataset
 
 
 @inject
@@ -116,15 +118,13 @@ class DatasetService(BaseService):
             dataset_ids=[dataset_id],
             **req.data,
         )
-        logging.error("lc_documents")
-        logging.error(lc_documents)
+
         lc_document_dict = {str(lc_document.metadata["segment_id"]): lc_document for lc_document in lc_documents}
         logging.error(lc_document_dict)
         # 3.根据检索到的数据查询对应的片段信息
         segments = self.db.session.query(Segment).filter(
             Segment.id.in_([str(lc_document.metadata["segment_id"]) for lc_document in lc_documents])
         ).all()
-        logging.error(segments)
 
         # segment_dict = {}
         # for segment in segments:
@@ -132,14 +132,12 @@ class DatasetService(BaseService):
         #     segment_dict[segment_id_str] = segment
 
         segment_dict = {str(segment.id): segment for segment in segments}
-        logging.error(segment_dict)
         # 4.排序片段数据
         sorted_segments = [
             segment_dict[str(lc_document.metadata["segment_id"])]
             for lc_document in lc_documents
             if str(lc_document.metadata["segment_id"]) in segment_dict
         ]
-        logging.error(sorted_segments)
 
         # 5.组装响应数据
         hit_result = []
@@ -171,3 +169,41 @@ class DatasetService(BaseService):
             })
 
         return hit_result
+
+    def get_dataset_queries(self, dataset_id):
+        # todo:等待授权认证模块完成进行切换调整
+        account_id = "550e8400-e29b-41d4-a716-446655440000"
+
+        # 1.检测知识库是否存在并校验
+        dataset = self.get(Dataset, dataset_id)
+        if dataset is None or str(dataset.account_id) != account_id:
+            raise NotFoundException("该知识库不存在")
+        dataset_queries= self.db.session.query(DatasetQuery).filter(
+            DatasetQuery.dataset_id == dataset_id
+        ).order_by(desc("created_at")).limit(10).all()
+
+        return  dataset_queries
+
+    def delete_dataset(self, dataset_id: UUID) -> Dataset:
+        """根据传递的知识库id删除知识库信息，涵盖知识库底下的所有文档、片段、关键词，以及向量数据库里存储的数据"""
+        # todo:等待授权认证模块完成进行切换调整
+        account_id = "550e8400-e29b-41d4-a716-446655440000"
+
+        # 1.获取知识库并校验权限
+        dataset = self.get(Dataset, dataset_id)
+        if dataset is None or str(dataset.account_id) != account_id:
+            raise NotFoundException("该知识库不存在")
+
+        try:
+            # 2.删除知识库基础记录以及知识库和应用关联的记录
+            self.delete(dataset)
+            with self.db.auto_commit():
+                self.db.session.query(AppDatasetJoin).filter(
+                    AppDatasetJoin.dataset_id == dataset_id,
+                ).delete()
+
+            # 3.调用异步任务执行后续的操作
+            delete_dataset.delay(dataset_id)
+        except Exception as e:
+            logging.exception(f"删除知识库失败, dataset_id: {dataset_id}, 错误信息: {str(e)}")
+            raise FailException("删除知识库失败，请稍后重试")

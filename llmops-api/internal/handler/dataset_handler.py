@@ -11,7 +11,7 @@ from internal.schema.dataset_schema import (
     GetDatasetResp,
     UpdateDatasetReq,
     GetDatasetsWithPageReq,
-    GetDatasetWithPageResp, HitReq
+    GetDatasetWithPageResp, HitReq, GetDatasetQueriesResp
 )
 from internal.model import UploadFile
 from pkg.paginator import PageModel
@@ -19,7 +19,7 @@ from pkg.response import validate_error_json, success_message, success_json
 from internal.service import DatasetService,EmbeddingsService, JiebaService, VectorDatabaseService
 from internal.core.file_extractor import FileExtractor
 from pkg.db import SQLAlchemy
-from dataclasses import dataclass 
+from dataclasses import dataclass
 
 @inject
 @dataclass
@@ -74,7 +74,15 @@ class DatasetHandler:
 
 
 
+    def get_dataset_queries(self, dataset_id: UUID):
+        """ 获取查询记录"""
 
+        dataset_queries = self.dataset_service.get_dataset_queries(dataset_id)
+        resp  = GetDatasetQueriesResp(many=True)
+        return success_json(resp.dump(dataset_queries))
+
+
+        pass
 
     def create_dataset(self):
 
@@ -118,3 +126,8 @@ class DatasetHandler:
         resp = GetDatasetWithPageResp(many=True)
 
         return success_json(PageModel(list=resp.dump(datasets), paginator=paginator))
+
+
+    def delete_dataset(self, dataset_id: UUID):
+        self.dataset_service.delete_dataset(dataset_id)
+        return success_message(f"{dataset_id}删除成功")
