@@ -10,7 +10,7 @@ from langchain_core.runnables import RunnableConfig
 from langchain_openai import ChatOpenAI
 from langgraph.graph import MessagesState, StateGraph, add_messages
 from langgraph.prebuilt import ToolNode, tools_condition
-from pydantic.v1 import Field, BaseModel
+from pydantic import Field, BaseModel
 
 dotenv.load_dotenv()
 

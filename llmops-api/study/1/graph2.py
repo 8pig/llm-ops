@@ -12,7 +12,7 @@ from langchain_core.tools import render_text_description_and_args, Tool
 from langchain_openai import ChatOpenAI
 from langgraph.constants import START, END
 from langgraph.graph import add_messages, StateGraph
-from pydantic.v1 import Field, BaseModel
+from pydantic import Field, BaseModel
 from langchain_community.utilities import GoogleSerperAPIWrapper
 from langchain_core.messages import ToolMessage
 
