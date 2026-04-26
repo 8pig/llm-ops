@@ -20,7 +20,7 @@ from internal.schema.app_schema import CompletionReq
 
 from internal.task.demo_task import demo_task
 from pkg.response import success_json, validate_error_json, success_message, compact_generate_response
-from internal.service import AppService, ApiToolService, VectorDatabaseService
+from internal.service import AppService, ApiToolService, VectorDatabaseService, ConversationService
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda, RunnableConfig
 from operator import itemgetter
@@ -38,6 +38,7 @@ class AppHandler:
     # provider_factory: ProviderFactory
     # vector_database_service: VectorDatabaseService
     builtin_provider_manager :BuiltinProviderManager
+    coversation_service: ConversationService
 
     """应用控制器"""
     def create_app(self):
@@ -257,6 +258,9 @@ class AppHandler:
         return success_json({"content": content})
 
     def ping(self):
+        human_messge = "你能详细介绍一下 , llm与agent 之间有什么联系吗"
+        cn = self.coversation_service.generate_conversation_name(human_messge)
+        return success_message({cn: cn})
         # return success_json({"message": "pong"})
-        demo_task.delay(uuid.uuid4())
-        return self.api_tool_service.api_tool_invoke()
+        # demo_task.delay(uuid.uuid4())
+        # return self.api_tool_service.api_tool_invoke()
