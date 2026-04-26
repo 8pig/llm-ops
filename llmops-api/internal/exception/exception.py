@@ -42,3 +42,7 @@ class ForbiddenException(CustomException):
 class ValidateException(CustomException):
     """参数验证异常"""
     code = HttpCode.VALIDATE_ERROR
+
+class ValidateErrorException(CustomException):
+    """参数验证异常"""
+    code = HttpCode.VALIDATE_ERROR

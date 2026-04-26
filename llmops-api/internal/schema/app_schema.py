@@ -3,7 +3,7 @@ from wtforms.fields.simple import StringField
 from wtforms.validators import DataRequired, Length
 
 
-class CompletionsReq(FlaskForm):
+class CompletionReq(FlaskForm):
     """基础聊天接口验证"""
 
     query = StringField("query", validators=[

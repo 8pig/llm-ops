@@ -1,3 +1,4 @@
+
 from pydantic import BaseModel, field_validator
 
 from internal.exception import FailException
@@ -5,14 +6,13 @@ from internal.exception import FailException
 
 class CategoryEntity(BaseModel):
     """分类实体"""
-    category: str
-    name: str
-    icon: str
+    category: str  # 分类唯一标识
+    name: str  # 分类名称
+    icon: str  # 分类图标名称
 
     @field_validator("icon")
-    def check_icon_extension(cls, v):
-        """校验icon 拓展名 是否为svg"""
-        if not v.endswith(".svg"):
-            raise FailException("icon 拓展名必须是 svg")
-
-        return  v
+    def check_icon_extension(cls, value: str):
+        """校验icon的扩展名是不是.svg，如果不是则抛出错误"""
+        if not value.endswith(".svg"):
+            raise FailException("该分类的icon图标并不是.svg格式")
+        return value

@@ -1,22 +1,23 @@
+
 import os.path
 from typing import Any
 
 import yaml
 from pydantic import BaseModel, Field
 
-from .tool_entity import ToolEntity
 from internal.lib.helper import dynamic_import
+from .tool_entity import ToolEntity
 
 
 class ProviderEntity(BaseModel):
-    name: str
-    description: str
-    label: str
-    icon: str
-    background: str
-    category: str
-    created_at: int = 0  # 创建时间
-
+    """服务提供商实体，映射的数据是providers.yaml里的每条记录"""
+    name: str  # 名字
+    label: str  # 标签、展示给前端显示的
+    description: str  # 描述
+    icon: str  # 图标地址
+    background: str  # 图标的颜色
+    category: str  # 分类信息
+    created_at: int = 0  # 提供商/工具的创建时间戳
 
 
 class Provider(BaseModel):

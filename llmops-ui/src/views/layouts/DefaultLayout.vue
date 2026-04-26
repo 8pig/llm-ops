@@ -88,11 +88,11 @@ const route = useRoute()
             class="flex items-center p-2 gap-2 transition-all cursor-pointer rounded-lg hover:bg-gray-100"
           >
             <!-- 头像 -->
-            <a-avatar :size="32" class="text-sm bg-blue-700">慕</a-avatar>
+            <a-avatar :size="32" class="text-sm bg-blue-700">佩</a-avatar>
             <!-- 个人信息 -->
             <div class="flex flex-col">
-              <div class="text-sm text-gray-900">慕小课</div>
-              <div class="text-xs text-gray-500">zehuiya@163.com</div>
+              <div class="text-sm text-gray-900">野猪佩奇</div>
+              <div class="text-xs text-gray-500">bb@aa.com</div>
             </div>
           </div>
           <template #content>

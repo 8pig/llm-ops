@@ -1,23 +1,21 @@
 name: dalle3
-label: dalle-生图工具
-description: dalle 是一个文本生成图像工具
+label: DALLE-3绘图工具
+description: DALLE-3是一个将文本转换成图片的绘图工具。
 params:
   - name: size
     label: 图片尺寸
     type: select
-    required: true
     default: 1024x1024
-    description: 选择生成图片的尺寸和方向
+    required: true
     options:
       - value: 1024x1024
-        label: "方 1024x1024"
-      - value: 1972x1024
-        label: "横屏 1972x1024"
-      - value: 1024x1972
-        label: "竖屏 1024x1972"
+        label: "(方)1024x1024"
+      - value: 1792x1024
+        label: "(横屏)1792x1024"
+      - value: 1024x1792
+        label: "(竖屏)1024x1792"
   - name: style
     label: 图片风格
-    description: 选择图片的视觉风格（生动或自然）
     type: select
     default: vivid
     required: true

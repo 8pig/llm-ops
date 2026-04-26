@@ -1,5 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+
 """
 Agent智能体执行引擎 - Python示例
 用于测试 LLM Agent 与工具调用的基础框架
