@@ -4,6 +4,11 @@ warnings.filterwarnings("ignore", category=SyntaxWarning, module="jieba")
 warnings.filterwarnings("ignore", category=UserWarning, module="jieba")
 warnings.filterwarnings("ignore", category=ResourceWarning)
 
+# 忽略 Weaviate 的连接警告
+warnings.filterwarnings("ignore", message=".*Con004.*")
+warnings.filterwarnings("ignore", module="weaviate.warnings")
+
+
 
 from config import Config
 from internal.router import Router
