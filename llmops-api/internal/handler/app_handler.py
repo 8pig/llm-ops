@@ -102,7 +102,7 @@ class AppHandler:
                 """聊天机器人节点"""
                 # 3.2.1 创建LLM大语言模型
                 llm = ChatOpenAI(
-                    model="qwen3.6-plus-2026-04-02",
+                    model=os.getenv("LLM_MODEL"),
                     api_key=os.getenv("OPENAI_API_KEY"),
                     base_url=os.getenv("OPENAI_API_BASE_URL"),
                 ).bind_tools(tools)
@@ -236,7 +236,7 @@ class AppHandler:
         )
         # 创建模型
         llm = ChatOpenAI(
-            model="qwen3.6-plus-2026-04-02",
+            model=os.getenv("LLM_MODEL"),
             api_key=os.getenv("OPENAI_API_KEY"),
             base_url=os.getenv("OPENAI_API_BASE_URL"),
         )
@@ -258,9 +258,9 @@ class AppHandler:
         return success_json({"content": content})
 
     def ping(self):
-        human_messge = "你能详细介绍一下 , llm与agent 之间有什么联系吗"
-        cn = self.coversation_service.generate_conversation_name(human_messge)
-        return success_message({cn: cn})
+        human_message = "你好我叫野猪佩奇, 喜欢唱 跳 rap 篮球~,"
+        cn = self.coversation_service.generate_conversation_name(human_message)
+        return success_message({"conversation_name": cn})
         # return success_json({"message": "pong"})
         # demo_task.delay(uuid.uuid4())
         # return self.api_tool_service.api_tool_invoke()

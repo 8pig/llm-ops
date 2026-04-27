@@ -14,7 +14,7 @@ class QAExtra(BaseModel):
 
 
 llm = ChatOpenAI(
-    model="qwen3-max-2026-01-23",
+    model=os.getenv("LLM_MODEL"),
     api_key=os.getenv("OPENAI_API_KEY"),
     base_url=os.getenv("OPENAI_API_BASE_URL"),
 )
@@ -22,7 +22,7 @@ llm = ChatOpenAI(
 structured_llm = llm.with_structured_output(QAExtra)
 
 prompt = ChatPromptTemplate.from_messages([
-    ("system", "你是一个问答助手, 你从用户传递的query中提取假设性的问题+答案"),
+    ("system", "你是一个问答助手, 你从用户传递的query中提取假设性的问题+答案。请以 json 格式输出。"),
     ("human", "{query}"),
 ])
 
