@@ -1,11 +1,12 @@
+import json
 from typing import Literal
 
-from langchain_core.messages import AnyMessage, HumanMessage, SystemMessage, RemoveMessage
+from langchain_core.messages import AnyMessage, HumanMessage, SystemMessage, RemoveMessage, ToolMessage
 from langgraph.constants import END
 from langgraph.graph.state import CompiledStateGraph, StateGraph
 
 from internal.exception import FailException
-from .base_agennt import BaseAgent
+from .base_agent import BaseAgent
 from internal.core.agent.entities.agent_entity import AgentState, AGENT_SYSTEM_PROMPT_TEMPLATE
 
 
@@ -95,19 +96,44 @@ class FunctionCallAgent(BaseAgent):
         if hasattr(llm, "bind_tools") and callable(llm.bind_tools) and len(self.agent_config.tools) > 0:
             llm = llm.bind_tools(self.agent_config.tools)
 
+        gathered = None
+        is_first_chunk = True
+        for chunk in llm.stream(state["messages"]):
+            if is_first_chunk:
+                gathered = chunk
+                is_first_chunk = False
+            else:
+                gathered.content += chunk.content
 
+        return { "messages": [gathered]}
 
-        pass
 
 
     def _tools_node(self, state: AgentState) -> AgentState:
         # 工具执行节点
-        pass
+        #  列表转字典
+        tools_by_name = {
+            tool.name: tool for tool in self.agent_config.tools
+        }
+
+    #     提取参数
+        tool_calls = state["messages"][-1].tool_calls
+        messages = []
+        for tool_call in tool_calls:
+            print("tool_call")
+            print(tool_call)
+            tool = tools_by_name[tool_call["name"]]
+            tool_result = tool.invoke(tool_call["args"])
+
+            messages.append(ToolMessage(
+                tool_call_id=tool_call["id"],
+                content=json.dump(tool_result),
+                name=tool_call["name"]
+            ))
+        return { "messages": messages }
 
 
 
-    def _tool_call_node(self, state: AgentState) -> AgentState:
-        pass
 
     @classmethod
     def _tools_condition(cls, state: AgentState) -> Literal["tools", "__end__"]:

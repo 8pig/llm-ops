@@ -258,9 +258,24 @@ class AppHandler:
         return success_json({"content": content})
 
     def ping(self):
-        human_message = "你好我叫野猪佩奇, 喜欢唱 跳 rap 篮球~,"
-        cn = self.coversation_service.generate_conversation_name(human_message)
-        return success_message({"conversation_name": cn})
+        from internal.core.agent.agents import FunctionCallAgent
+        from internal.core.agent.entities.agent_entity import AgentConfig
+        agent = FunctionCallAgent(
+            AgentConfig(
+                llm=ChatOpenAI(
+                    model=os.getenv("LLM_MODEL"),
+                    api_key=os.getenv("OPENAI_API_KEY"),
+                    base_url=os.getenv("OPENAI_API_BASE_URL"),
+                ),
+                preset_prompt="你是一位年长的诗人 根据用户的主题 作诗"
+            )
+        )
+        state = agent.run("程序员",[], "")
+        content = state["messages"][-1].content
+        return success_json({"content": content})
+        # human_message = "你好我叫野猪佩奇, 喜欢唱 跳 rap 篮球~,"
+        # cn = self.coversation_service.generate_conversation_name(human_message)
+        # return success_message({"conversation_name": cn})
         # return success_json({"message": "pong"})
         # demo_task.delay(uuid.uuid4())
         # return self.api_tool_service.api_tool_invoke()
