@@ -77,8 +77,6 @@ class ConversationService(BaseService):
         query = query.replace("\n", " ")
 
         # 5.调用链并获取会话信息
-        print("222")
-        print(query)
         conversation_info = chain.invoke({"query": query})
         print(conversation_info)
         # 6.提取会话名称

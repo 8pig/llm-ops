@@ -59,8 +59,6 @@ class EmbeddingsService:
 
     @property
     def embeddings(self) -> Embeddings:
-        length = self.calculate_token_count("hello world")
-        logging.info(f"token length: {length}")
         return self._embeddings
 
     @property
