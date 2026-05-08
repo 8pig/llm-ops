@@ -1,7 +1,6 @@
 import { Message } from '@arco-design/web-vue'
 import { apiPrefix, httpCode } from '@/config'
 
-
 // 1.超时时间为100s
 const TIME_OUT = 100000
 
@@ -10,7 +9,6 @@ const baseFetchOptions = {
   method: 'GET',
   mode: 'cors',
   credentials: 'include',
-
   headers: new Headers({
     'Content-Type': 'application/json',
   }),
@@ -27,9 +25,9 @@ type FetchOptionType = Omit<RequestInit, 'body'> & {
 const baseFetch = <T>(url: string, fetchOptions: FetchOptionType): Promise<T> => {
   // 5.将所有的配置信息合并起来
   const options: typeof baseFetchOptions & FetchOptionType = Object.assign(
-      {},
-      baseFetchOptions,
-      fetchOptions,
+    {},
+    baseFetchOptions,
+    fetchOptions,
   )
 
   // 6.组装url
@@ -69,29 +67,29 @@ const baseFetch = <T>(url: string, fetchOptions: FetchOptionType): Promise<T> =>
     // 12.发起一个正常请求
     new Promise((resolve, reject) => {
       globalThis
-          .fetch(urlWithPrefix, options as RequestInit)
-          .then(async (res) => {
-            const json = await res.json()
-            if (json.code === httpCode.success) {
-              resolve(json)
-            } else {
-              Message.error(json.message)
-              reject(new Error(json.message))
-            }
-          })
-          .catch((err) => {
-            Message.error(err.message)
-            reject(err)
-          })
+        .fetch(urlWithPrefix, options as RequestInit)
+        .then(async (res) => {
+          const json = await res.json()
+          if (json.code === httpCode.success) {
+            resolve(json)
+          } else {
+            Message.error(json.message)
+            reject(new Error(json.message))
+          }
+        })
+        .catch((err) => {
+          Message.error(err.message)
+          reject(err)
+        })
     }),
   ]) as Promise<T>
 }
 
 // 5.封装基于post的sse(流式事件响应)请求
 export const ssePost = async (
-    url: string,
-    fetchOptions: FetchOptionType,
-    onData: (data: { [key: string]: any }) => void,
+  url: string,
+  fetchOptions: FetchOptionType,
+  onData: (data: { [key: string]: any }) => void,
 ) => {
   // 5.1 组装基础的fetch请求配置
   const options = Object.assign({}, baseFetchOptions, { method: 'POST' }, fetchOptions)
@@ -161,6 +159,59 @@ const handleStream = (response: Response, onData: (data: { [key: string]: any })
 
   // 4.调用read函数去执行获取对应的数据
   read()
+}
+
+export const upload = <T>(url: string, options = {}): Promise<T> => {
+  // 1 组装请求URL
+  const urlWithPrefix = `${apiPrefix}${url.startsWith('/') ? url : `/${url}`}`
+
+  // 2.组装xhr请求配置信息
+  const defaultOptions = {
+    method: 'POST',
+    url: urlWithPrefix,
+    headers: {},
+    data: {},
+  }
+  options = {
+    ...defaultOptions,
+    ...options,
+    headers: { ...defaultOptions.headers, ...options.headers },
+  }
+
+  // 3.构建promise并使用xhr完成文件上传
+  return new Promise((resolve, reject) => {
+    // 4.创建xhr服务
+    const xhr = new XMLHttpRequest()
+
+    // 5.初始化xhr请求并配置headers
+    xhr.open(options.method, options.url)
+    for (const key in options.headers) {
+      xhr.setRequestHeader(key, options.headers[key])
+    }
+
+    // 6.设置xhr响应格式并携带授权凭证（例如cookie）
+    xhr.withCredentials = true
+    xhr.responseType = 'json'
+
+    // 7.监听xhr状态变化并导出数据
+    xhr.onreadystatechange = () => {
+      // 8.判断xhr的状态是不是为4，如果为4则代表已经传输完成（涵盖成功与失败）
+      if (xhr.readyState === 4) {
+        // 9.检查响应状态码，当HTTP状态码为200的时候表示请求成功
+        if (xhr.status === 200) {
+          resolve(xhr.response)
+        } else {
+          reject(xhr)
+        }
+      }
+    }
+
+    // 10.添加xhr进度监听
+    xhr.upload.onprogress = options.onprogress
+
+    // 11.发送请求
+    xhr.send(options.data)
+  })
 }
 
 export const request = <T>(url: string, options = {}) => {
