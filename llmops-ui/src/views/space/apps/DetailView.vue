@@ -88,7 +88,7 @@ const send = async () => {
         <!-- 调试对话界面 -->
         <div class="h-full min-h-0 px-6 py-7 overflow-x-hidden overflow-y-scroll scrollbar-w-none">
           <!-- 人类消息 -->
-          <div class="flex flex-row gap-2 mb-6" v-for="message in messages" :key="message.content">
+          <div class="flex flex-row gap-2 mb-6" v-for="(message, index) in messages" :key="message.content">
             <!-- 头像 -->
             <a-avatar
               v-if="message.role === 'human'"
@@ -122,7 +122,7 @@ const send = async () => {
                 class="max-w-max bg-gray-100 text-gray-900 border border-gray-200 px-4 py-3 rounded-2xl leading-5"
               >
                 {{ message.content }}
-                <div v-if="isLoading" class="cursor"></div>
+                <div v-if="isLoading && index === messages.length - 1" class="cursor"></div>
               </div>
             </div>
           </div>
