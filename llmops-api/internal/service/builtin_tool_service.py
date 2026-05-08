@@ -119,9 +119,8 @@ class BuiltinToolService:
         category_map = self.builtin_category_manager.get_category_map()
         return [
             {
-                "name": category["category"].name,
-                #与 builtin_category_manager 中的键名一致
-                "category": category["category"].category,
+                "name": category["entity"].name,
+                "category": category["entity"].category,
                 "icon": category["icon"],
             }
             for category in category_map.values()
