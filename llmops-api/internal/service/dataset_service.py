@@ -91,14 +91,14 @@ class DatasetService(BaseService):
 
         filters = [Dataset.account_id == account_id]
         if req.search_word.data:
-            filters.append(Dataset.name.like(f"%{req.search_word.data}%"))
+            filters.append(Dataset.name.ilike(f"%{req.search_word.data}%"))
 
             # 分页 查询
 
-        datasetsq= (self.db.session.query(Dataset).
-                   filter(*filters).
-                   order_by(Dataset.created_at.desc()))
-        datasets = paginator.paginate(datasetsq)
+        # 3.执行分页并获取数据
+        datasets = paginator.paginate(
+            self.db.session.query(Dataset).filter(*filters).order_by(desc("created_at"))
+        )
 
         return datasets, paginator
 

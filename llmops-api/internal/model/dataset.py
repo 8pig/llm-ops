@@ -77,7 +77,6 @@ class Dataset(db.Model):
             scalar()
         )
 
-
 class Document(db.Model):
     """文档表模型"""
     __tablename__ = "document"

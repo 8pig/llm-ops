@@ -11,7 +11,7 @@ from internal.schema.dataset_schema import (
     GetDatasetResp,
     UpdateDatasetReq,
     GetDatasetsWithPageReq,
-    GetDatasetWithPageResp, HitReq, GetDatasetQueriesResp
+    GetDatasetsWithPageResp, HitReq, GetDatasetQueriesResp
 )
 from internal.model import UploadFile
 from pkg.paginator import PageModel
@@ -123,7 +123,7 @@ class DatasetHandler:
 
         datasets, paginator = self.dataset_service.get_datasets_with_page(req)
 
-        resp = GetDatasetWithPageResp(many=True)
+        resp = GetDatasetsWithPageResp(many=True)
 
         return success_json(PageModel(list=resp.dump(datasets), paginator=paginator))
 
