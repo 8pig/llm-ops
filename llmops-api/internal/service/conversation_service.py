@@ -112,7 +112,7 @@ class ConversationService(BaseService):
             base_url=os.getenv("OPENAI_API_BASE_URL"),
             temperature=0
         )
-        structured_llm = llm.with_structured_output(SuggestedQuestions)
+        structured_llm = prompt | llm | JsonOutputParser(pydantic_object=SuggestedQuestions)
 
         # 3.构建链应用
         chain = prompt | structured_llm
@@ -123,10 +123,16 @@ class ConversationService(BaseService):
         # 5.提取建议问题列表
         questions = []
         try:
-            if suggested_questions and hasattr(suggested_questions, "questions"):
+            if suggested_questions and isinstance(suggested_questions, dict):
+                questions = suggested_questions.get("questions", [])
+            elif suggested_questions and hasattr(suggested_questions, "questions"):
                 questions = suggested_questions.questions
+
+            if not isinstance(questions, list):
+                questions = []
         except Exception as e:
-            logging.exception(f"生成建议问题出错, suggested_questions: {suggested_questions}, 错误信息: {str(e)}")
+            logging.exception(f"提取建议问题出错, suggested_questions: {suggested_questions}, 错误信息: {str(e)}")
+
         if len(questions) > 3:
             questions = questions[:3]
 

@@ -85,7 +85,16 @@ class ConversationInfo(BaseModel):
 
 
 # 建议问题提示词模板
-SUGGESTED_QUESTIONS_TEMPLATE = "请根据传递的历史信息预测人类最后可能会问的三个问题"
+SUGGESTED_QUESTIONS_TEMPLATE = """请根据传递的历史信息预测人类最后可能会问的三个问题, 
+并用输出json 且包含questions , questions 为字符串数组
+----
+示例
+{{
+    "questions":["需要我帮你查询行程吗", "查询最近天气", "查询最近会议安排"]
+}}
+---
+
+"""
 
 
 class SuggestedQuestions(BaseModel):
