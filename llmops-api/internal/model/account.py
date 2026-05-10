@@ -7,11 +7,11 @@ from sqlalchemy import (
     text,
     PrimaryKeyConstraint,
 )
-
+from flask_login import UserMixin
 from internal.extension.database_extension import db
 
 
-class Account(db.Model):
+class Account(UserMixin, db.Model):
     """账号模型"""
     __tablename__ = "account"
     __table_args__ = (

@@ -1,14 +1,13 @@
-import logging
-
-from langchain_ollama import OllamaEmbeddings
 import os
 from dataclasses import dataclass
 
 import tiktoken
 from injector import inject
 from langchain_classic.embeddings import CacheBackedEmbeddings
+from langchain_ollama import OllamaEmbeddings
 from langchain_community.storage import RedisStore
 from langchain_core.embeddings import Embeddings
+from langchain_openai import OpenAIEmbeddings
 from redis import Redis
 
 

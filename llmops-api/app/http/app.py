@@ -1,4 +1,9 @@
 ﻿import warnings
+
+from flask_login import LoginManager
+
+from internal.middleware import Middleware
+
 # 忽略第三方库的警告
 warnings.filterwarnings("ignore", category=SyntaxWarning, module="jieba")
 warnings.filterwarnings("ignore", category=UserWarning, module="jieba")
@@ -33,6 +38,8 @@ app = Http(
     conf=conf,
     db=injector.get(SQLAlchemy),
     migrate=injector.get(Migrate),
+    login_manager=injector.get(LoginManager),
+    middleware=injector.get(Middleware),
     router=injector.get(Router)
 )
 

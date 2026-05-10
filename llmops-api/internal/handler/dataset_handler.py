@@ -20,6 +20,7 @@ from internal.service import DatasetService,EmbeddingsService, JiebaService, Vec
 from internal.core.file_extractor import FileExtractor
 from pkg.db import SQLAlchemy
 from dataclasses import dataclass
+from flask_login import login_required
 
 @inject
 @dataclass
@@ -114,6 +115,7 @@ class DatasetHandler:
 
 
 
+    @login_required
     def get_datasets_with_page(self):
         """"""
         req = GetDatasetsWithPageReq(request.args)

@@ -12,6 +12,8 @@ from pkg.response import json, Response, HttpCode
 from pkg.db import SQLAlchemy
 from internal.extension import logging_extension, redis_extension, celery_exetension
 from flask_migrate import Migrate
+from flask_login import LoginManager
+from internal.middleware import Middleware
 
 
 class Http(Flask):
@@ -22,6 +24,10 @@ class Http(Flask):
             conf: Config,
             db: SQLAlchemy,
             migrate: Migrate,
+            login_manager: LoginManager,
+
+            #中间件
+            middleware: Middleware,
             router: Router,
             **kwargs
     ):
@@ -32,6 +38,8 @@ class Http(Flask):
 
         # 注册 favicon 路由
         self.add_url_rule('/favicon.ico', view_func=self._favicon)
+
+        login_manager.request_loader(middleware.request_loader)
 
         # 注册应用路由
         router.register_router(self)
@@ -48,6 +56,7 @@ class Http(Flask):
         celery_exetension.init_app(self)
 
         logging_extension.init_app(self)
+        login_manager.init_app(self)
 
     def _favicon(self):
         """返回默认的 favicon"""

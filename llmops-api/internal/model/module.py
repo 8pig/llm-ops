@@ -6,6 +6,8 @@ from internal.extension.redis_extension import redis_client
 from pkg.db import SQLAlchemy
 from flask_migrate import  Migrate
 from internal.extension.migrate_extension import  migrate
+from flask_login import LoginManager
+from internal.extension.login_extension import login_manager
 
 class ExtensionModule(Module):
     """拓展模块的依赖注入"""
@@ -13,6 +15,7 @@ class ExtensionModule(Module):
         binder.bind(SQLAlchemy, to=db)
         binder.bind(Migrate, to=migrate)
         binder.bind(Redis,to=redis_client)
+        binder.bind(LoginManager, to=login_manager)
 
 injector = Injector([
     ExtensionModule

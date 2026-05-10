@@ -43,6 +43,8 @@ dependencies = [
     "unstructured-inference>=1.6.6",
     "pymupdf>=1.27.2.2",
     "celery-types>=0.26.0",
+    "pyjwt>=2.12.1",
+    "flask-login>=0.6.3",
 ]
 
 [tool.setuptools.packages.find]
