@@ -181,7 +181,7 @@ class Router:
 
 
         bp.add_url_rule(
-            "/datasets/<uuid:dataset_id>/batch/<string:batch>",
+            "/datasets/<uuid:dataset_id>/documents/batch/<string:batch>",
             view_func=self.document_handler.get_document_status
         )
 
