@@ -9,8 +9,10 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_weaviate import WeaviateVectorStore
 from weaviate import WeaviateClient
 from weaviate.collections import Collection
+from weaviate.classes.config import Configure, DataType, Property
 
 from .embeddings_service import EmbeddingsService
+
 
 # 向量库集合名字
 COLLECTION_NAME = "Dataset"
@@ -32,14 +34,46 @@ class VectorDatabaseService:
             port=int(os.getenv("WEAVIATE_PORT"))
         )
 
+        # 2.确保集合存在，如果不存在则创建
+        self._ensure_collection()
 
-        # 2.创建LangChain向量数据库
+        # 3.创建LangChain向量数据库
         self.vector_store = WeaviateVectorStore(
             client=self.client,
             index_name=COLLECTION_NAME,
             text_key="text",
             embedding=self.embedding_service.embeddings
         )
+
+    def _ensure_collection(self) -> None:
+        """确保向量集合存在，如果不存在则创建"""
+        try:
+            if not self.client.collections.exists(COLLECTION_NAME):
+                test_embedding = self.embedding_service.embeddings.embed_query("test")
+                vector_dim = len(test_embedding)
+
+                print(f"Creating collection '{COLLECTION_NAME}' with vector dimension: {vector_dim}")
+
+                self.client.collections.create(
+                    name=COLLECTION_NAME,
+                    vectorizer_config=Configure.Vectorizer.none(),
+                    properties=[
+                        Property(name="text", data_type=DataType.TEXT),
+                        Property(name="dataset_id", data_type=DataType.UUID),
+                        Property(name="document_id", data_type=DataType.UUID),
+                        Property(name="segment_id", data_type=DataType.UUID),
+                        Property(name="enabled", data_type=DataType.BOOL),
+                    ],
+                    vector_index_config=Configure.VectorIndex.hnsw(
+                        distance_metric=Configure.VectorIndex.Distance.COSINE
+                    )
+                )
+                print(f"Collection '{COLLECTION_NAME}' created successfully")
+            else:
+                print(f"Collection '{COLLECTION_NAME}' already exists")
+        except Exception as e:
+            print(f"Error ensuring collection: {e}")
+            raise
 
     def get_retriever(self) -> VectorStoreRetriever:
         """获取检索器"""
