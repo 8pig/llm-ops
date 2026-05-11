@@ -7,6 +7,7 @@ from .dataset_handler import DatasetHandler
 from .document_handler import DocumentHandler
 from .upload_file_handler import UploadFileHandler
 from .segment_handler import SegmentHandler
+from .oauth_handler import OAuthHandler
 
 
 __all__ = [
@@ -16,5 +17,6 @@ __all__ = [
     "UploadFileHandler",
     "DatasetHandler",
     "DocumentHandler",
-    "SegmentHandler"
+    "SegmentHandler",
+    "OAuthHandler"
 ]

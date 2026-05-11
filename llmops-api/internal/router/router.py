@@ -3,7 +3,8 @@ from flask import Flask, Blueprint
 
 from internal.handler import (
     AppHandler, BuiltinToolHandler, ApiToolHandler,
-    UploadFileHandler, DatasetHandler, DocumentHandler, SegmentHandler
+    UploadFileHandler, DatasetHandler, DocumentHandler, SegmentHandler,
+OAuthHandler
 )
 from dataclasses import dataclass
 
@@ -18,6 +19,7 @@ class Router:
     dataset_handler: DatasetHandler
     document_handler: DocumentHandler
     segment_handler: SegmentHandler
+    oauth_handler: OAuthHandler
 
 
 
@@ -226,6 +228,18 @@ class Router:
             "/datasets/<uuid:dataset_id>/hit",
             methods=["post"],
             view_func=self.dataset_handler.hit
+        )
+
+
+        bp.add_url_rule(
+            "/oauth/<string:provider_name>",
+            methods=["get"],
+            view_func=self.oauth_handler.provider
+        )
+        bp.add_url_rule(
+            "/oauth/authorize/<string:provider_name>",
+            methods=["post"],
+            view_func=self.oauth_handler.authorize
         )
 
 
