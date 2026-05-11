@@ -93,7 +93,7 @@ class OAuthService(BaseService):
             # 8.查找账号信息
             account = self.account_service.get_account(account_oauth.account_id)
 
-        # 9.更新账号信息，涵盖最后一次登录时间，以及ip地址
+        # 9.更新账号信息，最后一次登录时间  ip地址
         self.update(
             account,
             last_login_at=datetime.now(),

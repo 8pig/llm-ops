@@ -4,7 +4,7 @@ from flask import Flask, Blueprint
 from internal.handler import (
     AppHandler, BuiltinToolHandler, ApiToolHandler,
     UploadFileHandler, DatasetHandler, DocumentHandler, SegmentHandler,
-OAuthHandler
+OAuthHandler, AccountHandler
 )
 from dataclasses import dataclass
 
@@ -20,6 +20,7 @@ class Router:
     document_handler: DocumentHandler
     segment_handler: SegmentHandler
     oauth_handler: OAuthHandler
+    account_handler: AccountHandler
 
 
 
@@ -241,6 +242,14 @@ class Router:
             methods=["post"],
             view_func=self.oauth_handler.authorize
         )
+
+
+        # 账号设置模块
+        bp.add_url_rule("/account", view_func=self.account_handler.get_current_user)
+        bp.add_url_rule("/account/password", methods=["POST"], view_func=self.account_handler.update_password)
+        bp.add_url_rule("/account/name", methods=["POST"], view_func=self.account_handler.update_name)
+        bp.add_url_rule("/account/avatar", methods=["POST"], view_func=self.account_handler.update_avatar)
+
 
 
         app.register_blueprint(bp)
