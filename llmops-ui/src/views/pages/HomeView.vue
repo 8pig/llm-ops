@@ -4,7 +4,7 @@ import { useAccountStore } from '@/stores/account'
 const accountStore = useAccountStore()
 
 function updateName() {
-  accountStore.update({ name: '小小课' })
+  accountStore.update({ name: '' })
 }
 </script>
 

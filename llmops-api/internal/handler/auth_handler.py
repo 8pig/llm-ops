@@ -16,7 +16,6 @@ class AuthHandler:
     db: SQLAlchemy
     account_service: AccountService
 
-    @login_required
     def password_login(self):
         pwd = PasswordLoginReq()
         if not pwd.validate():
