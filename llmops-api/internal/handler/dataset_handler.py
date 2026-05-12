@@ -20,7 +20,8 @@ from internal.service import DatasetService,EmbeddingsService, JiebaService, Vec
 from internal.core.file_extractor import FileExtractor
 from pkg.db import SQLAlchemy
 from dataclasses import dataclass
-from flask_login import login_required
+from flask_login import login_required, current_user
+
 
 @inject
 @dataclass
@@ -70,7 +71,7 @@ class DatasetHandler:
         if not req.validate():
             return validate_error_json(req.errors)
 
-        result = self.dataset_service.hit(dataset_id, req)
+        result = self.dataset_service.hit(dataset_id, req, current_user)
         return success_json(result)
 
 
@@ -78,7 +79,7 @@ class DatasetHandler:
     def get_dataset_queries(self, dataset_id: UUID):
         """ 获取查询记录"""
 
-        dataset_queries = self.dataset_service.get_dataset_queries(dataset_id)
+        dataset_queries = self.dataset_service.get_dataset_queries(dataset_id, current_user)
         resp  = GetDatasetQueriesResp(many=True)
         return success_json(resp.dump(dataset_queries))
 
@@ -91,7 +92,7 @@ class DatasetHandler:
         if not req.validate():
             return validate_error_json(req.errors)
 
-        dataset = self.dataset_service.create_dataset(req)
+        dataset = self.dataset_service.create_dataset(req, current_user)
         return success_message(f"{dataset.name}创建成功")
 
 
@@ -99,7 +100,7 @@ class DatasetHandler:
 
     def get_dataset(self, dataset_id: str):
         """"""
-        dataset = self.dataset_service.get_dataset(dataset_id)
+        dataset = self.dataset_service.get_dataset(dataset_id, current_user)
         resp = GetDatasetResp()
         return success_json(resp.dump(dataset))
 
@@ -109,7 +110,7 @@ class DatasetHandler:
         if not req.validate():
             return validate_error_json(req.errors)
 
-        dataset = self.dataset_service.update_dataset(dataset_id, req)
+        dataset = self.dataset_service.update_dataset(dataset_id, req, current_user)
         return success_message(f"{dataset.name}更新成功")
 
 
@@ -123,7 +124,7 @@ class DatasetHandler:
         if not req.validate():
             return validate_error_json(req.errors)
 
-        datasets, paginator = self.dataset_service.get_datasets_with_page(req)
+        datasets, paginator = self.dataset_service.get_datasets_with_page(req, current_user)
 
         resp = GetDatasetsWithPageResp(many=True)
 
@@ -131,5 +132,5 @@ class DatasetHandler:
 
 
     def delete_dataset(self, dataset_id: UUID):
-        self.dataset_service.delete_dataset(dataset_id)
+        self.dataset_service.delete_dataset(dataset_id, current_user)
         return success_message(f"{dataset_id}删除成功")

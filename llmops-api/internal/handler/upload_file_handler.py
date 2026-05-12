@@ -1,4 +1,4 @@
-from flask_login import login_required
+from flask_login import login_required, current_user
 from injector import inject
 from dataclasses import dataclass
 
@@ -20,19 +20,19 @@ class UploadFileHandler:
         if not req.validate():
             return validate_error_json(req.errors)
         # 上传文件 获取记录
-        upload_file = self.cos_service.upload_file(req.file.data)
+        upload_file = self.cos_service.upload_file(req.file.data, False, current_user)
 
         # 3响应返回
         resp = UploadFileResp()
         return success_json(resp.dump(upload_file))
 
         pass
-
+    @login_required
     def upload_image(self):
         req = UploadImageReq()
         if not req.validate():
             return validate_error_json(req.errors)
-        upload_file = self.cos_service.upload_file(req.file.data, True)
+        upload_file = self.cos_service.upload_file(req.file.data, True, current_user)
         # 获取图片的实际url地址
         image_url = self.cos_service.get_file_url(upload_file.key)
         return success_json({"image_url": image_url})

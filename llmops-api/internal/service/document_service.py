@@ -13,7 +13,7 @@ from internal.lib.helper import datetime_to_timestamp
 from internal.model import Segment
 from pkg.paginator import Paginator
 from pkg.db import SQLAlchemy
-from internal.entity.upload_file_entity import ALLOWED_DOCUMENT_EXTENSIONS
+from internal.entity.upload_file_entity import ALLOWED_DOCUMENT_EXTENSION
 from internal.exception import FailException, ForbiddenException, NotFoundException
 from internal.entity.dataset_entity import ProcessType, SegmentStatus, DocumentStatus
 from internal.service import BaseService
@@ -53,7 +53,7 @@ class DocumentService(BaseService):
         ).all()
 
         upload_files = [upload_file for upload_file in upload_files
-            if upload_file.extension.lower() in ALLOWED_DOCUMENT_EXTENSIONS
+            if upload_file.extension.lower() in ALLOWED_DOCUMENT_EXTENSION
         ]
         if len(upload_files)  == 0:
             logging.warning(f"暂未解析到合法文件,{account_id},dataset_id: {dataset_id}, upload_file_ids:{upload_file_ids}")
