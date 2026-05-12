@@ -29,20 +29,17 @@ class RetrievalService(BaseService):
             self,
             dataset_ids: list[UUID],
             query: str,
-            account: Account,
+            account_id: UUID,
             retrieval_strategy: str = RetrievalStrategy.SEMANTIC,
             k: int = 4,
             score: float = 0,
             retrival_source: str = RetrievalSource.HIT_TESTING,
     ) -> list[LCDocument]:
         """根据传递的query+知识库列表执行检索，并返回检索的文档+得分数据（如果检索策略为全文检索，则得分为0）"""
-        # todo:等待授权认证模块完成进行切换调整
-        account_id = account.id
-
         # 1.提取知识库列表并校验权限同时更新知识库id
         datasets = self.db.session.query(Dataset).filter(
             Dataset.id.in_(dataset_ids),
-            Dataset.account_id == account_id,
+            Dataset.account_id == account_id
         ).all()
         if datasets is None or len(datasets) == 0:
             raise NotFoundException("当前无知识库可执行检索")

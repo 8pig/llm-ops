@@ -105,33 +105,25 @@ class DatasetService(BaseService):
 
     def hit(self, dataset_id: UUID, req: HitReq, account: Account) -> list[dict]:
         """根据传递的知识库id+请求执行召回测试"""
-        # todo:等待授权认证模块完成进行切换调整
-        account_id = account.id
-
         # 1.检测知识库是否存在并校验
         dataset = self.get(Dataset, dataset_id)
-        if dataset is None or dataset.account_id != account_id:
+        if dataset is None or dataset.account_id != account.id:
             raise NotFoundException("该知识库不存在")
 
         # 2.调用检索服务执行检索
         lc_documents = self.retrieval_service.search_in_datasets(
             dataset_ids=[dataset_id],
+            account_id=account.id,
             **req.data,
         )
-
         lc_document_dict = {str(lc_document.metadata["segment_id"]): lc_document for lc_document in lc_documents}
-        logging.error(lc_document_dict)
+
         # 3.根据检索到的数据查询对应的片段信息
         segments = self.db.session.query(Segment).filter(
             Segment.id.in_([str(lc_document.metadata["segment_id"]) for lc_document in lc_documents])
         ).all()
-
-        # segment_dict = {}
-        # for segment in segments:
-        #     segment_id_str = str(segment.id)
-        #     segment_dict[segment_id_str] = segment
-
         segment_dict = {str(segment.id): segment for segment in segments}
+
         # 4.排序片段数据
         sorted_segments = [
             segment_dict[str(lc_document.metadata["segment_id"])]
@@ -169,6 +161,8 @@ class DatasetService(BaseService):
             })
 
         return hit_result
+
+
 
     def get_dataset_queries(self, dataset_id, account: Account):
         # todo:等待授权认证模块完成进行切换调整
