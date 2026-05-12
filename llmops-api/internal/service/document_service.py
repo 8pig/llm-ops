@@ -17,7 +17,7 @@ from internal.entity.upload_file_entity import ALLOWED_DOCUMENT_EXTENSIONS
 from internal.exception import FailException, ForbiddenException, NotFoundException
 from internal.entity.dataset_entity import ProcessType, SegmentStatus, DocumentStatus
 from internal.service import BaseService
-from internal.model import UploadFile, ProcessRule, Dataset, Document
+from internal.model import UploadFile, ProcessRule, Dataset, Document, Account
 from internal.task.document_task import build_document, update_document_enabled, delete_document_task
 from internal.schema.document_schema import GetDocumentsWithPageReq
 from internal.entity.cache_entity import LOCK_DOCUMENT_UPDATE_ENABLED, LOCK_EXPIRE_TIME
@@ -36,14 +36,15 @@ class DocumentService(BaseService):
             self,
             dataset_id: UUID,
             upload_file_ids: list[UUID],
+            account: Account,
             process_type: str = ProcessType.AUTOMATIC,
             rule: dict = None
     ) -> tuple[list[Document], str]:
         """ 根据传递的ids 创建文档列表 调用异步"""
 
-        account_id = "550e8400-e29b-41d4-a716-446655440000"
+        account_id = account.id
         dataset = self.get(Dataset, dataset_id)
-        if dataset is None or str(dataset.account_id) != account_id:
+        if dataset is None or dataset.account_id != account_id:
             raise ForbiddenException("知识库不存在或无权限")
 
         upload_files = self.db.session.query(UploadFile).filter(
@@ -91,11 +92,11 @@ class DocumentService(BaseService):
         #返回文档列表与批次
         return documents, batch
 
-    def get_document_status(self, dataset_id, batch) -> list[dict]:
+    def get_document_status(self, dataset_id, batch, account: Account) -> list[dict]:
 
-        account_id = "550e8400-e29b-41d4-a716-446655440000"
+        account_id = account.id
         dataset = self.get(Dataset, dataset_id)
-        if dataset is None or str(dataset.account_id) != account_id:
+        if dataset is None or dataset.account_id != account_id:
             raise ForbiddenException("知识库不存在或无权限")
 
     #     查询批次下文档
@@ -151,23 +152,23 @@ class DocumentService(BaseService):
         ).order_by(desc("position")).first()
         return document.position if document else 0
 
-    def get_document(self, dataset_id, document_id) -> Document:
+    def get_document(self, dataset_id, document_id, account: Account) -> Document:
 
-        account_id = "550e8400-e29b-41d4-a716-446655440000"
+        account_id = account.id
         document = self.get(Document, document_id)
         if document is None:
             raise ForbiddenException("document不存在")
-        if str(document.dataset_id) != str(dataset_id) or str(document.account_id) != account_id:
+        if document.dataset_id != dataset_id or document.account_id != account_id:
             raise ForbiddenException("document不存在或无权限")
 
         return  document
 
-    def update_document_name(self, dataset_id, document_id, **kwargs):
-        account_id = "550e8400-e29b-41d4-a716-446655440000"
+    def update_document_name(self, dataset_id, document_id, account: Account, **kwargs):
+        account_id = account.id
         document = self.get(Document, document_id)
         if document is None:
             raise ForbiddenException("document不存在")
-        if str(document.dataset_id) != str(dataset_id) or str(document.account_id) != account_id:
+        if document.dataset_id != dataset_id or document.account_id != account_id:
             raise ForbiddenException("document不存在或无权限修改")
 
         return self.update(
@@ -175,14 +176,14 @@ class DocumentService(BaseService):
             **kwargs
         )
 
-    def update_document_enabled(self, dataset_id: UUID, document_id: UUID, enabled: bool)-> Document:
+    def update_document_enabled(self, dataset_id: UUID, document_id: UUID, enabled: bool, account: Account)-> Document:
         """ 修改状态 且 加锁"""
-        account_id = "550e8400-e29b-41d4-a716-446655440000"
+        account_id = account.id
 
         document = self.get(Document, document_id)
         if document is None:
             raise ForbiddenException("document不存在")
-        if str(document.dataset_id) != str(dataset_id) or str(document.account_id) != account_id:
+        if document.dataset_id != dataset_id or document.account_id != account_id:
             raise ForbiddenException("document不存在或无权限修改")
         # 判断是否可修改  只有构建完成才可以
         if document.status != DocumentStatus.COMPLETED:
@@ -204,14 +205,14 @@ class DocumentService(BaseService):
 
         return  document
 
-    def delete_document(self, dataset_id: UUID, document_id: UUID) -> Document:
+    def delete_document(self, dataset_id: UUID, document_id: UUID, account: Account) -> Document:
         """加锁删除  文档片段 关键词 weaviate"""
 
-        account_id = "550e8400-e29b-41d4-a716-446655440000"
+        account_id = account.id
         document = self.get(Document, document_id)
         if document is None:
             raise NotFoundException("document不存在")
-        if str(document.dataset_id) != str(dataset_id) or str(document.account_id) != account_id:
+        if document.dataset_id != dataset_id or document.account_id != account_id:
             raise ForbiddenException("document不存在或无权限删除")
 
         if document.status not in [DocumentStatus.COMPLETED, DocumentStatus.ERROR]:
@@ -227,12 +228,12 @@ class DocumentService(BaseService):
 
 
 
-    def get_documents_with_page(self, dataset_id: UUID, req: GetDocumentsWithPageReq):
+    def get_documents_with_page(self, dataset_id: UUID, req: GetDocumentsWithPageReq, account: Account):
         """分页文档分页数据"""
 
-        account_id = "550e8400-e29b-41d4-a716-446655440000"
+        account_id = account.id
         dataset = self.get(Dataset, dataset_id)
-        if dataset is None or str(dataset.account_id) != account_id:
+        if dataset is None or dataset.account_id != account_id:
             raise ForbiddenException("知识库不存在或无权限")
 
         paginator = Paginator(db=self.db, req=req)

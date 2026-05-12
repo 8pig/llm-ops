@@ -10,7 +10,7 @@ from sqlalchemy import desc
 
 from internal.core.tools.api_tools.entities import OpenAPISchema
 from internal.exception import ValidateException, NotFoundException
-from internal.model import ApiToolProvider, ApiTool, api_tool
+from internal.model import ApiToolProvider, ApiTool, api_tool, Account
 from internal.schema.api_tool_schema import CreateApiToolReq, GetApiToolProviderWithPageReq, UpdateApiToolProviderReq
 from internal.service.base_service import BaseService
 from pkg.paginator import Paginator
@@ -26,17 +26,16 @@ class ApiToolService(BaseService):
     db: SQLAlchemy
     api_provider_manager: ApiProviderManager
 
-    def update_api_tool_provider(self, provider_id: UUID, req: UpdateApiToolProviderReq):
+    def update_api_tool_provider(self, provider_id: UUID, req: UpdateApiToolProviderReq, account: Account):
         """ 根据id 更新 """
-        account_id = "550e8400-e29b-41d4-a716-446655440000"
         api_tool_provider = self.get(ApiToolProvider, provider_id)
-        if api_tool_provider is None or str(api_tool_provider.account_id) != account_id:
+        if api_tool_provider is None or api_tool_provider.account_id != account.id:
             raise ValidateException("该工具提供者不存在")
 
         openapi_schema = self.parse_openapi_schema(req.openapi_schema.data)
 
         db_provider = self.db.session.query(ApiToolProvider).filter(
-            ApiToolProvider.account_id == account_id,
+            ApiToolProvider.account_id == account.id,
             ApiToolProvider.name == req.name.data,
             ApiToolProvider.id != provider_id
         ).one_or_none()
@@ -47,7 +46,7 @@ class ApiToolService(BaseService):
         with self.db.auto_commit():
             self.db.session.query(ApiTool).filter(
                 ApiTool.provider_id == provider_id,
-                ApiTool.account_id == account_id
+                ApiTool.account_id == account.id
             ).delete()
 
         self.update(
@@ -63,7 +62,7 @@ class ApiToolService(BaseService):
             for method, method_item in path_item.items():
                 self.create(
                     ApiTool,
-                    account_id=account_id,
+                    account_id=account.id,
                     provider_id=api_tool_provider.id,
                     name=method_item.get("operationId"),
                     description=method_item.get("description"),
@@ -73,13 +72,12 @@ class ApiToolService(BaseService):
                 )
 
 
-    def create_api_tool_providers_with_page(self, req: GetApiToolProviderWithPageReq)-> tuple[list[Any],Paginator]:
-        account_id = "550e8400-e29b-41d4-a716-446655440000"
+    def create_api_tool_providers_with_page(self, req: GetApiToolProviderWithPageReq, account: Account)-> tuple[list[Any],Paginator]:
 
     #     !分页查询
         paginator = Paginator(db=self.db, req=req)
     # 构建筛选器
-        filters = [ApiToolProvider.account_id == account_id]
+        filters = [ApiToolProvider.account_id == account.id]
         if req.search_word.data:
             filters.append(ApiToolProvider.name.ilike(f"%{req.search_word.data}%"))
     # 执行分页 获取数据
@@ -89,9 +87,9 @@ class ApiToolService(BaseService):
         return api_tool_providers,  paginator
 
 
-    def get_api_tool(self, provider_id, tool_name):
+    def get_api_tool(self, provider_id, tool_name, account: Account):
         """根据id name 获取对应工具参数详情"""
-        account_id = "550e8400-e29b-41d4-a716-446655440000"
+        account_id = account.id
         api_tool = self.db.session.query(ApiTool).filter_by(
             provider_id=provider_id,
             name=tool_name
@@ -103,8 +101,8 @@ class ApiToolService(BaseService):
 
 
 
-    def get_api_tool_provider(self, provider_id) -> ApiToolProvider:
-        account_id = "550e8400-e29b-41d4-a716-446655440000"
+    def get_api_tool_provider(self, provider_id,  account: Account) -> ApiToolProvider:
+        account_id = account.id
 
 
 
@@ -116,14 +114,13 @@ class ApiToolService(BaseService):
 
 
 
-    def create_api_tool(self, req: CreateApiToolReq):
+    def create_api_tool(self, req: CreateApiToolReq, account: Account):
         """ 根据请求创建api """
 
         # 1. 校验http://127.0.0.1:4523/m1/7855483-7604388-default/builtin-tools
 
         # 2. 验证openapi_schema
-        # todo 认证授权
-        account_id = "550e8400-e29b-41d4-a716-446655440000"
+        account_id = account.id
 
         openapi_schema = self.parse_openapi_schema(req.openapi_schema.data)
 
@@ -157,9 +154,9 @@ class ApiToolService(BaseService):
                     parameters=method_item.get("parameters"),
                 )
 
-    def delete_api_tool_provider(self, provider_id: UUID):
+    def delete_api_tool_provider(self, provider_id: UUID, account: Account):
 
-        account_id = "550e8400-e29b-41d4-a716-446655440000"
+        account_id = account.id
 
         api_tool_provider = self.get(ApiToolProvider, provider_id)
         if api_tool_provider is None or str(api_tool_provider.account_id) != account_id:

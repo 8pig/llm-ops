@@ -1,3 +1,4 @@
+from flask_login import login_required
 from injector import inject
 from dataclasses import dataclass
 
@@ -11,7 +12,7 @@ from pkg.response import validate_error_json, success_json
 class UploadFileHandler:
     cos_service: CosService
 
-
+    @login_required
     def upload_file(self):
         """ 上传文件文档"""
         # 1, 构建请求/校验

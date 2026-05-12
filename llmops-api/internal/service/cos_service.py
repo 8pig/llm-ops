@@ -13,7 +13,7 @@ from werkzeug.datastructures import FileStorage
 
 from internal.entity.upload_file_entity import ALLOWED_DOCUMENT_EXTENSIONS, ALLOWED_IMAGE_EXTENSIONS
 from internal.exception import FailException
-from internal.model import UploadFile
+from internal.model import UploadFile, Account
 from internal.service import UploadFileService
 
 
@@ -23,9 +23,9 @@ class CosService:
     upload_file_service: UploadFileService
 
 
-    def upload_file(self,file:FileStorage, only_image:bool=False) -> UploadFile:
+    def upload_file(self, file: FileStorage, account: Account, only_image: bool = False) -> UploadFile:
         """上传文件到cos文件存储  返回文件信息"""
-        account_id = "550e8400-e29b-41d4-a716-446655440000"
+        account_id = account.id
 
         filename = file.filename
         extension = filename.rsplit(".", 1)[-1] if "." in filename else ""
