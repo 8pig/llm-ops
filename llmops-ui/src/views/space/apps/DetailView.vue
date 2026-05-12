@@ -151,7 +151,12 @@ const send = async () => {
             <div
               class="h-[50px] flex items-center gap-2 px-4 flex-1 border border-gray-200 rounded-full"
             >
-              <input type="text" class="flex-1 outline-0" v-model="query" @keyup.enter="send" />
+              <input
+                type="text"
+                class="flex-1 outline-0 border-none focus:outline-none focus:border-none focus:ring-0"
+                v-model="query"
+                @keyup.enter="send"
+              />
               <a-button type="text" shape="circle">
                 <template #icon>
                   <icon-plus-circle size="16" :style="{ color: '#374151' }" />
