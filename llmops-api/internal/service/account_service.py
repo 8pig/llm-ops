@@ -1,14 +1,20 @@
 from dataclasses import dataclass
+from datetime import datetime, timezone, timedelta
 from typing import Any, Optional
 from uuid import UUID
 import secrets
+
+from flask import request
 from injector import inject
 import base64
+
+from internal.exception import UnauthorizedException
 from pkg.password import hash_password, compare_password
 
 from internal.service.base_service import BaseService
 from pkg.db import SQLAlchemy
 from internal.model import Account, AccountOAuth
+from .jwt_service import JwtService
 
 
 @inject
@@ -17,6 +23,7 @@ class AccountService(BaseService):
     """账户服务"""
 
     db: SQLAlchemy
+    jwt_service: JwtService
 
     def get_account(self, account_id: UUID)-> Optional[Account]:
         return self.get(Account, account_id)
@@ -60,6 +67,33 @@ class AccountService(BaseService):
         account = self.update_account(account, password=base64_password_hashed, password_salt=base64_salt)
 
         return account
+
+    def password_login(self, email, pwd) -> dict[str, Any]:
+        """ 邮箱密码登录"""
+        account = self.get_account_by_email(email)
+        if account is None:
+            raise UnauthorizedException("用户不存在或者密码错误")
+
+        if not account.is_password_set or not compare_password(pwd, account.password, account.password_salt):
+            raise UnauthorizedException("用户不存在或者密码错误")
+
+        expire_at = int((datetime.now(timezone.utc) + timedelta(days=30)).timestamp())
+        payload = {
+            "sub": str(account.id),
+            "iss": "llmops",
+            "exp": expire_at,
+        }
+        access_token = self.jwt_service.generate_token(payload)
+        self.update(
+            account,
+            last_login_at=datetime.now(),
+            last_login_ip=request.remote_addr,
+        )
+
+        return {
+            "expire_at": expire_at,
+            "access_token": access_token,
+        }
 
 
 

@@ -9,6 +9,7 @@ from .upload_file_handler import UploadFileHandler
 from .segment_handler import SegmentHandler
 from .oauth_handler import OAuthHandler
 from .account_handler import AccountHandler
+from .auth_handler import AuthHandler
 
 
 __all__ = [
@@ -20,5 +21,6 @@ __all__ = [
     "DocumentHandler",
     "SegmentHandler",
     "OAuthHandler",
-    "AccountHandler"
+    "AccountHandler",
+    "AuthHandler"
 ]

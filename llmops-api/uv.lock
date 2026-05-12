@@ -898,6 +898,19 @@ wheels = [
 ]
 
 [[package]]
+name = "email-validator"
+version = "2.3.0"
+source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
+dependencies = [
+    { name = "dnspython" },
+    { name = "idna" },
+]
+sdist = { url = "https://mirrors.aliyun.com/pypi/packages/f5/22/900cb125c76b7aaa450ce02fd727f452243f2e91a61af068b40adba60ea9/email_validator-2.3.0.tar.gz", hash = "sha256:9fc05c37f2f6cf439ff414f8fc46d917929974a82244c20eb10231ba60c54426" }
+wheels = [
+    { url = "https://mirrors.aliyun.com/pypi/packages/de/15/545e2b6cf2e3be84bc1ed85613edd75b8aea69807a71c26f4ca6a9258e82/email_validator-2.3.0-py3-none-any.whl", hash = "sha256:80f13f623413e6b197ae73bb10bf4eb0908faf509ad8362c5edeb0be7fd450b4" },
+]
+
+[[package]]
 name = "emoji"
 version = "2.15.0"
 source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
@@ -2050,6 +2063,7 @@ dependencies = [
     { name = "deepagents" },
     { name = "docx" },
     { name = "dotenv" },
+    { name = "email-validator" },
     { name = "eventlet" },
     { name = "flask" },
     { name = "flask-cors" },
@@ -2093,6 +2107,7 @@ requires-dist = [
     { name = "deepagents", specifier = ">=0.5.2" },
     { name = "docx", specifier = ">=0.2.4" },
     { name = "dotenv", specifier = ">=0.9.9" },
+    { name = "email-validator", specifier = ">=2.3.0" },
     { name = "eventlet", specifier = ">=0.41.0" },
     { name = "flask", specifier = ">=3.1.2" },
     { name = "flask-cors", specifier = ">=6.0.2" },

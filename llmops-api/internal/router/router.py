@@ -4,7 +4,7 @@ from flask import Flask, Blueprint
 from internal.handler import (
     AppHandler, BuiltinToolHandler, ApiToolHandler,
     UploadFileHandler, DatasetHandler, DocumentHandler, SegmentHandler,
-OAuthHandler, AccountHandler
+OAuthHandler, AccountHandler, AuthHandler
 )
 from dataclasses import dataclass
 
@@ -21,7 +21,7 @@ class Router:
     segment_handler: SegmentHandler
     oauth_handler: OAuthHandler
     account_handler: AccountHandler
-
+    auth_handler: AuthHandler
 
 
 
@@ -249,6 +249,10 @@ class Router:
         bp.add_url_rule("/account/password", methods=["POST"], view_func=self.account_handler.update_password)
         bp.add_url_rule("/account/name", methods=["POST"], view_func=self.account_handler.update_name)
         bp.add_url_rule("/account/avatar", methods=["POST"], view_func=self.account_handler.update_avatar)
+
+        bp.add_url_rule("/auth/logout", methods=["POST"], view_func=self.auth_handler.logout)
+        bp.add_url_rule("/auth/password-login", methods=["POST"], view_func=self.auth_handler.password_login)
+
 
 
 
