@@ -1,17 +1,37 @@
 <script setup lang="ts">
-import { useRoute } from 'vue-router'
-import IconHome from '@/components/icons/IconHome.vue'
-import IconHomeFull from '@/components/icons/IconHomeFull.vue'
-import IconSpace from '@/components/icons/IconSpace.vue'
-import IconSpaceFull from '@/components/icons/IconSpaceFull.vue'
-import IconApp from '@/components/icons/IconApp.vue'
-import IconAppFull from '@/components/icons/IconAppFull.vue'
-import IconTool from '@/components/icons/IconTool.vue'
-import IconToolFull from '@/components/icons/IconToolFull.vue'
-import IconOpenApi from '@/components/icons/IconOpenApi.vue'
-import IconOpenApiFull from '@/components/icons/IconOpenApiFull.vue'
+import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import Sidebar from './components/Sidebar.vue'
+import { logout } from '@/services/auth'
+import { getCurrentUser } from '@/services/account'
+import { useCredentialStore } from '@/stores/credential'
+import { useAccountStore } from '@/stores/account'
+import SettingModal from '@/views/layouts/components/SettingModal.vue'
 
-const route = useRoute()
+// 1.定义页面所需数据
+const settingModalVisible = ref(false)
+const router = useRouter()
+const credentialStore = useCredentialStore()
+const accountStore = useAccountStore()
+
+// 2.退出登录按钮
+const handleLogout = async () => {
+  // 2.1 发起请求退出登录
+  await logout()
+
+  // 2.2 清空授权凭证+账号信息
+  credentialStore.clear()
+  accountStore.clear()
+
+  // 2.3 跳转到授权认证页面
+  await router.replace({ name: 'auth-login' })
+}
+
+// 3.页面DOM加载完成时获取当前登录账号信息
+onMounted(async () => {
+  const resp = await getCurrentUser()
+  accountStore.update(resp.data)
+})
 </script>
 
 <template>
@@ -34,53 +54,7 @@ const route = useRoute()
             创建 AI 应用
           </a-button>
           <!-- 侧边栏导航 -->
-          <div class="flex flex-col gap-2">
-            <router-link
-              to="/home"
-              class="flex items-center gap-2 h-8 leading-8 rounded-lg transition-all px-2 text-gray-700 hover:text-gray-900 hover:bg-gray-200"
-              active-class="bg-gray-100"
-            >
-              <icon-home-full v-if="route.path.startsWith('/home')" />
-              <icon-home v-else />
-              主页
-            </router-link>
-            <router-link
-              to="/space/apps"
-              :class="`flex items-center gap-2 h-8 leading-8 rounded-lg transition-all px-2 text-gray-700 hover:text-gray-900 hover:bg-gray-200 ${route.path.startsWith('/space') ? 'bg-gray-100' : ''}`"
-            >
-              <icon-space-full v-if="route.path.startsWith('/space')" />
-              <icon-space v-else />
-              个人空间
-            </router-link>
-            <div class="text-gray-500 text-sm px-2">探索</div>
-            <router-link
-              to="/store/apps"
-              class="flex items-center gap-2 h-8 leading-8 rounded-lg transition-all px-2 text-gray-700 hover:text-gray-900 hover:bg-gray-200"
-              active-class="bg-gray-100"
-            >
-              <icon-app-full v-if="route.path.startsWith('/store/apps')" />
-              <icon-app v-else />
-              应用广场
-            </router-link>
-            <router-link
-              to="/store/tools"
-              class="flex items-center gap-2 h-8 leading-8 rounded-lg transition-all px-2 text-gray-700 hover:text-gray-900 hover:bg-gray-200"
-              active-class="bg-gray-100"
-            >
-              <icon-tool-full v-if="route.path.startsWith('/store/tools')" />
-              <icon-tool v-else />
-              插件广场
-            </router-link>
-            <router-link
-              to="/open"
-              class="flex items-center gap-2 h-8 leading-8 rounded-lg transition-all px-2 text-gray-700 hover:text-gray-900 hover:bg-gray-200"
-              active-class="bg-gray-100"
-            >
-              <icon-open-api-full v-if="route.path.startsWith('/open')" />
-              <icon-open-api v-else />
-              开放 API
-            </router-link>
-          </div>
+          <sidebar />
         </div>
         <!-- 账号设置 -->
         <a-dropdown position="tl">
@@ -88,21 +62,27 @@ const route = useRoute()
             class="flex items-center p-2 gap-2 transition-all cursor-pointer rounded-lg hover:bg-gray-100"
           >
             <!-- 头像 -->
-            <a-avatar :size="32" class="text-sm bg-blue-700">佩</a-avatar>
+            <a-avatar
+              :size="32"
+              class="text-sm bg-blue-700"
+              :image-url="accountStore.account.avatar"
+            >
+              {{ accountStore.account.name[0] }}
+            </a-avatar>
             <!-- 个人信息 -->
             <div class="flex flex-col">
-              <div class="text-sm text-gray-900">野猪佩奇</div>
-              <div class="text-xs text-gray-500">bb@aa.com</div>
+              <div class="text-sm text-gray-900">{{ accountStore.account.name }}</div>
+              <div class="text-xs text-gray-500">{{ accountStore.account.email }}</div>
             </div>
           </div>
           <template #content>
-            <a-doption>
+            <a-doption @click="settingModalVisible = true">
               <template #icon>
                 <icon-settings />
               </template>
               账号设置
             </a-doption>
-            <a-doption>
+            <a-doption @click="handleLogout">
               <template #icon>
                 <icon-poweroff />
               </template>
@@ -116,6 +96,8 @@ const route = useRoute()
     <a-layout-content>
       <router-view />
     </a-layout-content>
+    <!-- 设置模态窗 -->
+    <setting-modal v-model:visible="settingModalVisible" />
   </a-layout>
 </template>
 
