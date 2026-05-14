@@ -57,6 +57,14 @@ class AppHandler:
         return success_json(resp.dump( app))
 
 
+    @login_required
+    def get_draft_app_config(self, app_id: UUID):
+        """ 获取appid的最新草稿"""
+        draft_config = self.app_service.get_draft_app_config(app_id, current_user)
+
+        return success_json(draft_config)
+
+
 
     # def update_app(self, id: uuid.UUID):
     #     app = self.app_service.update_app(id)
