@@ -64,6 +64,23 @@ class Router:
             methods=["POST"],
             view_func=self.app_handler.fallback_history_to_draft,
         )
+
+        bp.add_url_rule(
+            "/apps/<uuid:app_id>/summary",
+            view_func=self.app_handler.get_debug_conversation_summary,
+        )
+        bp.add_url_rule(
+            "/apps/<uuid:app_id>/summary",
+            methods=["POST"],
+            view_func=self.app_handler.update_debug_conversation_summary,
+        )
+
+        bp.add_url_rule(
+            "/apps/<uuid:app_id>/conversations/delete-debug-conversation",
+            methods=["POST"],
+            view_func=self.app_handler.delete_debug_conversation,
+        )
+
         # bp.add_url_rule("/app/<id>", methods=["post"], view_func=self.app_handler.update_app)
         # bp.add_url_rule("/app/<id>", methods=["delete"], view_func=self.app_handler.delete_app)
         # 3. 应用注册蓝图

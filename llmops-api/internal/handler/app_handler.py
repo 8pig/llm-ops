@@ -1,34 +1,20 @@
-import dataclasses
-import json
-import os
-import uuid
-from threading import Thread
-from typing import Any, Literal, Generator
-from queue import Queue
+
 from uuid import UUID
 from flask import request
 from flask_login import login_required, current_user
 from injector import inject
-from langchain_classic.base_memory import BaseMemory
-from langchain_classic.memory import ConversationBufferWindowMemory
-from langchain_community.chat_message_histories import FileChatMessageHistory
-from langchain_core.messages import ToolMessage
-from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
-from langchain_core.tracers import Run
-from langchain_openai import ChatOpenAI
-from langgraph.graph import MessagesState, StateGraph
+
+
 from internal.schema.app_schema import CreateAppReq, GetAppResp, GetPublishHistoriesWithPageResp, \
-    GetPublishHistoriesWithPageReq, FallbackHistoryToDraftReq
+    GetPublishHistoriesWithPageReq, FallbackHistoryToDraftReq, UpdateDebugConversationSummaryReq
 from pkg.paginator import PageModel
 
 from pkg.response import success_json, validate_error_json, success_message, compact_generate_response
 from internal.service import AppService, ApiToolService, VectorDatabaseService, ConversationService
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.runnables import RunnablePassthrough, RunnableLambda, RunnableConfig
-from operator import itemgetter
+
 from dataclasses import dataclass
 from internal.core.tools.builtin_tools.providers import BuiltinProviderManager
-from langgraph.constants import END
+
 
 
 
@@ -116,6 +102,23 @@ class AppHandler:
 
         return success_message("回退历史配置至草稿成功")
 
+    @login_required
+    def get_debug_conversation_summary(self, app_id: UUID):
+        summary = self.app_service.get_debug_conversation_summary(app_id, current_user)
+        return success_json({"summary":summary})
+
+    @login_required
+    def update_debug_conversation_summary(self, app_id: UUID):
+        req = UpdateDebugConversationSummaryReq()
+        if not req.validate():
+            return validate_error_json(req.errors)
+        self.app_service.update_debug_conversation_summary(app_id, req.summary.data, current_user)
+        return success_message("更新应用长期会话成功")
+
+    @login_required
+    def delete_debug_conversation(self, app_id: UUID):
+        self.app_service.delete_debug_conversation(app_id, current_user)
+        return success_message("清空应用调试会话成功")
 
 
     # def update_app(self, id: uuid.UUID):
@@ -350,3 +353,4 @@ class AppHandler:
         # return success_json({"message": "pong"})
         # demo_task.delay(uuid.uuid4())
         # return self.api_tool_service.api_tool_invoke()
+
