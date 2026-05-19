@@ -10,7 +10,7 @@ from internal.schema.app_schema import CreateAppReq, GetAppResp, GetPublishHisto
 from pkg.paginator import PageModel
 
 from pkg.response import success_json, validate_error_json, success_message, compact_generate_response
-from internal.service import AppService, ApiToolService, VectorDatabaseService, ConversationService
+from internal.service import AppService, ApiToolService, VectorDatabaseService, ConversationService, RetrievalService
 
 from dataclasses import dataclass
 from internal.core.tools.builtin_tools.providers import BuiltinProviderManager
@@ -27,6 +27,7 @@ class AppHandler:
     # vector_database_service: VectorDatabaseService
     builtin_provider_manager :BuiltinProviderManager
     coversation_service: ConversationService
+    retrieval_service: RetrievalService
 
     """应用控制器"""
     @login_required
@@ -329,7 +330,26 @@ class AppHandler:
     #
     #     return success_json({"content": content})
 
+    @login_required
     def ping(self):
+        from internal.entity.dataset_entity import  RetrievalStrategy, RetrievalSource
+        dataset_retrieval = self.retrieval_service.create_langchain_tool_from_search(
+            dataset_ids=["e68cc0fd-7c20-4a36-a6c5-fb82f97e6584", "dc824569-ffbf-4079-83b0-9d04d815e24c"],
+            account=current_user,
+            retrieval_strategy=RetrievalStrategy.SEMANTIC,
+            k=10,
+            score=0.5,
+            retrival_source=RetrievalSource.DEBUGGER
+        )
+        print(dataset_retrieval.name)
+        print(dataset_retrieval.description)
+        print(dataset_retrieval.args)
+
+        content = dataset_retrieval.invoke({"query": "什么是ChromeDriver"})
+        return success_json({"content": content})
+
+
+
         # from internal.core.agent.agents import FunctionCallAgent
         # from internal.core.agent.entities.agent_entity import AgentConfig
         # agent = FunctionCallAgent(
@@ -345,9 +365,9 @@ class AppHandler:
         # state = agent.run("程序员",[], "")
         # content = state["messages"][-1].content
         # return success_json({"content": content})
-        human_message = "你好我叫野猪佩奇, 喜欢唱 跳 rap 篮球~,"
-        q = self.coversation_service.generate_suggested_questions(human_message)
-        return success_json({"questions": q})
+        # human_message = "你好我叫野猪佩奇, 喜欢唱 跳 rap 篮球~,"
+        # q = self.coversation_service.generate_suggested_questions(human_message)
+        # return success_json({"questions": q})
         # cn = self.coversation_service.generate_conversation_name(human_message)
         # return success_message({"conversation_name": cn})
         # return success_json({"message": "pong"})

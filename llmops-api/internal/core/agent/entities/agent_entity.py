@@ -64,3 +64,8 @@ class AgentState(MessagesState):
 
     # 智能体长期记忆是否开启
     enable_long_term_memory: bool = False  # 是否开启会话信息汇总/长期记忆
+
+
+
+# 知识库检索工具名称
+DATASET_RETRIEVAL_TOOL_NAME = "dataset_retrieval"
