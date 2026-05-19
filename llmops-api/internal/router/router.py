@@ -58,6 +58,12 @@ class Router:
             "/apps/<uuid:app_id>/publish-histories",
             view_func=self.app_handler.get_publish_histories_with_page,
         )
+
+        bp.add_url_rule(
+            "/apps/<uuid:app_id>/fallback-history",
+            methods=["POST"],
+            view_func=self.app_handler.fallback_history_to_draft,
+        )
         # bp.add_url_rule("/app/<id>", methods=["post"], view_func=self.app_handler.update_app)
         # bp.add_url_rule("/app/<id>", methods=["delete"], view_func=self.app_handler.delete_app)
         # 3. 应用注册蓝图

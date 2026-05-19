@@ -18,7 +18,7 @@ from langchain_core.tracers import Run
 from langchain_openai import ChatOpenAI
 from langgraph.graph import MessagesState, StateGraph
 from internal.schema.app_schema import CreateAppReq, GetAppResp, GetPublishHistoriesWithPageResp, \
-    GetPublishHistoriesWithPageReq
+    GetPublishHistoriesWithPageReq, FallbackHistoryToDraftReq
 from pkg.paginator import PageModel
 
 from pkg.response import success_json, validate_error_json, success_message, compact_generate_response
@@ -103,6 +103,20 @@ class AppHandler:
         app_config_versions, paginator = self.app_service.get_publish_histories_with_page(app_id, req, current_user)
         resp = GetPublishHistoriesWithPageResp(many=True)
         return success_json(PageModel(list=resp.dump(app_config_versions), paginator=paginator))
+
+
+    @login_required
+    def fallback_history_to_draft(self, app_id: UUID):
+        """根据传递的应用id+历史配置版本id，退回指定版本到草稿中"""
+        req = FallbackHistoryToDraftReq()
+        if not req.validate():
+            return validate_error_json(req.errors)
+
+        self.app_service.fallback_history_to_draft(app_id, req.app_config_version_id.data, current_user)
+
+        return success_message("回退历史配置至草稿成功")
+
+
 
     # def update_app(self, id: uuid.UUID):
     #     app = self.app_service.update_app(id)

@@ -114,11 +114,6 @@ class AppConfig(db.Model):
     opening_questions = Column(JSONB, nullable=False, server_default=text("'[]'::jsonb"))  # 开场白建议问题列表
     speech_to_text = Column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))  # 语音转文本配置
     text_to_speech = Column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))  # 文本转语音配置
-    suggested_after_answer = Column(
-        JSONB,
-        nullable=False,
-        server_default=text("'{\"enable\": true}'::jsonb"),
-    )  # 回答后生成建议问题
     review_config = Column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))  # 审核配置
     updated_at = Column(
         DateTime,
@@ -150,11 +145,6 @@ class AppConfigVersion(db.Model):
     opening_questions = Column(JSONB, nullable=False, server_default=text("'[]'::jsonb"))  # 开场白建议问题列表
     speech_to_text = Column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))  # 语音转文本配置
     text_to_speech = Column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))  # 文本转语音配置
-    suggested_after_answer = Column(
-        JSONB,
-        nullable=False,
-        server_default=text("'{\"enable\": true}'::jsonb"),
-    )  # 回答后生成建议问题
     review_config = Column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))  # 审核配置
     version = Column(Integer, nullable=False, server_default=text("0"))  # 发布版本号
     config_type = Column(String(255), nullable=False, server_default=text("''::character varying"))  # 配置类型
