@@ -82,7 +82,8 @@ WTF_CSRF_ENABLED=False
 
 #### LangSmith
 # https://smith.langchain.com/
-
+> langsmith 官方会有信息泄露风险, 本地部署不友好
+> 转 langfuse, 项目完成后会介入callBack
 LANGSMITH_TRACING=true
 LANGSMITH_ENDPOINT=https://api.smith.langchain.com
 LANGSMITH_API_KEY=<your-api-key>
