@@ -16,16 +16,27 @@ from .embeddings_service import EmbeddingsService
 
 # 向量库集合名字
 COLLECTION_NAME = "Dataset"
+
 @inject
 class VectorDatabaseService:
     """向量数据库服务"""
+    _instance = None
+    _initialized = False
+
     client: WeaviateClient
     vector_store: WeaviateVectorStore
     embedding_service: EmbeddingsService
 
-    def __init__(self, embedding_service: EmbeddingsService):
-        """构造函数，完成向量数据库服务的客户端+LangChain向量数据库实例的创建"""
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
 
+    def __init__(self, embedding_service: EmbeddingsService):
+        if VectorDatabaseService._initialized:
+            return
+
+        VectorDatabaseService._initialized = True
         self.embedding_service = embedding_service
 
         # 1.创建/连接weaviate向量数据库
