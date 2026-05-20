@@ -111,8 +111,9 @@ class RetrievalService(BaseService):
 
     def create_langchain_tool_from_search(
             self,
+            flask_app: Flask,
             dataset_ids: list[UUID],
-            account: Account,
+            account_id: UUID,
             retrieval_strategy: str = RetrievalStrategy.SEMANTIC,
             k: int = 4,
             score: float = 0,
@@ -129,15 +130,16 @@ class RetrievalService(BaseService):
         def dataset_retrieval(query: str) -> str:
             """如果需要搜索扩展的知识库内容，当你觉得用户的提问超过你的知识范围时，可以尝试调用该工具，输入为搜索query语句，返回数据为检索内容字符串"""
             # 1.调用search_in_datasets检索得到LangChain文档列表
-            documents = self.search_in_datasets(
-                dataset_ids=dataset_ids,
-                query=query,
-                account_id=account.id,
-                retrieval_strategy=retrieval_strategy,
-                k=k,
-                score=score,
-                retrival_source=retrival_source
-            )
+            with flask_app.app_context():
+                documents = self.search_in_datasets(
+                    dataset_ids=dataset_ids,
+                    query=query,
+                    account_id=account_id,
+                    retrieval_strategy=retrieval_strategy,
+                    k=k,
+                    score=score,
+                    retrival_source=retrival_source
+                )
 
             # 2.将LangChain文档列表转换成字符串后返回
             if len(documents) == 0:
