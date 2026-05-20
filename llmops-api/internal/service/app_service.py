@@ -1,5 +1,6 @@
 
 import json
+import os
 import uuid
 from dataclasses import dataclass
 from datetime import datetime
@@ -441,21 +442,23 @@ class AppService(BaseService):
 
         return app
 
-    def debug_chat(self, app_id: UUID, query: str, account: Account) -> Generator:
+
+    def debug_chat(self,app_id: UUID, query: str, account: Account) -> Generator:
         """根据传递的应用id+提问query向特定的应用发起会话调试"""
-        # 1.获取应用信息并校验权限
         app = self.get_app(app_id, account)
 
-        # 2.获取应用的最新草稿配置信息
         draft_app_config = self.get_draft_app_config(app_id, account)
 
-        # 3.获取当前应用的调试会话信息
         debug_conversation = app.debug_conversation
 
-        # todo:4.根据传递的model_config实例化不同的LLM模型，等待多LLM接入后该处会发生变化
         llm = ChatOpenAI(
-            model=draft_app_config["model_config"]["model"],
-            **draft_app_config["model_config"]["parameters"],
+            model=os.getenv("LLM_MODEL"),
+            api_key=os.getenv("OPENAI_API_KEY"),
+            base_url=os.getenv("OPENAI_API_BASE_URL"),
+            temperature=0,
+            extra_body={
+                "enable_thinking": False,  # 禁用思考模式
+            }
         )
 
         # 5.实例化TokenBufferMemory用于提取短期记忆
@@ -802,3 +805,4 @@ class AppService(BaseService):
                     raise ValidateErrorException("输入审核预设响应不能为空")
 
         return draft_app_config
+

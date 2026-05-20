@@ -80,6 +80,11 @@ class Router:
             methods=["POST"],
             view_func=self.app_handler.delete_debug_conversation,
         )
+        bp.add_url_rule(
+            "/apps/<uuid:app_id>/completions",
+            methods=["POST"],
+            view_func=self.app_handler.debug_chat,
+        )
 
         # bp.add_url_rule("/app/<id>", methods=["post"], view_func=self.app_handler.update_app)
         # bp.add_url_rule("/app/<id>", methods=["delete"], view_func=self.app_handler.delete_app)

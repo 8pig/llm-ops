@@ -6,7 +6,7 @@ from injector import inject
 
 
 from internal.schema.app_schema import CreateAppReq, GetAppResp, GetPublishHistoriesWithPageResp, \
-    GetPublishHistoriesWithPageReq, FallbackHistoryToDraftReq, UpdateDebugConversationSummaryReq
+    GetPublishHistoriesWithPageReq, FallbackHistoryToDraftReq, UpdateDebugConversationSummaryReq, DebugChatReq
 from pkg.paginator import PageModel
 
 from pkg.response import success_json, validate_error_json, success_message, compact_generate_response
@@ -331,22 +331,34 @@ class AppHandler:
     #     return success_json({"content": content})
 
     @login_required
-    def ping(self):
-        from internal.entity.dataset_entity import  RetrievalStrategy, RetrievalSource
-        dataset_retrieval = self.retrieval_service.create_langchain_tool_from_search(
-            dataset_ids=["e68cc0fd-7c20-4a36-a6c5-fb82f97e6584", "dc824569-ffbf-4079-83b0-9d04d815e24c"],
-            account=current_user,
-            retrieval_strategy=RetrievalStrategy.SEMANTIC,
-            k=10,
-            score=0.5,
-            retrival_source=RetrievalSource.DEBUGGER
-        )
-        print(dataset_retrieval.name)
-        print(dataset_retrieval.description)
-        print(dataset_retrieval.args)
+    def debug_chat(self, app_id: UUID):
+        req = DebugChatReq()
+        if not req.validate():
+            raise validate_error_json(req.errors)
 
-        content = dataset_retrieval.invoke({"query": "什么是ChromeDriver"})
-        return success_json({"content": content})
+        response = self.app_service.debug_chat(app_id, req.query.data, current_user)
+
+        return compact_generate_response(response)
+
+
+    @login_required
+    def ping(self):
+        ...
+        # from internal.entity.dataset_entity import  RetrievalStrategy, RetrievalSource
+        # dataset_retrieval = self.retrieval_service.create_langchain_tool_from_search(
+        #     dataset_ids=["e68cc0fd-7c20-4a36-a6c5-fb82f97e6584", "dc824569-ffbf-4079-83b0-9d04d815e24c"],
+        #     account=current_user,
+        #     retrieval_strategy=RetrievalStrategy.SEMANTIC,
+        #     k=10,
+        #     score=0.5,
+        #     retrival_source=RetrievalSource.DEBUGGER
+        # )
+        # print(dataset_retrieval.name)
+        # print(dataset_retrieval.description)
+        # print(dataset_retrieval.args)
+        #
+        # content = dataset_retrieval.invoke({"query": "什么是ChromeDriver"})
+        # return success_json({"content": content})
 
 
 

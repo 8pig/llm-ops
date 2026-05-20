@@ -5,22 +5,22 @@ from langchain_core.messages import AnyMessage
 
 from internal.core.agent.entities.agent_entity import AgentConfig
 # from internal.core.agent.entities.queue_entity import AgentQueueEvent
-# from .agent_queue_manager import AgentQueueManager
+from .agent_queue_manager import AgentQueueManager
 
 
 class BaseAgent(ABC):
     """LLMOps项目基础Agent"""
     agent_config: AgentConfig
-    # agent_queue_manager: AgentQueueManager
+    agent_queue_manager: AgentQueueManager
 
     def __init__(
             self,
             agent_config: AgentConfig,
-            # agent_queue_manager: AgentQueueManager,
+            agent_queue_manager: AgentQueueManager,
     ):
         """构造函数，初始化智能体图结构程序"""
         self.agent_config = agent_config
-        # self.agent_queue_manager = agent_queue_manager
+        self.agent_queue_manager = agent_queue_manager
 
     @abstractmethod
     def run(
