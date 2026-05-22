@@ -1,10 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-"""
-@Time    : 2024/10/01 15:53
-@Author  : thezehui@gmail.com
-@File    : function_call_agent.py
-"""
+
 import json
 import time
 import uuid
@@ -22,6 +16,7 @@ from internal.core.agent.entities.agent_entity import AgentState, AGENT_SYSTEM_P
 from internal.core.agent.entities.queue_entity import AgentQueueEvent, QueueEvent
 from internal.exception import FailException
 from .base_agent import BaseAgent
+
 
 
 class FunctionCallAgent(BaseAgent):
