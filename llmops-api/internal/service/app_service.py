@@ -463,7 +463,7 @@ class AppService(BaseService):
             Message,
             app_id=app_id,
             conversation_id=debug_conversation.id,
-            create_by=account.id,
+            created_by=account.id,
             query=query,
             status=MessageStatus.NORMAL,
         )
@@ -590,22 +590,22 @@ class AppService(BaseService):
                         # 初始化智能体消息事件
                         agent_thought[event_id] = {
                             "id": event_id,
-                            "task_id": str(agent_thought.task_id),
-                            "event": agent_thought.event,
-                            "thought": agent_thought.thought,
-                            "observation": agent_thought.observation,
-                            "tool": agent_thought.tool,
-                            "tool_input": agent_thought.tool_input,
-                            "message": agent_thought.message,
-                            "answer": agent_thought.answer,
-                            "latency": agent_thought.latency,
+                            "task_id": str(agent_queue_event.task_id),
+                            "event": agent_queue_event.event,
+                            "thought": agent_queue_event.thought,
+                            "observation": agent_queue_event.observation,
+                            "tool": agent_queue_event.tool,
+                            "tool_input": agent_queue_event.tool_input,
+                            "message": agent_queue_event.message,
+                            "answer": agent_queue_event.answer,
+                            "latency": agent_queue_event.latency,
                         }
                     else:
                         agent_thought[event_id] = {
                             **agent_thought[event_id],
-                            "thought": agent_thought[event_id]["thought"] + agent_thought.thought,
-                            "answer": agent_thought[event_id]["answer"] + agent_thought.answer,
-                            "latency": agent_thought.latency,
+                            "thought": agent_thought[event_id]["thought"] + agent_queue_event.thought,
+                            "answer": agent_thought[event_id]["answer"] + agent_queue_event.answer,
+                            "latency": agent_queue_event.latency,
                         }
                 else:
                     agent_thought[event_id] = {
@@ -649,7 +649,7 @@ class AppService(BaseService):
                 conversation_id=debug_conversation.id,
                 message_id=message.id,
                 invoke_from=InvokeFrom.DEBUGGER,
-                create_by=account.id,
+                created_by=account.id,
                 event=item["event"],
                 thought=item["thought"],
                 observation=item["observation"],
