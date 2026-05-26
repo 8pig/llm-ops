@@ -48,9 +48,6 @@ class Conversation(db.Model):
         message_count = db.session.query(func.count(Message.id)).filter(
             Message.conversation_id == self.id
         ).scalar()
-        print("1111")
-        print(message_count)
-        print(message_count < 2)
         return message_count < 2
 
 class Message(db.Model):
