@@ -1,6 +1,7 @@
 
 import json
 import os
+import re
 import uuid
 from dataclasses import dataclass
 from datetime import datetime
@@ -20,16 +21,19 @@ from internal.core.tools.api_tools.entities import ToolEntity
 from internal.core.tools.api_tools.providers import ApiProviderManager
 from internal.core.tools.builtin_tools.providers import BuiltinProviderManager
 from internal.entity.app_entity import AppStatus, AppConfigType, DEFAULT_APP_CONFIG
-from internal.entity.conversation_entity import InvokeFrom
+from internal.entity.conversation_entity import InvokeFrom, MessageStatus
 from internal.entity.dataset_entity import RetrievalSource
 from internal.exception import NotFoundException, ForbiddenException, FailException, ValidateException as ValidateErrorException
 from internal.lib.helper import datetime_to_timestamp
-from internal.model import App, Account, AppConfigVersion, ApiTool, Dataset, AppConfig, AppDatasetJoin, Conversation
+from internal.model import App, Account, AppConfigVersion, ApiTool, Dataset, AppConfig, AppDatasetJoin, Conversation, \
+    Message, MessageAgentThought
 from internal.schema.app_schema import CreateAppReq, GetPublishHistoriesWithPageReq
 from pkg.paginator import Paginator
 from pkg.db import SQLAlchemy
+from .conversation_service import ConversationService
 from .base_service import BaseService
 from .retrieval_service import RetrievalService
+from ..core.agent.entities.queue_entity import QueueEvent
 
 
 @inject
@@ -41,6 +45,7 @@ class AppService(BaseService):
     retrieval_service: RetrievalService
     api_provider_manager: ApiProviderManager
     builtin_provider_manager: BuiltinProviderManager
+    conversation_service: ConversationService
 
     def create_app(self, req: CreateAppReq, account: Account) -> App:
         """创建Agent应用服务"""
@@ -446,10 +451,45 @@ class AppService(BaseService):
     def debug_chat(self,app_id: UUID, query: str, account: Account) -> Generator:
         """根据传递的应用id+提问query向特定的应用发起会话调试"""
         app = self.get_app(app_id, account)
+        task_id = uuid.uuid4()
+
 
         draft_app_config = self.get_draft_app_config(app_id, account)
-
         debug_conversation = app.debug_conversation
+        review_config = draft_app_config["review_config"]
+
+        # 新建消息
+        message = self.create(
+            Message,
+            app_id=app_id,
+            conversation_id=debug_conversation.id,
+            create_by=account.id,
+            query=query,
+            status=MessageStatus.NORMAL,
+        )
+        # 输入敏感词检测
+
+        if review_config["enable"] and review_config["inputs_config"]["enable"]:
+            contains_keyword = any(word in query for word in review_config["keywords"])
+            if contains_keyword:
+                data = {
+                    id: str(uuid.uuid4()),
+                    "conversation_id": str(message.id),
+                    "task_id": str(task_id),
+                    "event": QueueEvent.AGENT_MESSAGE,
+                    "thought": review_config["inputs_config"]["preset_response"],
+                    "observation":"",
+                    "tool":"",
+                    "answer":review_config["inputs_config"]["preset_response"],
+                    "latency": 0
+                }
+                yield f"event: agent_message\ndata: {json.dumps(data)}\n\n"
+                self.update(
+                    message,
+                    answer=data["answer"]
+                )
+                return
+
 
         llm = ChatOpenAI(
             model=os.getenv("LLM_MODEL"),
@@ -516,7 +556,6 @@ class AppService(BaseService):
             tools.append(dataset_retrieval)
 
         # todo:12.构建Agent智能体，目前暂时使用FunctionCallAgent
-        task_id = uuid.uuid4()
         agent = FunctionCallAgent(
             AgentConfig(
                 llm=llm,
@@ -531,19 +570,119 @@ class AppService(BaseService):
             )
         )
 
+        agent_thought = {}
+
         for agent_queue_event in agent.run(query, history, debug_conversation.summary):
+
+            thought = agent_queue_event.thought
+            answer = agent_queue_event.answer
+            event_id = str(agent_queue_event.id)
+            # 输出检测敏感词
+            if review_config["enable"] and review_config["outputs_config"]["enable"]:
+                for keyword in review_config["keywords"]:
+                    thought = re.sub(re.escape(keyword),"**", thought, flags=re.IGNORECASE)
+                    answer = re.sub(re.escape(keyword),"**", answer, flags=re.IGNORECASE)
+
+            if agent_queue_event.event != QueueEvent.PING:
+
+                if agent_queue_event.event == QueueEvent.AGENT_MESSAGE:
+                    if event_id not in agent_thought:
+                        # 初始化智能体消息事件
+                        agent_thought[event_id] = {
+                            "id": event_id,
+                            "task_id": str(agent_thought.task_id),
+                            "event": agent_thought.event,
+                            "thought": agent_thought.thought,
+                            "observation": agent_thought.observation,
+                            "tool": agent_thought.tool,
+                            "tool_input": agent_thought.tool_input,
+                            "message": agent_thought.message,
+                            "answer": agent_thought.answer,
+                            "latency": agent_thought.latency,
+                        }
+                    else:
+                        agent_thought[event_id] = {
+                            **agent_thought[event_id],
+                            "thought": agent_thought[event_id]["thought"] + agent_thought.thought,
+                            "answer": agent_thought[event_id]["answer"] + agent_thought.answer,
+                            "latency": agent_thought.latency,
+                        }
+                else:
+                    agent_thought[event_id] = {
+                        "id": event_id,
+                        "task_id": str(agent_queue_event.task_id),
+                        "event": agent_queue_event.event,
+                        "thought": agent_queue_event.thought,
+                        "observation": agent_queue_event.observation,
+                        "tool": agent_queue_event.tool,
+                        "tool_input": agent_queue_event.tool_input,
+                        "answer": agent_queue_event.answer,
+                        "latency": agent_queue_event.latency,
+                        "message": agent_queue_event.message
+                    }
+
+
+
             data = {
-                "id": str(agent_queue_event.id),
+                "id": event_id,
+                "conversation_id": str(debug_conversation.id),
                 "task_id": str(agent_queue_event.task_id),
                 "event": agent_queue_event.event,
-                "thought": agent_queue_event.thought,
+                "thought": thought,
                 "observation": agent_queue_event.observation,
                 "tool": agent_queue_event.tool,
                 "tool_input": agent_queue_event.tool_input,
-                "answer": agent_queue_event.answer,
+                "answer": answer,
                 "latency": agent_queue_event.latency,
             }
             yield f"event: {agent_queue_event.event}\ndata:{json.dumps(data)}\n\n"
+
+
+        position = 0
+        latency = 0
+        for key, item in agent_thought.items():
+            position += 1
+            latency += item["latency"]
+            self.create(
+                MessageAgentThought,
+                app_id=app.id,
+                conversation_id=debug_conversation.id,
+                message_id=message.id,
+                invoke_from=InvokeFrom.DEBUGGER,
+                create_by=account.id,
+                event=item["event"],
+                thought=item["thought"],
+                observation=item["observation"],
+                tool=item["tool"],
+                tool_input=item["tool_input"],
+                message=item["message"],
+                answer=item["answer"],
+                latency=item["latency"],
+            )
+            if item["event"] == QueueEvent.AGENT_MESSAGE:
+                self.update(
+                    message,
+                    message=item["message"],
+                    answer=item["answer"],
+                    latency=latency
+                )
+                if draft_app_config["long_term_memory"]["enable"]:
+                    new_summary = self.conversation_service.summary(
+                        query,
+                        item["answer"],
+                        debug_conversation.summary
+                    )
+                    new_conversation_name = debug_conversation.name
+                    if debug_conversation.is_new:
+                        new_conversation_name = self.conversation_service.generate_conversation_name(query)
+                    self.update(
+                        debug_conversation,
+                        name=new_conversation_name,
+                        summary=new_summary
+                    )
+
+
+
 
     def _validate_draft_app_config(self, draft_app_config: dict[str, Any], account: Account) -> dict[str, Any]:
         """校验传递的应用草稿配置信息，返回校验后的数据"""
