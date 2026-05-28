@@ -14,7 +14,8 @@ from pydantic import Field, BaseModel
 
 dotenv.load_dotenv()
 
-llm = ChatOpenAI(    model="qwen3-max-2026-01-23",
+llm = ChatOpenAI(
+    model=os.getenv("LLM_MODEL"),
     api_key=os.getenv("OPENAI_API_KEY"),
     base_url=os.getenv("OPENAI_API_BASE_URL"))
 

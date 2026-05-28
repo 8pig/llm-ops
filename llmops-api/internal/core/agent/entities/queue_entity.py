@@ -19,8 +19,8 @@ class QueueEvent(str, Enum):
     PING = "ping"  # ping联通事件
 
 
-class AgentQueueEvent(BaseModel):
-    """智能体队列事件模型"""
+class AgentThought(BaseModel):
+    """智能体推理观察"""
     id: UUID  # 事件对应的id，同一个事件的id是一样的
     task_id: UUID  # 任务id
 
@@ -49,3 +49,8 @@ class AgentQueueEvent(BaseModel):
     total_token_count: int = 0  # 总token消耗数量
     total_price: float = 0  # 总价格
     latency: float = 0  # 步骤推理耗时
+
+
+class AgentResult(BaseModel):
+    """ 最后结果"""
+    pass
