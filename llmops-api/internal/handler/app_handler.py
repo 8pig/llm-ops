@@ -6,7 +6,8 @@ from injector import inject
 
 
 from internal.schema.app_schema import CreateAppReq, GetAppResp, GetPublishHistoriesWithPageResp, \
-    GetPublishHistoriesWithPageReq, FallbackHistoryToDraftReq, UpdateDebugConversationSummaryReq, DebugChatReq
+    GetPublishHistoriesWithPageReq, FallbackHistoryToDraftReq, UpdateDebugConversationSummaryReq, DebugChatReq, \
+    GetDebugConversationMessagesWithPageReq, GetDebugConversationMessagesWithPageResp
 from pkg.paginator import PageModel
 
 from pkg.response import success_json, validate_error_json, success_message, compact_generate_response
