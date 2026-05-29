@@ -134,6 +134,27 @@ class AppHandler:
 
 
     @login_required
+    def stop_debug_chat(self, app_id: UUID, task_id: UUID):
+        self.app_service.stop_debug_chat(app_id, task_id, current_user)
+        return success_message("停止应用调试会话成功")
+
+
+    @login_required
+    def get_debug_conversation_messages_with_page(self, app_id: UUID):
+        """根据传递的应用id，获取该应用的调试会话分页列表记录"""
+        req = GetDebugConversationMessagesWithPageReq(request.args)
+        if not req.validate():
+            return validate_error_json(req.errors)
+
+        messages, paginator = self.app_service.get_debug_conversation_messages_with_page(app_id, req, current_user)
+
+        resp = GetDebugConversationMessagesWithPageResp(many=True)
+
+        return success_json(PageModel(list=resp.dump(messages), paginator=paginator))
+
+
+
+    @login_required
     def ping(self):
         ...
         # from internal.entity.dataset_entity import  RetrievalStrategy, RetrievalSource

@@ -715,7 +715,8 @@ class AppService(BaseService):
                     self.update(
                         message,
                         status=MessageStatus.STOP if item["event"] == QueueEvent.STOP else MessageStatus.ERROR,
-                        observation=item["observation"]
+                        observation=item["observation"],
+                        error=item.get("observation", "")
                     )
                     break
 
@@ -982,4 +983,10 @@ class AppService(BaseService):
                     raise ValidateErrorException("输入审核预设响应不能为空")
 
         return draft_app_config
+
+    def stop_debug_chat(self, app_id:UUID, task_id: UUID, account: Account) -> None:
+        """ 中断"""
+        self.get_app(app_id, account)
+
+        AgentQueueManager.set_stop_flag(task_id, InvokeFrom.DEBUGGER, account.id)
 
