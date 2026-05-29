@@ -96,6 +96,12 @@ class Router:
             view_func=self.app_handler.get_debug_conversation_messages_with_page,
         )
 
+        bp.add_url_rule(
+            "/ai/suggested_questions",
+            methods=["post"],
+            view_func=self.app_handler.get_debug_conversation_messages_with_page,
+        )
+
 
         # bp.add_url_rule("/app/<id>", methods=["post"], view_func=self.app_handler.update_app)
         # bp.add_url_rule("/app/<id>", methods=["delete"], view_func=self.app_handler.delete_app)
