@@ -125,12 +125,12 @@ export type GetDatasetQueriesResponse = BaseResponse<
   }>
 >
 
-// 上传文档列表到知识库请求结构
+// 上传文档列表到知识库的请求结构
 export type CreateDocumentsRequest = {
   upload_file_ids: string[]
   process_type: string
   rule: {
-    pre_process_rule: {
+    pre_process_rules: {
       id: string
       enabled: boolean
     }[]
@@ -142,14 +142,14 @@ export type CreateDocumentsRequest = {
   }
 }
 
-// 上传文档列表到知识库响应结构
+// 上传文档列表到知识库的响应结构
 export type CreateDocumentsResponse = BaseResponse<{
   batch: string
   documents: {
     id: string
     name: string
     status: string
-    created_at: string
+    created_at: number
   }[]
 }>
 
@@ -164,8 +164,8 @@ export type GetDocumentsStatusResponse = BaseResponse<
     position: number
     segment_count: number
     completed_segment_count: number
-    error: string
     status: string
+    error: string
     processing_started_at: number
     parsing_completed_at: number
     splitting_completed_at: number
@@ -175,3 +175,60 @@ export type GetDocumentsStatusResponse = BaseResponse<
     created_at: number
   }>
 >
+
+// 获取指定文档的片段列表请求结构
+export type GetSegmentsWithPageRequest = {
+  current_page: number
+  page_size: number
+  search_word: string
+}
+
+// 获取指定文档的片段列表响应结构
+export type GetSegmentsWithPageResponse = BasePaginatorResponse<{
+  id: string
+  dataset_id: string
+  document_id: string
+  position: number
+  content: string
+  keywords: string[]
+  character_count: number
+  token_count: number
+  hit_count: number
+  enabled: boolean
+  disabled_at: number
+  status: string
+  error: string
+  updated_at: number
+  created_at: number
+}>
+
+// 新增文档片段请求结构
+export type CreateSegmentRequest = {
+  content: string
+  keywords: string[]
+}
+
+// 修改文档片段请求结构
+export type UpdateSegmentRequest = {
+  content: string
+  keywords: string[]
+}
+
+// 查询文档片段响应结构
+export type GetSegmentResponse = BaseResponse<{
+  id: string
+  document_id: string
+  dataset_id: string
+  position: number
+  content: string
+  keywords: string[]
+  character_count: number
+  token_count: number
+  hit_count: number
+  hash: string
+  enabled: boolean
+  status: string
+  error: string
+  updated_at: number
+  created_at: number
+}>

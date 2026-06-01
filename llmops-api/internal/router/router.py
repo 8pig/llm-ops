@@ -4,9 +4,10 @@ from flask import Flask, Blueprint
 from internal.handler import (
     AppHandler, BuiltinToolHandler, ApiToolHandler,
     UploadFileHandler, DatasetHandler, DocumentHandler, SegmentHandler,
-OAuthHandler, AccountHandler, AuthHandler
+OAuthHandler, AccountHandler, AuthHandler, AIHandler
 )
 from dataclasses import dataclass
+
 
 
 @inject
@@ -22,6 +23,7 @@ class Router:
     oauth_handler: OAuthHandler
     account_handler: AccountHandler
     auth_handler: AuthHandler
+    ai_handler: AIHandler
 
 
 
@@ -96,11 +98,8 @@ class Router:
             view_func=self.app_handler.get_debug_conversation_messages_with_page,
         )
 
-        bp.add_url_rule(
-            "/ai/suggested_questions",
-            methods=["post"],
-            view_func=self.app_handler.get_debug_conversation_messages_with_page,
-        )
+        bp.add_url_rule("/ai/suggested_questions",methods=["post"],view_func=self.ai_handler.generate_suggested_questions)
+        bp.add_url_rule("/ai/optimize-prompt",methods=["post"],view_func=self.ai_handler.optimize_prompt,)
 
 
         # bp.add_url_rule("/app/<id>", methods=["post"], view_func=self.app_handler.update_app)

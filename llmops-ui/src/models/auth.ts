@@ -1,4 +1,4 @@
-import { type BaseResponse } from './base'
+import { type BaseResponse } from '@/models/base'
 
 // 账号密码登录响应结构
 export type PasswordLoginResponse = BaseResponse<{

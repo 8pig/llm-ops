@@ -44,13 +44,14 @@ class FunctionCallAgent(BaseAgent):
         graph.add_conditional_edges("llm", self._tools_condition)
         graph.add_edge("tools", "llm")
 
-        # 4.编译应用返回
+        # 4.编译应用并返回
         agent = graph.compile()
 
         return agent
 
     def _preset_operation_node(self, state: AgentState) -> AgentState:
         """预设操作，涵盖：输入审核、数据预处理、条件边等"""
+        # 1.获取审核配置与用户输入query
         review_config = self.agent_config.review_config
         query = state["messages"][-1].content
 
@@ -136,7 +137,6 @@ class FunctionCallAgent(BaseAgent):
                     answer=MAX_ITERATION_RESPONSE,
                     latency=0,
                 ))
-            # end
             self.agent_queue_manager.publish(
                 state["task_id"],
                 AgentThought(

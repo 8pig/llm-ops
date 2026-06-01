@@ -10,6 +10,7 @@ from .segment_handler import SegmentHandler
 from .oauth_handler import OAuthHandler
 from .account_handler import AccountHandler
 from .auth_handler import AuthHandler
+from .ai_handle import AIHandler
 
 
 __all__ = [
@@ -22,5 +23,6 @@ __all__ = [
     "SegmentHandler",
     "OAuthHandler",
     "AccountHandler",
-    "AuthHandler"
+    "AuthHandler",
+    "AIHandler"
 ]

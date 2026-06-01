@@ -35,7 +35,6 @@ const baseFetch = <T>(url: string, fetchOptions: FetchOptionType): Promise<T> =>
   const access_token = credential.access_token
   if (access_token) options.headers.set('Authorization', `Bearer ${access_token}`)
 
-
   // 6.组装url
   let urlWithPrefix = `${apiPrefix}${url.startsWith('/') ? url : `/${url}`}`
 
@@ -78,9 +77,9 @@ const baseFetch = <T>(url: string, fetchOptions: FetchOptionType): Promise<T> =>
           const json = await res.json()
           if (json.code === httpCode.success) {
             resolve(json)
-          }else if(json.code === httpCode.unauthorized){
+          } else if (json.code === httpCode.unauthorized) {
             clearCredential()
-            await router.replace({path: "/auth/login"})
+            await router.replace({ path: '/auth/login' })
           } else {
             Message.error(json.message)
             reject(new Error(json.message))
@@ -102,9 +101,10 @@ export const ssePost = async (
 ) => {
   // 5.1 组装基础的fetch请求配置
   const options = Object.assign({}, baseFetchOptions, { method: 'POST' }, fetchOptions)
-  const { credential, clear: clearCredential } = useCredentialStore()
+  const { credential } = useCredentialStore()
   const access_token = credential.access_token
   if (access_token) options.headers.set('Authorization', `Bearer ${access_token}`)
+
   // 5.2 组装请求URL
   const urlWithPrefix = `${apiPrefix}${url.startsWith('/') ? url : `/${url}`}`
 
@@ -114,62 +114,72 @@ export const ssePost = async (
 
   // 5.4 发起fetch请求并处理流式事件响应
   const response = await globalThis.fetch(urlWithPrefix, options as RequestInit)
-  return handleStream(response, onData)
+  return await handleStream(response, onData)
 }
 
-const handleStream = (response: Response, onData: (data: { [key: string]: any }) => void) => {
-  // 1.检测网络请求是否正常
-  if (!response.ok) throw new Error('网络请求失败')
+const handleStream = (
+  response: Response,
+  onData: (data: Record<string, any>) => void,
+): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    // 1.检测网络请求是否正常
+    if (!response.ok) {
+      reject(new Error('网络请求失败'))
+      return
+    }
 
-  // 2.构建reader以及deocder
-  const reader = response.body?.getReader()
-  const decoder = new TextDecoder('utf-8')
-  let buffer = ''
+    // 2.构建reader以及deocder
+    const reader = response.body?.getReader()
+    const decoder = new TextDecoder('utf-8')
+    let buffer = ''
 
-  // 3.构建read函数用于去读取数据
-  const read = () => {
-    let hasError = false
-    reader?.read().then((result: any) => {
-      if (result.done) return
+    // 3.构建read函数用于去读取数据
+    const read = () => {
+      reader?.read().then((result: any) => {
+        if (result.done) {
+          resolve()
+          return
+        }
 
-      buffer += decoder.decode(result.value, { stream: true })
-      const lines = buffer.split('\n')
+        buffer += decoder.decode(result.value, { stream: true })
+        const lines = buffer.split('\n')
 
-      let event = ''
-      let data = ''
+        let event = ''
+        let data = ''
 
-      try {
-        lines.forEach((line) => {
-          line = line.trim()
-          if (line.startsWith('event:')) {
-            event = line.slice(6).trim()
-          } else if (line.startsWith('data:')) {
-            data = line.slice(5).trim()
-          }
-
-          // 每个事件以空行结束，只有event和data同时存在，才表示一次流式事件的数据完整获取到了
-          if (line === '') {
-            if (event !== '' && data !== '') {
-              onData({
-                event: event,
-                data: JSON.parse(data),
-              })
-              event = ''
-              data = ''
+        try {
+          lines.forEach((line) => {
+            line = line.trim()
+            if (line.startsWith('event:')) {
+              event = line.slice(6).trim()
+            } else if (line.startsWith('data:')) {
+              data = line.slice(5).trim()
             }
-          }
-        })
-        buffer = lines.pop() || ''
-      } catch (e) {
-        hasError = true
-      }
 
-      if (!hasError) read()
-    })
-  }
+            // 每个事件以空行结束，只有event和data同时存在，才表示一次流式事件的数据完整获取到了
+            if (line === '') {
+              if (event !== '' && data !== '') {
+                onData({
+                  event: event,
+                  data: JSON.parse(data),
+                })
+                event = ''
+                data = ''
+              }
+            }
+          })
+          buffer = lines.pop() || ''
+        } catch (e) {
+          reject(e)
+        }
 
-  // 4.调用read函数去执行获取对应的数据
-  read()
+        read()
+      })
+    }
+
+    // 4.调用read函数去执行获取对应的数据
+    read()
+  })
 }
 
 export const upload = <T>(url: string, options: any = {}): Promise<T> => {
@@ -213,16 +223,16 @@ export const upload = <T>(url: string, options: any = {}): Promise<T> => {
       if (xhr.readyState === 4) {
         // 9.检查响应状态码，当HTTP状态码为200的时候表示请求成功
         if (xhr.status === 200) {
+          // 10.判断业务状态码是否正常
           const response = xhr.response
-          if(response.code === httpCode.success){
-            resolve(xhr.response)
-          }else if(response.code === httpCode.unauthorized){
+          if (response.code === httpCode.success) {
+            resolve(response)
+          } else if (response.code === httpCode.unauthorized) {
             clearCredential()
-            await router.replace({path: "/auth/login"})
-          }else {
+            await router.replace({ path: '/auth/login' })
+          } else {
             reject(xhr.response)
           }
-
         } else {
           reject(xhr)
         }

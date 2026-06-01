@@ -15,7 +15,6 @@ const props = defineProps({
   visible: { type: Boolean, required: true },
 })
 const emits = defineEmits(['update:visible'])
-const loading = ref(false)
 const updateName = ref(false)
 const updatePassword = ref(false)
 const accountStore = useAccountStore()
@@ -41,7 +40,6 @@ const updateAccount = async () => {
 
 // 3.关闭模态窗处理器
 const handleCancel = () => emits('update:visible', false)
-const changeLoading = (value: boolean) => (loading.value = value)
 
 // 4.监听模态窗关闭事件
 watch(
@@ -110,36 +108,24 @@ watch(
               v-model:file-list="accountForm.fileList"
               list-type="picture-card"
               :limit="1"
-              v-if="!loading"
               image-preview
               :custom-request="
                 async (option) => {
                   // 1.提取数据并发起请求获取响应内容
-                  try {
-                    changeLoading(true)
-                    const { fileItem, onSuccess } = option
-                    const upload_resp = await uploadImage(fileItem.file as File)
-                    accountForm.avatar = upload_resp.data.image_url
-                    onSuccess(upload_resp)
+                  const { fileItem, onSuccess } = option
+                  const upload_resp = await uploadImage(fileItem.file as File)
+                  accountForm.avatar = upload_resp.data.image_url
+                  onSuccess(upload_resp)
 
-                    // 2.更新账号头像
-                    const update_resp = await updateAvatar(accountForm.avatar as string)
-                    Message.success(update_resp.message)
+                  // 2.更新账号头像
+                  const update_resp = await updateAvatar(accountForm.avatar as string)
+                  Message.success(update_resp.message)
 
-                    // 3.更新账号信息
-                    await updateAccount()
-                  } catch (e) {
-                  } finally {
-                    changeLoading( false)
-                  }
+                  // 3.更新账号信息
+                  await updateAccount()
                 }
               "
             />
-            <a-spin v-if="loading">
-              <template #icon>
-                <icon-sync />
-              </template>
-            </a-spin>
           </a-form-item>
           <a-form-item field="name">
             <template #label>

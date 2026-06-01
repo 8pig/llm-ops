@@ -71,9 +71,7 @@ const tools = computed(() => {
       }
     }
     return available_tools
-  } catch (e) {
-    console.log('解析openapi_schema出错')
-  }
+  } catch (e) {}
   return []
 })
 
@@ -287,7 +285,7 @@ watch(
               <icon-user />
             </a-avatar>
             <div class="text-xs text-gray-400">
-              野猪佩奇 · 编辑时间
+              慕小课 · 编辑时间
               {{ moment(provider.created_at * 1000).format('MM-DD HH:mm') }}
             </div>
           </div>
@@ -435,7 +433,7 @@ watch(
               :custom-request="
                 async (option) => {
                   const { fileItem, onSuccess, onError } = option
-                  const resp = await uploadImage(fileItem.file)
+                  const resp = await uploadImage(fileItem.file as File)
                   form.icon = resp.data.image_url
                   onSuccess(resp)
                 }

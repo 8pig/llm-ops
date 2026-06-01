@@ -26,7 +26,7 @@ const carousels = [
           <div class="flex flex-col items-center justify-center h-full">
             <div class="text-2xl leading-7 font-bold text-gray-100">{{ carousel.slogan }}</div>
             <div class="mt-2 text-gray-400 leading-[22px]">{{ carousel.subSlogan }}</div>
-            <img :src="carousel.image" alt="LLMOps" class="w-[320px] mt-[30px]" />
+            <img :src="carousel.image" alt="慕课LLMOps" class="w-[320px] mt-[30px]" />
           </div>
         </a-carousel-item>
       </a-carousel>
