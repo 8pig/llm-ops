@@ -97,8 +97,7 @@ class Router:
             "/apps/<uuid:app_id>/conversations/messages",
             view_func=self.app_handler.get_debug_conversation_messages_with_page,
         )
-
-        bp.add_url_rule("/ai/suggested_questions",methods=["post"],view_func=self.ai_handler.generate_suggested_questions)
+        bp.add_url_rule("/ai/suggested-questions",methods=["post"],view_func=self.ai_handler.generate_suggested_questions)
         bp.add_url_rule("/ai/optimize-prompt",methods=["post"],view_func=self.ai_handler.optimize_prompt,)
 
 
