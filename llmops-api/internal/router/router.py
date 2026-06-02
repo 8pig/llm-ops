@@ -4,7 +4,7 @@ from flask import Flask, Blueprint
 from internal.handler import (
     AppHandler, BuiltinToolHandler, ApiToolHandler,
     UploadFileHandler, DatasetHandler, DocumentHandler, SegmentHandler,
-OAuthHandler, AccountHandler, AuthHandler, AIHandler
+OAuthHandler, AccountHandler, AuthHandler, AIHandler, ApiKeyHandler
 )
 from dataclasses import dataclass
 
@@ -24,6 +24,7 @@ class Router:
     account_handler: AccountHandler
     auth_handler: AuthHandler
     ai_handler: AIHandler
+    api_key_handler: ApiKeyHandler
 
 
 
@@ -315,6 +316,32 @@ class Router:
 
         bp.add_url_rule("/auth/logout", methods=["POST"], view_func=self.auth_handler.logout)
         bp.add_url_rule("/auth/password-login", methods=["POST"], view_func=self.auth_handler.password_login)
+
+        # 开放API模块
+        bp.add_url_rule("/openapi/api-keys", view_func=self.api_key_handler.get_api_key_with_page)
+        bp.add_url_rule(
+            "/openapi/api-keys",
+            methods=["POST"],
+            view_func=self.api_key_handler.create_api_key
+        )
+        bp.add_url_rule(
+            "/openapi/api-keys/<uuid:api_key_id>",
+            methods=["POST"],
+            view_func=self.api_key_handler.update_api_key
+        )
+        bp.add_url_rule(
+            "/openapi/api-keys/<uuid:api_key_id>/is-active",
+            methods=["POST"],
+            view_func=self.api_key_handler.update_api_key_is_active
+        )
+
+        bp.add_url_rule(
+            "/openapi/api-keys/<uuid:api_key_id>/delete",
+            methods=["POST"],
+            view_func=self.api_key_handler.delete_api_key
+        )
+
+
 
 
 
