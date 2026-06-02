@@ -105,11 +105,12 @@ const handleSubmit = async () => {
 
   // 5.6 调用hooks发起请求
   await handleDebugChat(props.app?.id, humanQuery, (event_response) => {
+    console.log(JSON.stringify(event_response, null, 2))
     // 5.7 提取流式事件响应数据以及事件名称
     const event = event_response?.event
     const data = event_response?.data
     const event_id = data?.id
-    let agent_thoughts = messages.value[0].agent_thoughts
+    const event_name = data?.event
 
     // 5.8 初始化数据检测与赋值
     if (message_id.value === '' && data?.message_id) {
@@ -121,58 +122,72 @@ const handleSubmit = async () => {
 
     // 5.9 循环处理得到的事件，记录除ping之外的事件
     if (event !== QueueEvent.ping) {
-      // 5.10 除了agent_message数据为叠加，其他均为覆盖
-      if (event === QueueEvent.agentMessage) {
-        // 5.11 获取数据索引并检测是否存在
-        const agent_thought_idx = agent_thoughts.findIndex((item) => item?.id === event_id)
+      // 每次都从 messages.value[0] 获取最新的 agent_thoughts
+      const agent_thoughts = messages.value[0].agent_thoughts
 
-        // 5.12 数据不存在则添加
+      // 5.10 处理agent_message事件，相同id的消息进行累加
+      if (event_name === QueueEvent.agentMessage) {
+        // 5.11 获取数据索引并检测是否存在
+        const agent_thought_idx = agent_thoughts.findIndex((item: any) => item?.id === event_id)
+        console.log(
+          'event_id:',
+          event_id,
+          'findIndex:',
+          agent_thought_idx,
+          'total:',
+          agent_thoughts.length,
+        )
+
+        // 5.12 数据不存在则添加新记录
         if (agent_thought_idx === -1) {
           position += 1
           agent_thoughts.push({
             id: event_id,
             position: position,
-            event: data?.event,
-            thought: data?.thought,
-            observation: data?.observation,
-            tool: data?.tool,
-            tool_input: data?.tool_input,
-            latency: data?.latency,
+            event: event_name,
+            thought: data?.thought || '',
+            observation: data?.observation || '',
+            tool: data?.tool || '',
+            tool_input: data?.tool_input || {},
+            latency: data?.latency || 0,
             created_at: 0,
           })
         } else {
-          // 5.13 存在数据则叠加
+          // 5.13 数据已存在，累加thought和observation内容
+          const existingItem = agent_thoughts[agent_thought_idx]
           agent_thoughts[agent_thought_idx] = {
-            ...agent_thoughts[agent_thought_idx],
-            thought: agent_thoughts[agent_thought_idx]?.thought + data?.thought,
-            latency: data?.latency,
+            ...existingItem,
+            thought: (existingItem.thought || '') + (data?.thought || ''),
+            observation: (existingItem.observation || '') + (data?.observation || ''),
+            latency: data?.latency || existingItem.latency,
           }
         }
 
-        // 5.14 更新/添加answer答案
-        messages.value[0].answer += data?.thought
+        // 5.14 累加answer答案（用于聊天区域显示）
+        messages.value[0].answer = (messages.value[0].answer || '') + (data?.thought || '')
       } else {
-        // 5.15 处理其他类型的事件，直接填充覆盖数据
+        // 5.15 处理其他类型的事件，直接添加新记录
         position += 1
         agent_thoughts.push({
           id: event_id,
           position: position,
-          event: data?.event,
-          thought: data?.thought,
-          observation: data?.observation,
-          tool: data?.tool,
-          tool_input: data?.tool_input,
-          latency: data?.latency,
+          event: event_name,
+          thought: data?.thought || '',
+          observation: data?.observation || '',
+          tool: data?.tool || '',
+          tool_input: data?.tool_input || {},
+          latency: data?.latency || 0,
           created_at: 0,
         })
       }
 
-      // 5.16 更新agent_thoughts
-      messages.value[0].agent_thoughts = agent_thoughts
+      // 5.16 直接修改数组触发响应式更新
+      messages.value[0].agent_thoughts = [...agent_thoughts]
 
       scroller.value.scrollToBottom()
     }
   })
+  // ... existing code ...
 
   // 5.7 判断是否开启建议问题生成，如果开启了则发起api请求获取数据
   if (props.suggested_after_answer.enable) {
