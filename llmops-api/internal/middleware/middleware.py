@@ -22,7 +22,7 @@ class Middleware:
         """登录管理器的请求加载器"""
         # 单独为llmops路由蓝图创建请求加载器
         if request.blueprint == "llmops":
-            access_token = self._validate_credentials(request)
+            access_token = self._validate_credential(request)
 
             # 解析token信息得到用户信息并返回
             payload = self.jwt_service.parse_token(access_token)
