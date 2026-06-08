@@ -71,9 +71,20 @@ const router = createRouter({
           component: () => import('@/views/store/tools/ListView.vue'),
         },
         {
-          path: 'open',
-          name: 'open-index',
-          component: () => import('@/views/open/IndexView.vue'),
+          path: 'openapi',
+          component: () => import('@/views/openapi/OpenAPILayoutView.vue'),
+          children: [
+            {
+              path: '',
+              name: 'openapi-index',
+              component: () => import('@/views/openapi/IndexView.vue'),
+            },
+            {
+              path: 'api-keys',
+              name: 'openapi-api-keys-list',
+              component: () => import('@/views/openapi/api-keys/ListView.vue'),
+            },
+          ],
         },
       ],
     },

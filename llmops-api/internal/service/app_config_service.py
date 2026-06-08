@@ -140,6 +140,7 @@ class AppConfigService(BaseService):
             "opening_questions": app_config.opening_questions,
             "speech_to_text": app_config.speech_to_text,
             "text_to_speech": app_config.text_to_speech,
+            "suggested_after_answer": app_config.suggested_after_answer,
             "review_config": app_config.review_config,
             "updated_at": datetime_to_timestamp(app_config.updated_at),
             "created_at": datetime_to_timestamp(app_config.created_at),

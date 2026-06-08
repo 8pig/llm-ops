@@ -25,6 +25,7 @@ DEFAULT_APP_CONFIG = {
             "frequency_penalty": 0.2,
             "presence_penalty": 0.2,
             "max_tokens": 8192,
+            "request_timeout": 120,
         },
     },
     "dialog_round": 3,
@@ -49,6 +50,9 @@ DEFAULT_APP_CONFIG = {
         "enable": False,
         "voice": "echo",
         "auto_play": False,
+    },
+    "suggested_after_answer": {
+        "enable": True,
     },
     "review_config": {
         "enable": False,
