@@ -4,7 +4,7 @@ from flask import Flask, Blueprint
 from internal.handler import (
     AppHandler, BuiltinToolHandler, ApiToolHandler,
     UploadFileHandler, DatasetHandler, DocumentHandler, SegmentHandler,
-OAuthHandler, AccountHandler, AuthHandler, AIHandler, ApiKeyHandler
+    OAuthHandler, AccountHandler, AuthHandler, AIHandler, ApiKeyHandler, OpenAPIHandler
 )
 from dataclasses import dataclass
 
@@ -25,6 +25,7 @@ class Router:
     auth_handler: AuthHandler
     ai_handler: AIHandler
     api_key_handler: ApiKeyHandler
+    openapi_handler: OpenAPIHandler
 
 
 
@@ -32,6 +33,8 @@ class Router:
         """注册路由"""
         # 1. 创建一个蓝图
         bp = Blueprint("llmops", __name__, url_prefix="")
+
+        openapi_bp = Blueprint("openapi", __name__, url_prefix="")
 
         # 2. url 与控制器绑定
         # bp.add_url_rule("/ping", view_func=self.app_handler.debug, methods=["post"])
@@ -341,12 +344,19 @@ class Router:
             view_func=self.api_key_handler.delete_api_key
         )
 
+        openapi_bp.add_url_rule(
+            "/openapi/chat",
+            methods=["POST"],
+            view_func=self.openapi_handler.chat
+        )
+
 
 
 
 
 
         app.register_blueprint(bp)
+        app.register_blueprint(openapi_bp)
 
     def ping(self):
         return self.app_handler.ping()

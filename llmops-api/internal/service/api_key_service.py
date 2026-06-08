@@ -40,6 +40,11 @@ class ApiKeyService(BaseService):
             raise ForbiddenException("api key not found")
         return api_key
 
+    def get_api_by_credential(self, api_key: str) -> ApiKey:
+        return self.db.session.query(ApiKey).filter(
+            ApiKey.api_key == api_key
+        ).one_or_none()
+
 
     def update_api_key(self, api_key_id: UUID, account: Account, **kwargs) -> ApiKey:
         """ 更新api key """
