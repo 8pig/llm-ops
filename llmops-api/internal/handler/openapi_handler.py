@@ -3,7 +3,7 @@ from injector import inject
 from dataclasses import dataclass
 
 from internal.schema.openapi_schema import OpenAPIChatReq
-from internal.service.openapi_service import OpenAPIService
+from internal.service import OpenAPIService
 from pkg.response import success_message, validate_error_json, compact_generate_response
 
 
