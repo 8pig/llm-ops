@@ -43,6 +43,11 @@ class Router:
         # bp.add_url_rule("/apps/<uuid:app_id>/debug", methods=["post"], view_func=self.app_handler.debug)
 
         bp.add_url_rule("/apps", methods=["post"], view_func=self.app_handler.create_app)
+        bp.add_url_rule("/apps", methods=["get"], view_func=self.app_handler.get_apps_with_page)
+        bp.add_url_rule("/apps", methods=["delete"], view_func=self.app_handler.delete_app)
+        bp.add_url_rule("/apps/<uuid:app_id>", methods=["post"], view_func=self.app_handler.update_app)
+
+
         bp.add_url_rule("/apps/<uuid:app_id>", methods=["get"], view_func=self.app_handler.get_app)
         bp.add_url_rule("/apps/<uuid:app_id>/draft-app-config", methods=["get"], view_func=self.app_handler.get_draft_app_config)
         bp.add_url_rule(

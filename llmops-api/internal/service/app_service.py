@@ -29,7 +29,7 @@ from internal.exception import NotFoundException, ForbiddenException, FailExcept
 from internal.model import App, Account, AppConfigVersion, ApiTool, Dataset, AppConfig, AppDatasetJoin, Conversation, \
     Message
 from internal.schema.app_schema import CreateAppReq, GetPublishHistoriesWithPageReq, \
-    GetDebugConversationMessagesWithPageReq
+    GetDebugConversationMessagesWithPageReq, GetAppsWithPageReq
 from pkg.paginator import Paginator
 from pkg.db import SQLAlchemy
 from internal.service.app_config_service import AppConfigService
@@ -736,3 +736,32 @@ class AppService(BaseService):
         )
 
         return messages, paginator
+
+    def delete_app(self, app_id, current_user: Account):
+        app = self.get_app(app_id, current_user)
+        self.delete( app)
+        return  app
+
+    def update_app(self, app_id, current_user:Account, **kwargs):
+        app = self.get_app(app_id, current_user)
+        self.update(app, **kwargs)
+        return app
+
+    def get_apps_with_page(self, req: GetAppsWithPageReq, current_user: Account) -> tuple[list[App], Paginator]:
+
+        paginator = Paginator(db=self.db, req=req)
+        filters = []
+        if req.search_word.data:
+            filters.append(App.name.ilike(f"%{req.search_word.data}%"))
+
+        apps = paginator.paginate(
+            self.db.session.query(App).filter(
+                *filters
+            ).order_by(desc("created_at"))
+        )
+        return apps, paginator
+
+
+
+
+

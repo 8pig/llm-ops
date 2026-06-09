@@ -7,7 +7,8 @@ from injector import inject
 
 from internal.schema.app_schema import CreateAppReq, GetAppResp, GetPublishHistoriesWithPageResp, \
     GetPublishHistoriesWithPageReq, FallbackHistoryToDraftReq, UpdateDebugConversationSummaryReq, DebugChatReq, \
-    GetDebugConversationMessagesWithPageReq, GetDebugConversationMessagesWithPageResp
+    GetDebugConversationMessagesWithPageReq, GetDebugConversationMessagesWithPageResp, UpdateAppReq, GetAppsWithPageReq, \
+    GetAppsWithPageResp
 from pkg.paginator import PageModel
 
 from pkg.response import success_json, validate_error_json, success_message, compact_generate_response
@@ -45,6 +46,33 @@ class AppHandler:
         resp = GetAppResp()
 
         return success_json(resp.dump( app))
+
+
+    @login_required
+    def update_app(self, app_id: UUID):
+        req = UpdateAppReq()
+        if not req.validate():
+            return validate_error_json(req.errors)
+        self.app_service.update_app(app_id, current_user, **req.data )
+        return success_message("更新Agent应用成功")
+
+
+
+
+    @login_required
+    def delete_app(self, app_id: UUID):
+        """根据传递的应用id，删除指定的应用"""
+        self.app_service.delete_app(app_id, current_user)
+        return success_message("删除Agent应用成功")
+
+    @login_required
+    def get_apps_with_page(self):
+        req = GetAppsWithPageReq(request.args)
+        if not req.validate():
+            return validate_error_json(req.errors)
+        apps, paginator = self.app_service.get_apps_with_page(req, current_user)
+        resp = GetAppsWithPageResp(many=True)
+        return success_json(PageModel(list=resp.dump(apps), paginator=paginator))
 
 
     @login_required
