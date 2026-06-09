@@ -181,6 +181,11 @@ class AppHandler:
 
         return success_json(PageModel(list=resp.dump(messages), paginator=paginator))
 
+    @login_required
+    def copy_app(self, app_id: UUID):
+        app = self.app_service.copy_app(app_id, current_user)
+        return success_json({"id": app.id})
+
 
 
     @login_required

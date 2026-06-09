@@ -37,6 +37,7 @@ from internal.service.retrieval_service import RetrievalService
 from internal.service.base_service import BaseService
 from .conversation_service import ConversationService
 from internal.core.agent.entities.queue_entity import QueueEvent
+from ..lib.helper import remove_fields
 
 
 @inject
@@ -764,6 +765,48 @@ class AppService(BaseService):
         )
         return apps, paginator
 
+    def copy_app(self, app_id, account: Account) -> App:
+        # 1.获取App+草稿配置，并校验权限
+        app = self.get_app(app_id, account)
+        draft_app_config = app.draft_app_config
+
+        # 2.将数据转换为字典并剔除无用数据
+        app_dict = app.__dict__.copy()
+        draft_app_config_dict = draft_app_config.__dict__.copy()
+
+        # 3.剔除无用字段
+        app_remove_fields = [
+            "id", "app_config_id", "draft_app_config_id", "debug_conversation_id",
+            "status", "updated_at", "created_at", "_sa_instance_state",
+        ]
+        draft_app_config_remove_fields = [
+            "id", "app_id", "version", "updated_at", "created_at", "_sa_instance_state",
+        ]
+        remove_fields(app_dict, app_remove_fields)
+        remove_fields(draft_app_config_dict, draft_app_config_remove_fields)
+
+        # 4.开启数据库自动提交上下文
+        with self.db.auto_commit():
+            # 5.创建一个新的应用记录
+            new_app = App(**app_dict, status=AppStatus.DRAFT)
+            new_app.name = f"{new_app.name}copy"
+            self.db.session.add(new_app)
+            self.db.session.flush()
+
+            # 6.添加草稿配置
+            new_draft_app_config = AppConfigVersion(
+                **draft_app_config_dict,
+                app_id=new_app.id,
+                version=0,
+            )
+            self.db.session.add(new_draft_app_config)
+            self.db.session.flush()
+
+            # 7.更新应用的草稿配置id
+            new_app.draft_app_config_id = new_draft_app_config.id
+
+        # 8.返回创建好的新应用
+        return new_app
 
 
 

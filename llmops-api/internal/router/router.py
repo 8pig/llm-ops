@@ -49,6 +49,7 @@ class Router:
 
 
         bp.add_url_rule("/apps/<uuid:app_id>", methods=["get"], view_func=self.app_handler.get_app)
+        bp.add_url_rule("/apps/<uuid:app_id>/copy", methods=["post"], view_func=self.app_handler.copy_app)
         bp.add_url_rule("/apps/<uuid:app_id>/draft-app-config", methods=["get"], view_func=self.app_handler.get_draft_app_config)
         bp.add_url_rule(
             "/apps/<uuid:app_id>/draft-app-config",
