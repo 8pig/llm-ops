@@ -754,6 +754,9 @@ class AppService(BaseService):
         if req.search_word.data:
             filters.append(App.name.ilike(f"%{req.search_word.data}%"))
 
+        print( filters)
+        print( "111")
+
         apps = paginator.paginate(
             self.db.session.query(App).filter(
                 *filters

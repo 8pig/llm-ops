@@ -145,7 +145,6 @@ class GetDebugConversationMessagesWithPageResp(Schema):
 
 
 class UpdateAppReq(FlaskForm):
-    """应用请求结构体"""
     name = StringField("name", validators=[
         DataRequired("应用名称不能为空"),
         Length(max=40, message="应用名称长度最大不能超过40个字符"),
@@ -163,6 +162,8 @@ class GetAppsWithPageReq(PaginatorReq):
     search_word = StringField("search_word", default="", validators=[
         Optional()
     ])
+
+
 
 
 class GetAppsWithPageResp(Schema):
