@@ -371,6 +371,3 @@ class Router:
 
         app.register_blueprint(bp)
         app.register_blueprint(openapi_bp)
-
-    def ping(self):
-        return self.app_handler.ping()

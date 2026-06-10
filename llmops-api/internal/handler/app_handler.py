@@ -1,10 +1,11 @@
-
+import uuid
 from uuid import UUID
 from flask import request
 from flask_login import login_required, current_user
 from injector import inject
+from numba.cuda import target
 
-
+from internal.core.workflow import workflow
 from internal.schema.app_schema import CreateAppReq, GetAppResp, GetPublishHistoriesWithPageResp, \
     GetPublishHistoriesWithPageReq, FallbackHistoryToDraftReq, UpdateDebugConversationSummaryReq, DebugChatReq, \
     GetDebugConversationMessagesWithPageReq, GetDebugConversationMessagesWithPageResp, UpdateAppReq, GetAppsWithPageReq, \
@@ -190,7 +191,18 @@ class AppHandler:
 
     @login_required
     def ping(self):
-        ...
+        from internal.core.workflow import Workflow
+        from internal.core.workflow.entities.workflow_entity import WorkflowConfig
+        workflow = Workflow(
+            workflow_config=WorkflowConfig(
+                account_id= uuid.uuid4(),
+                name="workflow",
+                description="工作流组件测试"
+            )
+        )
+        return success_json(workflow.invoke({"query": " 你是谁 bro", "username": "joker"}))
+
+
         # from internal.entity.dataset_entity import  RetrievalStrategy, RetrievalSource
         # dataset_retrieval = self.retrieval_service.create_langchain_tool_from_search(
         #     dataset_ids=["e68cc0fd-7c20-4a36-a6c5-fb82f97e6584", "dc824569-ffbf-4079-83b0-9d04d815e24c"],
@@ -224,9 +236,9 @@ class AppHandler:
         # state = agent.run("程序员",[], "")
         # content = state["messages"][-1].content
         # return success_json({"content": content})
-        human_message = "你好我叫野猪佩奇, 喜欢唱 跳 rap 篮球~,"
-        q = self.coversation_service.generate_suggested_questions(human_message)
-        return success_json({"questions": q})
+        # human_message = "你好我叫野猪佩奇, 喜欢唱 跳 rap 篮球~,"
+        # q = self.coversation_service.generate_suggested_questions(human_message)
+        # return success_json({"questions": q})
         # cn = self.coversation_service.generate_conversation_name(human_message)
         # return success_message({"conversation_name": cn})
         # return success_json({"message": "pong"})
