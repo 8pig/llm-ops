@@ -1,34 +1,35 @@
 # AI 智能体开发平台技术栈
 
-
-
 #### api 概览
+
  *https://ptrb24jefd.apifox.cn/*
 
-
-
 > 《LLMOps平台：AI应用构建器》是新一代 AI 原生应用开发服务平台，可在平台上搭建基于 AI 模型的各类问答应用、工作 流应用，从解决简单的问答到处理复杂的逻辑任务。还可将 AI 应用一键发布到对应的社交平台、Web网页、可供第三方调用的MCP服务，甚至是基于平台的开放 API 进行二次开发。
+
 ---
 
 ## 🛠️ 核心技术栈
 
 ### 1. AI 与 基础
+
 - **Prompt 提示词**: 提示词工程与优化
 - **LangChain / LangGraph**: 大模型应用开发框架
 - **RAG 知识库与优化**: 检索增强生成技术
 - **向量数据库**:  embeddings 存储与检索
 - **LLM 提供商**: 对接各大模型接口
-- **微调基础**: Fine-tuning 
+- **微调基础**: Fine-tuning
 
 ### 2. Agent 与 协议
+
 - **单/多 Agent**: 智能体架构设计
 - **Workflow 工作流**: 业务流程编排
 - **MCP 协议**: Model Context Protocol 标准
 - **Celery 消息队列**: 异步任务处理
 
 ### 3. 全栈开发
-- **前端**: VUE / TypeScript / acro 
-- **后端**: Flask (Python) 
+
+- **前端**: VUE / TypeScript / acro
+- **后端**: Flask (Python)
 - **部署**: 本地/云服务部署
 - 数据库: postgres / Weaviate
 
@@ -37,6 +38,7 @@
 ## ️ LLMOps 平台能力
 
 ### 平台核心功能
+
 - **可视化编排 + 智能化定制**: 拖拽式开发界面
 - **工作流编排**: 复杂逻辑图形化构建
 - **自定义插件**: 扩展系统功能
@@ -54,14 +56,13 @@
 基于自研llm平台编排的各类 AI 应用：
 
 1. **智能客服系统**: 自动化客户支持
-
 2. **PPT 自动生成工具**: 文档转演示文稿
-
-   
-
-
+3. DataAgent: 数据可视化
+4. Law: pdf.word材料审计
+5. 
 
 ### env config
+
 ```
 OPENAI_API_KEY=<your-api-key>
 OPENAI_API_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
@@ -127,15 +128,11 @@ OLLAMA_BASE_URL=http://127.0.0.1:11434
 
 ```
 
+#### docker postgres
 
-
-
-
-#### docker postgres 
 ```bash
 docker run  --name postgres-dev -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -d postgres 
 ```
-
 
 #### docker Weaviate
 
@@ -143,16 +140,15 @@ docker run  --name postgres-dev -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGR
  docker run -d --name weaviate-dev  -p 8080:8080 -p 50051:50051 cr.weaviate.io/semitechnologies/weaviate:1.35.3
 ```
 
-
-
 #### docker redis
+
 ```bash
 docker run  --name redis-dev -d -p 6379:6379 redis 
 ```
 
 #### embedding  local
-> 开发环境使用ollama运行qw3-embedding:0.6b, 根据实际情况选择模型
 
+> 开发环境使用ollama运行qw3-embedding:0.6b, 根据实际情况选择模型
 
 #### run project
 
@@ -164,10 +160,8 @@ celery -A app.http.app.celery worker -l info --pool eventlet --logfile storage/l
  uv run python app\http\app.py
 ```
 
-
-
-
 ##### 初始化生成迁移脚本
+
 ```bash
 flask --app app.http.app db init 
 flask --app app.http.app db migrate 
@@ -180,8 +174,6 @@ flask --app app.http.app db upgrade
 flask --app app.http.app db downgrade
 
 ```
-
-
 
 #### 数据库关系图
 
@@ -216,12 +208,6 @@ flask --app app.http.app db downgrade
 
 ```
 
-
-
-
-
-
-
 ### Agent 概念和运行流程
 
 ```
@@ -255,11 +241,10 @@ flask --app app.http.app db downgrade
 ```
 
 ---
+
 ![image](./v2-de187d0b3ac4b7975731b2f1229d67f5_1440w.png)
 
 ---
-
-
 
 #### PARSING Error
 
@@ -271,21 +256,17 @@ flask --app app.http.app db downgrade
 pip install en_core_web_sm-3.8.0-py3-none-any.whl
 ```
 
-
-
-
-
 #### 参考文档
 
-[Hello-Agents](https://datawhalechina.github.io/hello-agents/#/) 
+[Hello-Agents](https://datawhalechina.github.io/hello-agents/#/)
 
-[langchain Docs(TS) ](https://docs.langchain.com/oss/javascript/langchain/quickstart) 
+[langchain Docs(TS) ](https://docs.langchain.com/oss/javascript/langchain/quickstart)
 
-[langchain Docs(py) ](https://docs.langchain.com/oss/python/langchain/quickstart) 
+[langchain Docs(py) ](https://docs.langchain.com/oss/python/langchain/quickstart)
 
-[langchain Docs中文文档 ](https://langchain-doc.cn/) 
+[langchain Docs中文文档 ](https://langchain-doc.cn/)
 
-[uv/pip](https://uv.oaix.tech/blog/2025/06/17/quickly-set-uv-package-index-is-china-mirror/#__tabbed_1_3) 
+[uv/pip](https://uv.oaix.tech/blog/2025/06/17/quickly-set-uv-package-index-is-china-mirror/#__tabbed_1_3)
 
 [weaviate](https://docs.weaviate.org.cn/deploy)
 
