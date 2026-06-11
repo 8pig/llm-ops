@@ -42,7 +42,7 @@ class DatasetRetrievalNode(BaseNode):
             flask_app=flask_app,
             dataset_ids=self.node_data.dataset_ids,
             account_id=account_id,
-            **self.node_data.retrieval_config.dict(),
+            **self.node_data.retrieval_config.model_dump(),
         )
 
     def invoke(self, state: WorkflowState, config: Optional[RunnableConfig] = None) -> WorkflowState:
