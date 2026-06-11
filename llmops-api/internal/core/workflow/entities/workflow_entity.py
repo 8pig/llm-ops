@@ -44,7 +44,7 @@ class WorkflowConfig(BaseModel):
     nodes: list[BaseNodeData] = Field(default_factory=list)  # 工作流对应的节点列表信息
     edges: list[BaseEdgeData] = Field(default_factory=list)  # 工作流对应的边列表信息
 
-    @model_validator(mode='before')
+    @model_validator(mode="before")
     def validate_workflow_config(cls, values: dict[str, Any]):
         """自定义校验函数，用于校验工作流配置中的所有参数信息"""
         # 1.获取工作流名字name，并校验是否符合规则
@@ -62,10 +62,10 @@ class WorkflowConfig(BaseModel):
         edges = values.get("edges", [])
 
         # 4.校验nodes/edges数据类型和内容不能为空
-        # if not isinstance(nodes, list) or len(nodes) <= 0:
-        #     raise ValidateErrorException("工作流节点列表信息错误，请核实后重试")
-        # if not isinstance(edges, list) or len(edges) <= 0:
-        #     raise ValidateErrorException("工作流边列表信息错误，请核实后重试")
+        if not isinstance(nodes, list) or len(nodes) <= 0:
+            raise ValidateErrorException("工作流节点列表信息错误，请核实后重试")
+        if not isinstance(edges, list) or len(edges) <= 0:
+            raise ValidateErrorException("工作流边列表信息错误，请核实后重试")
 
         # 5.节点数据类映射
         from internal.core.workflow.nodes import (
@@ -165,12 +165,6 @@ class WorkflowConfig(BaseModel):
         adj_list = cls._build_adj_list(edge_data_dict.values())
         reverse_adj_list = cls._build_reverse_adj_list(edge_data_dict.values())
         in_degree, out_degree = cls._build_degrees(edge_data_dict.values())
-
-        # 如果节点为空，跳过后续验证
-        if len(node_data_dict) == 0:
-            values["nodes"] = list(node_data_dict.values())
-            values["edges"] = list(edge_data_dict.values())
-            return values
 
         # 21.从边的关系中校验是否有唯一的开始/结束节点(入度为0即为开始，出度为0即为结束)
         start_nodes = [node_data for node_data in node_data_dict.values() if in_degree[node_data.id] == 0]
