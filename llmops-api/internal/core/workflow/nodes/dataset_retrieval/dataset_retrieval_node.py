@@ -32,7 +32,7 @@ class DatasetRetrievalNode(BaseNode):
         super().__init__(*args, **kwargs)
 
         # 2.导入依赖注入及检索服务
-        from app.http.module import injector
+        from app.http.app  import injector
         from internal.service import RetrievalService
 
         retrieval_service = injector.get(RetrievalService)
