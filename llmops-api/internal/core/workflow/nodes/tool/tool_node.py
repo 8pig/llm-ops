@@ -28,7 +28,7 @@ class ToolNode(BaseNode):
         super().__init__(*args, **kwargs)
 
         # 2.导入依赖注入及工具提供者
-        from app.http.module import injector
+        from app.http.app import injector
 
         # 3.判断是内置插件还是API插件，执行不同的操作
         if self.node_data.tool_type == "builtin_tool":
@@ -43,7 +43,7 @@ class ToolNode(BaseNode):
             self._tool = _tool(**self.node_data.params)
         else:
             # 5.API插件，调用数据库查询记录并创建API插件
-            from pkg.sqlalchemy import SQLAlchemy
+            from pkg.db import SQLAlchemy
             db = injector.get(SQLAlchemy)
 
             # 6.根据传递的提供者名字+工具名字查询工具
