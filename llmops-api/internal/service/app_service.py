@@ -751,7 +751,7 @@ class AppService(BaseService):
     def get_apps_with_page(self, req: GetAppsWithPageReq, current_user: Account) -> tuple[list[App], Paginator]:
 
         paginator = Paginator(db=self.db, req=req)
-        filters = []
+        filters = [App.account_id == current_user.id]
         if req.search_word.data:
             filters.append(App.name.ilike(f"%{req.search_word.data}%"))
 
