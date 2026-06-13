@@ -80,7 +80,7 @@ migration/    — Alembic migrations
 ### Gotchas
 
 - **DetachedInstanceError**: In generators/SSE streams, extract ORM IDs *before* yielding (session closes mid-stream)
-- **Workflow validation**: Empty workflows auto-create START→END nodes
+- **Workflow validation**: Empty workflows auto-create START→END nodes; `workflow_entity.py` validator allows empty nodes/edges
 - **Celery eventlet**: Must use `--pool eventlet`; default prefork breaks
 - **Windows**: `start_celery.ps1` sets `PYTHONPATH` and cleans `.pyc` before start
 

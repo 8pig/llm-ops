@@ -7,6 +7,7 @@ from .conversation import Conversation, Message, MessageAgentThought
 from .account import AccountOAuth, Account
 from .api_key import ApiKey
 from .end_user import EndUser
+from .workflow import Workflow, WorkflowResult
 
 __all__ = [
     "App",
@@ -25,5 +26,6 @@ __all__ = [
     "MessageAgentThought",
     "AccountOAuth", "Account",
     "AppConfigVersion", AppConfig, AppConfigType,
-    "ApiKey", "EndUser"
+    "ApiKey", "EndUser",
+    "WorkflowResult", "Workflow"
 ]
