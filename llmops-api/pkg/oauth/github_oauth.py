@@ -38,7 +38,7 @@ class GithubOAuth(OAuth):
         headers = {"Accept": "application/json"}
 
         # 2.发起post请求并获取相应的数据
-        resp = requests.post(self._ACCESS_TOKEN_URL, data=data, headers=headers)
+        resp = requests.post(self._ACCESS_TOKEN_URL, data=data, headers=headers, verify=False)
         resp.raise_for_status()
         resp_json = resp.json()
 
@@ -54,12 +54,12 @@ class GithubOAuth(OAuth):
         headers = {"Authorization": f"token {token}"}
 
         # 2.发起get请求获取用户数据
-        resp = requests.get(self._USER_INFO_URL, headers=headers)
+        resp = requests.get(self._USER_INFO_URL, headers=headers, verify=False)
         resp.raise_for_status()
         raw_info = resp.json()
 
         # 3.发起get请求获取用户邮箱
-        email_resp = requests.get(self._EMAIL_INFO_URL, headers=headers)
+        email_resp = requests.get(self._EMAIL_INFO_URL, headers=headers, verify=False)
         email_resp.raise_for_status()
         email_info = email_resp.json()
 
