@@ -1,5 +1,5 @@
-
 from enum import Enum
+from typing import Optional
 
 from pydantic import Field, validator, HttpUrl
 
@@ -28,11 +28,10 @@ class HttpRequestInputType(str, Enum):
 
 class HttpRequestNodeData(BaseNodeData):
     """HTTP请求节点数据"""
-    url: HttpUrl = ""  # 请求URL地址
+    url: Optional[HttpUrl] = None  # 请求URL地址
     method: HttpRequestMethod = HttpRequestMethod.GET  # API请求方法
     inputs: list[VariableEntity] = Field(default_factory=list)  # 输入变量列表
     outputs: list[VariableEntity] = Field(
-        exclude=True,
         default_factory=lambda: [
             VariableEntity(
                 name="status_code",
@@ -42,6 +41,21 @@ class HttpRequestNodeData(BaseNodeData):
             VariableEntity(name="text", value={"type": VariableValueType.GENERATED}),
         ],
     )
+
+    @validator("url", pre=True, always=True)
+    def validate_url(cls, url: Optional[HttpUrl]):
+        return url if url != "" else None
+
+    @validator("outputs", pre=True)
+    def validate_outputs(cls, outputs: list[VariableEntity]):
+        return [
+            VariableEntity(
+                name="status_code",
+                type=VariableType.INT,
+                value={"type": VariableValueType.GENERATED, "content": 0},
+            ),
+            VariableEntity(name="text", value={"type": VariableValueType.GENERATED}),
+        ]
 
     @validator("inputs")
     def validate_inputs(cls, inputs: list[VariableEntity]):
