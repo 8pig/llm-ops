@@ -23,6 +23,7 @@ from .api_key_service import ApiKeyService
 from .app_config_service import AppConfigService
 from .builtin_app_service import BuiltinAppService
 from .openapi_service import OpenAPIService
+from .workflow_service import WorkflowService
 
 __all__ = [
     "BaseService",
@@ -48,5 +49,6 @@ __all__ = [
     "AIService",
     "ApiKeyService",
     "OpenAPIService",
-    "AppConfigService"
+    "AppConfigService",
+    "WorkflowService"
    ]
