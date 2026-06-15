@@ -582,7 +582,12 @@ const isToolSelected = (provider, tool) => {
             <div class="text-lg font-bold text-gray-700">
               {{ toolsActivateType === 'api_tool' ? '自定义插件' : '内置插件' }}
             </div>
-            <a-button size="mini" type="text" class="!text-gray-700 ml-6">
+            <a-button
+              size="mini"
+              type="text"
+              class="!text-gray-700 ml-6"
+              @click="handleCancelToolInfoModal"
+            >
               <template #icon>
                 <icon-close />
               </template>

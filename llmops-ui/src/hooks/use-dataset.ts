@@ -129,7 +129,7 @@ export const useCreateOrUpdateDataset = () => {
     name: '',
     description: '',
   }
-  const form = reactive({ ...defaultForm })
+  const form: any = reactive({ ...defaultForm })
   const formRef = ref<InstanceType<typeof Form>>()
   const showUpdateModal = ref(false)
 
