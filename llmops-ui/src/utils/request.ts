@@ -114,6 +114,15 @@ export const ssePost = async (
 
   // 5.4 发起fetch请求并处理流式事件响应
   const response = await globalThis.fetch(urlWithPrefix, options as RequestInit)
+
+  // 5.5 获取响应内容类型并判断类型
+  const contentType = response.headers.get('Content-Type')
+  if (contentType && contentType.includes('application/json')) {
+    // 5.6 接口为json输出，意味着出错，直接返回json数据
+    return await response.json()
+  }
+
+  // 5.7 否则获取流式输出数据
   return await handleStream(response, onData)
 }
 
@@ -128,10 +137,12 @@ const handleStream = (
       return
     }
 
-    // 2.构建reader以及deocder
+    // 2.构建reader以及decoder
     const reader = response.body?.getReader()
     const decoder = new TextDecoder('utf-8')
     let buffer = ''
+    let event = ''
+    let data = ''
 
     // 3.构建read函数用于去读取数据
     const read = () => {
@@ -143,9 +154,6 @@ const handleStream = (
 
         buffer += decoder.decode(result.value, { stream: true })
         const lines = buffer.split('\n')
-
-        let event = ''
-        let data = ''
 
         try {
           lines.forEach((line) => {
