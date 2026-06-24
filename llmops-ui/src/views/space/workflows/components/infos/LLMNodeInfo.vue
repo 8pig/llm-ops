@@ -6,7 +6,7 @@ import { getReferencedVariables } from '@/utils/helper'
 import { Message, type ValidatedError } from '@arco-design/web-vue'
 
 // 1.定义自定义组件所需数据
-const props = defineProps<any>({
+const props = defineProps({
   visible: { type: Boolean, required: true, default: false },
   node: { type: Object as any, required: true, default: {} },
   loading: { type: Boolean, required: true, default: false },
