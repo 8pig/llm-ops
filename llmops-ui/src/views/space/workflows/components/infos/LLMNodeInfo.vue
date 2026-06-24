@@ -3,12 +3,12 @@ import { computed, ref, watch } from 'vue'
 import { type GraphNode, useVueFlow } from '@vue-flow/core'
 import { cloneDeep } from 'lodash'
 import { getReferencedVariables } from '@/utils/helper'
-import { Message } from '@arco-design/web-vue'
+import { Message, type ValidatedError } from '@arco-design/web-vue'
 
 // 1.定义自定义组件所需数据
-const props = defineProps({
+const props = defineProps<any>({
   visible: { type: Boolean, required: true, default: false },
-  node: { type: Object as GraphNode, required: true, default: {} },
+  node: { type: Object as any, required: true, default: {} },
   loading: { type: Boolean, required: true, default: false },
 })
 const emits = defineEmits(['update:visible', 'updateNode'])
@@ -45,7 +45,7 @@ const onSubmit = async ({ errors }: { errors: Record<string, ValidatedError> | u
     title: form.value.title,
     description: form.value.description,
     prompt: form.value.prompt,
-    inputs: cloneInputs.map((input) => {
+    inputs: cloneInputs.map((input: any) => {
       return {
         name: input.name,
         description: '',
@@ -80,8 +80,8 @@ watch(
       description: newNode.data.description,
       prompt: newNode.data.prompt,
       model_config: {
-        provider: 'openai',
-        model: 'gpt-4o-mini',
+        provider: 'xiaomi',
+        model: 'mimo-v2.5-pro',
         parameters: {
           frequency_penalty: 0.2,
           max_tokens: 8192,
@@ -90,7 +90,7 @@ watch(
           top_p: 0.85,
         },
       },
-      inputs: cloneInputs.map((input) => {
+      inputs: cloneInputs.map((input: any) => {
         // 5.1 计算引用的变量值信息
         const ref =
           input.value.type === 'ref'
