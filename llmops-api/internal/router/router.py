@@ -5,9 +5,10 @@ from internal.handler import (
     AppHandler, BuiltinToolHandler, ApiToolHandler,
     UploadFileHandler, DatasetHandler, DocumentHandler, SegmentHandler,
     OAuthHandler, AccountHandler, AuthHandler, AIHandler, ApiKeyHandler, OpenAPIHandler, BuiltinAppHandler,
-    WorkflowHandler
+    WorkflowHandler, LanguageModelHandler
 )
 from dataclasses import dataclass
+
 
 
 
@@ -29,6 +30,7 @@ class Router:
     openapi_handler: OpenAPIHandler
     builtin_app_handler: BuiltinAppHandler
     workflow_handler: WorkflowHandler
+    language_model_handler: LanguageModelHandler
 
 
 
@@ -406,6 +408,15 @@ class Router:
             "/workflows/<uuid:workflow_id>/cancel-publish",
             methods=["POST"],
             view_func=self.workflow_handler.cancel_publish_workflow,
+        )
+        bp.add_url_rule("/language-models", view_func=self.language_model_handler.get_language_models)
+        bp.add_url_rule(
+            "/language-models/<string:provider_name>/icon",
+            view_func=self.language_model_handler.get_language_model_icon,
+        )
+        bp.add_url_rule(
+            "/language-models/<string:provider_name>/<string:model_name>",
+            view_func=self.language_model_handler.get_language_model,
         )
 
         app.register_blueprint(bp)
