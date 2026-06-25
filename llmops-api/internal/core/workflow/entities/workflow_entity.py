@@ -4,7 +4,7 @@ from collections import defaultdict, deque
 from typing import Any, TypedDict, Annotated
 from uuid import UUID
 
-from pydantic import BaseModel, Field, root_validator, model_validator
+from pydantic import BaseModel, Field, model_validator
 
 from internal.exception import ValidateException as ValidateErrorException
 from .edge_entity import BaseEdgeData

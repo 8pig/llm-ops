@@ -1,0 +1,23 @@
+model: mimo-v2-flash
+label: MiMo V2 Flash
+model_type: chat
+features:
+  - tool_call
+  - agent_thought
+context_window: 262144
+max_output_tokens: 65536
+attributes:
+  model: mimo-v2-flash
+parameters:
+  - name: temperature
+    use_template: temperature
+  - name: top_p
+    use_template: top_p
+  - name: presence_penalty
+    use_template: presence_penalty
+  - name: frequency_penalty
+    use_template: frequency_penalty
+  - name: max_tokens
+    use_template: max_tokens
+    default: 4096
+    max: 65536

@@ -127,7 +127,10 @@ watch(
             </div>
           </div>
           <!-- 工作流的描述信息 -->
-          <div class="leading-[18px] text-gray-500 h-[72px] line-clamp-4 mb-2 break-all">
+          <div
+            class="leading-[18px] text-gray-500 h-[72px] line-clamp-4 mb-2 break-all"
+            @click="routerLinkHandler"
+          >
             {{ workflow.description }}
           </div>
           <!-- 应用的归属者信息 -->

@@ -5,6 +5,7 @@ from flask_login import login_required, current_user
 from injector import inject
 from numba.cuda import target
 
+from internal.core.language_model import LanguageModelManager
 from internal.core.workflow import workflow
 from internal.schema.app_schema import CreateAppReq, GetAppResp, GetPublishHistoriesWithPageResp, \
     GetPublishHistoriesWithPageReq, FallbackHistoryToDraftReq, UpdateDebugConversationSummaryReq, DebugChatReq, \
@@ -31,6 +32,7 @@ class AppHandler:
     builtin_provider_manager :BuiltinProviderManager
     coversation_service: ConversationService
     retrieval_service: RetrievalService
+    language_model_manager: LanguageModelManager
 
     """应用控制器"""
     @login_required
@@ -191,16 +193,22 @@ class AppHandler:
 
     @login_required
     def ping(self):
-        from internal.core.workflow import Workflow
-        from internal.core.workflow.entities.workflow_entity import WorkflowConfig
-        workflow = Workflow(
-            workflow_config=WorkflowConfig(
-                account_id= uuid.uuid4(),
-                name="workflow",
-                description="工作流组件测试"
-            )
-        )
-        return success_json(workflow.invoke({"query": " 你是谁 bro", "username": "joker"}))
+        model_class = self.language_model_manager.get_model_class_by_provider_and_model("xiaomi", "mimo-v2.5-pro")
+        llm = model_class(model="mimo-v2.5-pro")
+        return success_message(llm.invoke("你好 你是谁").content)
+
+
+
+        # from internal.core.workflow import Workflow
+        # from internal.core.workflow.entities.workflow_entity import WorkflowConfig
+        # workflow = Workflow(
+        #     workflow_config=WorkflowConfig(
+        #         account_id= uuid.uuid4(),
+        #         name="workflow",
+        #         description="工作流组件测试"
+        #     )
+        # )
+        # return success_json(workflow.invoke({"query": " 你是谁 bro", "username": "joker"}))
 
 
         # from internal.entity.dataset_entity import  RetrievalStrategy, RetrievalSource
