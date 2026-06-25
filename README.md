@@ -1,4 +1,4 @@
-# AI 智能体开发平台技术栈
+# AI 智能体开发平台
 
 #### api 概览
 
@@ -125,13 +125,12 @@ COS_DOMAIN=
 
 EMBEDDING_MODEL=qwen3-embedding:0.6b
 OLLAMA_BASE_URL=http://127.0.0.1:11434
-
 ```
 
 #### docker postgres
 
 ```bash
-docker run  --name postgres-dev -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -d postgres 
+docker run  --name postgres-dev -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -d postgres
 ```
 
 #### docker Weaviate
@@ -143,7 +142,7 @@ docker run  --name postgres-dev -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGR
 #### docker redis
 
 ```bash
-docker run  --name redis-dev -d -p 6379:6379 redis 
+docker run  --name redis-dev -d -p 6379:6379 redis
 ```
 
 #### embedding  local
@@ -172,7 +171,6 @@ flask --app app.http.app db upgrade
 
 #回退
 flask --app app.http.app db downgrade
-
 ```
 
 #### 数据库关系图
@@ -205,7 +203,6 @@ flask --app app.http.app db downgrade
            │       App       │
            │    (AI应用)      │
            └─────────────────┘
-
 ```
 
 ### Agent 概念和运行流程
