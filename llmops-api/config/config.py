@@ -41,3 +41,5 @@ class Config:
             "result_expires": int(_get_env("CELERY_RESULT_EXPIRES")),
             "broker_connection_retry_on_startup": _get_bool_env("CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP")
         }
+
+        self.ASSISTANT_AGENT_ID = _get_env("ASSISTANT_AGENT_ID")
