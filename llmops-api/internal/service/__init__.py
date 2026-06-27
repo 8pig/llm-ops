@@ -25,6 +25,7 @@ from .builtin_app_service import BuiltinAppService
 from .openapi_service import OpenAPIService
 from .workflow_service import WorkflowService
 from .language_model_service import LanguageModelService
+from .assistant_agent_service import AssistantAgentService
 
 __all__ = [
     "BaseService",
@@ -52,5 +53,6 @@ __all__ = [
     "OpenAPIService",
     "AppConfigService",
     "WorkflowService",
-    "LanguageModelService"
+    "LanguageModelService",
+    "AssistantAgentService"
    ]
