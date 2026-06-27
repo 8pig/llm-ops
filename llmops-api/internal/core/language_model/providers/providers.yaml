@@ -15,7 +15,7 @@
     - chat
 - name: ollama
   label: Ollama
-  description: Ollama提供的本地离线大语言模型，例如qwen3.5-4b等。
+  description: Ollama提供的本地离线大语言模型，例如qwen等。
   icon: icon.svg
   background: "#F9FAFB"
   supported_model_types:
