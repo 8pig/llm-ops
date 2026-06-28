@@ -44,8 +44,8 @@ from internal.core.agent.entities.queue_entity import QueueEvent
 from internal.lib.helper import remove_fields
 from langchain_community.utilities.dalle_image_generator import DallEAPIWrapper
 
-from .language_model_service import LanguageModelService
 from internal.entity.ai_entity import OPTIMIZE_PROMPT_TEMPLATE
+from .language_model_service import LanguageModelService
 
 
 @inject
@@ -410,11 +410,8 @@ class AppService(BaseService):
             status=MessageStatus.NORMAL,
         )
 
-        # todo:5.根据传递的model_config实例化不同的LLM模型，等待多LLM接入后该处会发生变化
-        llm = ChatOpenAI(
-            model=draft_app_config["model_config"]["model"],
-            **draft_app_config["model_config"]["parameters"],
-        )
+
+        llm = self.language_model_service.load_language_model(draft_app_config.get("model_config", {}))
 
         # 6.实例化TokenBufferMemory用于提取短期记忆
         token_buffer_memory = TokenBufferMemory(
