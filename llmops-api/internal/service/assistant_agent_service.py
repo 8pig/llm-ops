@@ -27,6 +27,7 @@ from pkg.paginator import Paginator
 from pkg.db import SQLAlchemy
 from .base_service import BaseService
 from .conversation_service import ConversationService
+from .faiss_service import FaissService
 
 
 @inject
@@ -35,6 +36,7 @@ class AssistantAgentService(BaseService):
     """辅助智能体服务"""
     db: SQLAlchemy
     conversation_service: ConversationService
+    faiss_service: FaissService
 
     def chat(self, query, account: Account) -> Generator:
         """传递query与账号实现与辅助Agent进行会话"""
@@ -73,6 +75,7 @@ class AssistantAgentService(BaseService):
 
         # 6.将草稿配置中的tools转换成LangChain工具
         tools = [
+            self.faiss_service.convert_faiss_to_tool(),
             self.convert_create_app_to_tool(account.id),
         ]
 
@@ -86,7 +89,6 @@ class AssistantAgentService(BaseService):
                 tools=tools,
             ),
         )
-
         agent_thoughts = {}
         for agent_thought in agent.stream({
             "messages": [HumanMessage(query)],

@@ -1,8 +1,8 @@
-
+import io
 import json
-import os
-import re
-import uuid
+import requests
+from werkzeug.datastructures import FileStorage
+
 from dataclasses import dataclass
 from datetime import datetime
 from threading import Thread
@@ -12,6 +12,9 @@ from uuid import UUID
 from flask import request, current_app, Flask
 from injector import inject
 from langchain_core.messages import HumanMessage
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import RunnableParallel
 from langchain_openai import ChatOpenAI
 from numba.cuda import target
 from redis import Redis
@@ -22,7 +25,7 @@ from internal.core.agent.entities.agent_entity import AgentConfig
 from internal.core.memory import TokenBufferMemory
 from internal.core.tools.api_tools.providers import ApiProviderManager
 from internal.core.tools.builtin_tools.providers import BuiltinProviderManager
-from internal.entity.app_entity import AppStatus, AppConfigType, DEFAULT_APP_CONFIG
+from internal.entity.app_entity import AppStatus, AppConfigType, DEFAULT_APP_CONFIG, GENERATE_ICON_PROMPT_TEMPLATE
 from internal.entity.conversation_entity import InvokeFrom, MessageStatus
 from internal.entity.dataset_entity import RetrievalSource
 from internal.exception import NotFoundException, ForbiddenException, FailException, ValidateException as ValidateErrorException
@@ -32,12 +35,17 @@ from internal.schema.app_schema import CreateAppReq, GetPublishHistoriesWithPage
     GetDebugConversationMessagesWithPageReq, GetAppsWithPageReq
 from pkg.paginator import Paginator
 from pkg.db import SQLAlchemy
+from internal.service.cos_service import CosService
 from internal.service.app_config_service import AppConfigService
 from internal.service.retrieval_service import RetrievalService
+from internal.service.conversation_service import ConversationService
 from internal.service.base_service import BaseService
-from .conversation_service import ConversationService
 from internal.core.agent.entities.queue_entity import QueueEvent
-from ..lib.helper import remove_fields
+from internal.lib.helper import remove_fields
+from langchain_community.utilities.dalle_image_generator import DallEAPIWrapper
+
+from .language_model_service import LanguageModelService
+from internal.entity.ai_entity import OPTIMIZE_PROMPT_TEMPLATE
 
 
 @inject
@@ -51,6 +59,69 @@ class AppService(BaseService):
     builtin_provider_manager: BuiltinProviderManager
     conversation_service: ConversationService
     app_config_service: AppConfigService
+    cos_service: CosService
+    language_model_service: LanguageModelService
+
+
+    def auto_create_app(self, name: str, description: str, account_id: UUID) -> None:
+        """根据传递的应用名称、描述、账号id利用AI创建一个Agent智能体"""
+        # 1.创建LLM，用于生成icon提示与预设提示词
+        llm = self.language_model_service.load_default_language_model()
+
+        # 2.创建DallEApiWrapper包装器
+        # dalle_api_wrapper = DallEAPIWrapper(model="dall-e-3", size="1024x1024")
+
+        # 3.构建生成icon链
+        # generate_icon_chain = ChatPromptTemplate.from_template(
+        #     GENERATE_ICON_PROMPT_TEMPLATE
+        # ) | llm | StrOutputParser() | dalle_api_wrapper.run
+
+        # 4.生成预设prompt链
+        generate_preset_prompt_chain = ChatPromptTemplate.from_messages([
+            ("system", OPTIMIZE_PROMPT_TEMPLATE),
+            ("human", "应用名称: {name}\n\n应用描述: {description}")
+        ]) | llm | StrOutputParser()
+
+        # 5.创建并行链同时执行两条链
+        generate_app_config_chain = RunnableParallel({
+            "preset_prompt": generate_preset_prompt_chain,
+        })
+        app_config = generate_app_config_chain.invoke({"name": name, "description": description})
+
+
+        account = self.db.session.query(Account).get(account_id)
+
+        icon = "https://picsum.photos/seed/xZO0rkEe9b/279/111"
+
+        # 7.开启数据库自动提交上下文
+        with self.db.auto_commit():
+            # 8.创建应用记录并刷新数据，从而可以拿到应用id
+            app = App(
+                account_id=account.id,
+                name=name,
+                icon=icon,
+                description=description,
+            )
+            self.db.session.add(app)
+            self.db.session.flush()
+
+            # 9.添加草稿记录
+            app_config_version = AppConfigVersion(
+                app_id=app.id,
+                version=0,
+                config_type=AppConfigType.DRAFT,
+                **{
+                    **DEFAULT_APP_CONFIG,
+                    "preset_prompt": app_config.get("preset_prompt", ""),
+                }
+            )
+            self.db.session.add(app_config_version)
+            self.db.session.flush()
+
+            # 10.更新应用配置id
+            app.draft_app_config_id = app_config_version.id
+
+
 
     def create_app(self, req: CreateAppReq, account: Account) -> App:
         """创建Agent应用服务"""

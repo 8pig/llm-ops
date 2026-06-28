@@ -5,7 +5,7 @@ icon: "https://imooc-llmops-1304251364.cos.ap-guangzhou.myqcloud.com/2024/12/06/
 description: "负责回答旅游行程的相关问题和推荐路线"
 model_config:
   provider: "openai"
-  model: "gpt-4o-mini"
+  model: "xiaomi-v2.5-pro"
   parameters:
     temperature: 0.5
     top_p: 0.85

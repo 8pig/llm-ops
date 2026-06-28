@@ -8,7 +8,7 @@ from dataclasses import dataclass
 
 
 from internal.model import UploadFile
-from internal.service import BaseService
+from internal.service.base_service import BaseService
 from pkg.db import SQLAlchemy
 
 

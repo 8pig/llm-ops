@@ -5,7 +5,7 @@ icon: "https://imooc-llmops-1304251364.cos.ap-guangzhou.myqcloud.com/2024/12/06/
 description: "我是一个高级产品经理，对于市场上各类软件应用产品都了解，擅长应用产品的架构规划。擅长产品宣传和营销，精通用户心理学，用户行为学。"
 model_config:
   provider: "openai"
-  model: "gpt-4o-mini"
+  model: "xiaomi-v2.5-pro"
   parameters:
     temperature: 0.5
     top_p: 0.85

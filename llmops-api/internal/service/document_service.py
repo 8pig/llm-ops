@@ -16,7 +16,7 @@ from pkg.db import SQLAlchemy
 from internal.entity.upload_file_entity import ALLOWED_DOCUMENT_EXTENSION
 from internal.exception import FailException, ForbiddenException, NotFoundException
 from internal.entity.dataset_entity import ProcessType, SegmentStatus, DocumentStatus
-from internal.service import BaseService
+from internal.service.base_service import BaseService
 from internal.model import UploadFile, ProcessRule, Dataset, Document, Account
 from internal.task.document_task import build_document, update_document_enabled, delete_document_task
 from internal.schema.document_schema import GetDocumentsWithPageReq

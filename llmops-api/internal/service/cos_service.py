@@ -1,10 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-"""
-@Time    : 2024/8/12 10:50
-@Author  : thezehui@gmail.com
-@File    : cos_service.py
-"""
+
 import hashlib
 import os
 import uuid
