@@ -1,51 +1,64 @@
 import io
 import json
-import requests
-from werkzeug.datastructures import FileStorage
-
 from dataclasses import dataclass
 from datetime import datetime
 from threading import Thread
 from typing import Any, Generator
 from uuid import UUID
 
-from flask import request, current_app, Flask
+import requests
+from flask import current_app
 from injector import inject
+from langchain_community.utilities.dalle_image_generator import DallEAPIWrapper
 from langchain_core.messages import HumanMessage
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableParallel
 from langchain_openai import ChatOpenAI
-from numba.cuda import target
 from redis import Redis
 from sqlalchemy import func, desc
+from werkzeug.datastructures import FileStorage
 
 from internal.core.agent.agents import FunctionCallAgent, AgentQueueManager
 from internal.core.agent.entities.agent_entity import AgentConfig
+from internal.core.agent.entities.queue_entity import QueueEvent
+from internal.core.language_model import LanguageModelManager
 from internal.core.memory import TokenBufferMemory
 from internal.core.tools.api_tools.providers import ApiProviderManager
 from internal.core.tools.builtin_tools.providers import BuiltinProviderManager
-from internal.entity.app_entity import AppStatus, AppConfigType, DEFAULT_APP_CONFIG, GENERATE_ICON_PROMPT_TEMPLATE
+from internal.entity.ai_entity import OPTIMIZE_PROMPT_TEMPLATE
+from internal.entity.app_entity import AppStatus, AppConfigType, DEFAULT_APP_CONFIG
+from internal.entity.app_entity import GENERATE_ICON_PROMPT_TEMPLATE
 from internal.entity.conversation_entity import InvokeFrom, MessageStatus
 from internal.entity.dataset_entity import RetrievalSource
-from internal.exception import NotFoundException, ForbiddenException, FailException, ValidateException as ValidateErrorException
-from internal.model import App, Account, AppConfigVersion, ApiTool, Dataset, AppConfig, AppDatasetJoin, Conversation, \
-    Message
-from internal.schema.app_schema import CreateAppReq, GetPublishHistoriesWithPageReq, \
-    GetDebugConversationMessagesWithPageReq, GetAppsWithPageReq
+from internal.exception import NotFoundException, ForbiddenException, ValidateException as ValidateErrorException, FailException
+from internal.lib.helper import remove_fields, get_value_type
+from internal.model import (
+    App,
+    Account,
+    AppConfigVersion,
+    ApiTool,
+    Dataset,
+    AppConfig,
+    AppDatasetJoin,
+    Conversation,
+    Message,
+)
+from internal.schema.app_schema import (
+    CreateAppReq,
+    GetAppsWithPageReq,
+    GetPublishHistoriesWithPageReq,
+    GetDebugConversationMessagesWithPageReq,
+)
 from pkg.paginator import Paginator
 from pkg.db import SQLAlchemy
-from internal.service.cos_service import CosService
-from internal.service.app_config_service import AppConfigService
-from internal.service.retrieval_service import RetrievalService
-from internal.service.conversation_service import ConversationService
-from internal.service.base_service import BaseService
-from internal.core.agent.entities.queue_entity import QueueEvent
-from internal.lib.helper import remove_fields
-from langchain_community.utilities.dalle_image_generator import DallEAPIWrapper
-
-from internal.entity.ai_entity import OPTIMIZE_PROMPT_TEMPLATE
+from .app_config_service import AppConfigService
+from .base_service import BaseService
+from .conversation_service import ConversationService
+from .cos_service import CosService
 from .language_model_service import LanguageModelService
+from .retrieval_service import RetrievalService
+from ..core.language_model.entities.model_entity import ModelParameterType, ModelFeature
 
 
 @inject
@@ -54,27 +67,27 @@ class AppService(BaseService):
     """应用服务逻辑"""
     db: SQLAlchemy
     redis_client: Redis
+    cos_service: CosService
+    conversation_service: ConversationService
     retrieval_service: RetrievalService
+    app_config_service: AppConfigService
+    language_model_service: LanguageModelService
     api_provider_manager: ApiProviderManager
     builtin_provider_manager: BuiltinProviderManager
-    conversation_service: ConversationService
-    app_config_service: AppConfigService
-    cos_service: CosService
-    language_model_service: LanguageModelService
-
+    language_model_manager: LanguageModelManager
 
     def auto_create_app(self, name: str, description: str, account_id: UUID) -> None:
         """根据传递的应用名称、描述、账号id利用AI创建一个Agent智能体"""
         # 1.创建LLM，用于生成icon提示与预设提示词
-        llm = self.language_model_service.load_default_language_model()
+        llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.8)
 
         # 2.创建DallEApiWrapper包装器
-        # dalle_api_wrapper = DallEAPIWrapper(model="dall-e-3", size="1024x1024")
+        dalle_api_wrapper = DallEAPIWrapper(model="dall-e-3", size="1024x1024")
 
         # 3.构建生成icon链
-        # generate_icon_chain = ChatPromptTemplate.from_template(
-        #     GENERATE_ICON_PROMPT_TEMPLATE
-        # ) | llm | StrOutputParser() | dalle_api_wrapper.run
+        generate_icon_chain = ChatPromptTemplate.from_template(
+            GENERATE_ICON_PROMPT_TEMPLATE
+        ) | llm | StrOutputParser() | dalle_api_wrapper.run
 
         # 4.生成预设prompt链
         generate_preset_prompt_chain = ChatPromptTemplate.from_messages([
@@ -84,6 +97,7 @@ class AppService(BaseService):
 
         # 5.创建并行链同时执行两条链
         generate_app_config_chain = RunnableParallel({
+            "icon": generate_icon_chain,
             "preset_prompt": generate_preset_prompt_chain,
         })
         app_config = generate_app_config_chain.invoke({"name": name, "description": description})
@@ -169,6 +183,78 @@ class AppService(BaseService):
 
         return app
 
+    def delete_app(self, app_id: UUID, account: Account) -> App:
+        """根据传递的应用id+账号，删除指定的应用信息，目前仅删除应用基础信息即可"""
+        app = self.get_app(app_id, account)
+        self.delete(app)
+        return app
+
+    def update_app(self, app_id: UUID, account: Account, **kwargs) -> App:
+        """根据传递的应用id+账号+信息，更新指定的应用"""
+        app = self.get_app(app_id, account)
+        self.update(app, **kwargs)
+        return app
+
+    def copy_app(self, app_id: UUID, account: Account) -> App:
+        """根据传递的应用id，拷贝Agent相关信息并创建一个新Agent"""
+        # 1.获取App+草稿配置，并校验权限
+        app = self.get_app(app_id, account)
+        draft_app_config = app.draft_app_config
+
+        # 2.将数据转换为字典并剔除无用数据
+        app_dict = app.__dict__.copy()
+        draft_app_config_dict = draft_app_config.__dict__.copy()
+
+        # 3.剔除无用字段
+        app_remove_fields = [
+            "id", "app_config_id", "draft_app_config_id", "debug_conversation_id",
+            "status", "updated_at", "created_at", "_sa_instance_state",
+        ]
+        draft_app_config_remove_fields = [
+            "id", "app_id", "version", "updated_at", "created_at", "_sa_instance_state",
+        ]
+        remove_fields(app_dict, app_remove_fields)
+        remove_fields(draft_app_config_dict, draft_app_config_remove_fields)
+
+        # 4.开启数据库自动提交上下文
+        with self.db.auto_commit():
+            # 5.创建一个新的应用记录
+            new_app = App(**app_dict, status=AppStatus.DRAFT)
+            self.db.session.add(new_app)
+            self.db.session.flush()
+
+            # 6.添加草稿配置
+            new_draft_app_config = AppConfigVersion(
+                **draft_app_config_dict,
+                app_id=new_app.id,
+                version=0,
+            )
+            self.db.session.add(new_draft_app_config)
+            self.db.session.flush()
+
+            # 7.更新应用的草稿配置id
+            new_app.draft_app_config_id = new_draft_app_config.id
+
+        # 8.返回创建好的新应用
+        return new_app
+
+    def get_apps_with_page(self, req: GetAppsWithPageReq, account: Account) -> tuple[list[App], Paginator]:
+        """根据传递的分页参数获取当前登录账号下的应用分页列表数据"""
+        # 1.构建分页器
+        paginator = Paginator(db=self.db, req=req)
+
+        # 2.构建筛选条件
+        filters = [App.account_id == account.id]
+        if req.search_word.data:
+            filters.append(App.name.ilike(f"%{req.search_word.data}%"))
+
+        # 3.执行分页操作
+        apps = paginator.paginate(
+            self.db.session.query(App).filter(*filters).order_by(desc("created_at"))
+        )
+
+        return apps, paginator
+
     def get_draft_app_config(self, app_id: UUID, account: Account) -> dict[str, Any]:
         """根据传递的应用id，获取指定的应用草稿配置信息"""
         app = self.get_app(app_id, account)
@@ -195,7 +281,7 @@ class AppService(BaseService):
             updated_at=datetime.now(),
             **draft_app_config,
         )
-        print(draft_app_config_record)
+
         return draft_app_config_record
 
     def publish_draft_app_config(self, app_id: UUID, account: Account) -> App:
@@ -228,6 +314,7 @@ class AppService(BaseService):
             opening_questions=draft_app_config["opening_questions"],
             speech_to_text=draft_app_config["speech_to_text"],
             text_to_speech=draft_app_config["text_to_speech"],
+            suggested_after_answer=draft_app_config["suggested_after_answer"],
             review_config=draft_app_config["review_config"],
         )
 
@@ -246,9 +333,10 @@ class AppService(BaseService):
 
         # 6.获取应用草稿记录，并移除id、version、config_type、updated_at、created_at字段
         draft_app_config_copy = app.draft_app_config.__dict__.copy()
-        remove_fields = ["id", "version", "config_type", "updated_at", "created_at", "_sa_instance_state"]
-        for field in remove_fields:
-            draft_app_config_copy.pop(field)
+        remove_fields(
+            draft_app_config_copy,
+            ["id", "version", "config_type", "updated_at", "created_at", "_sa_instance_state"],
+        )
 
         # 7.获取当前最大的发布版本
         max_version = self.db.session.query(func.coalesce(func.max(AppConfigVersion.version), 0)).filter(
@@ -326,9 +414,10 @@ class AppService(BaseService):
 
         # 3.校验历史版本配置信息（剔除已删除的工具、知识库、工作流）
         draft_app_config_dict = app_config_version.__dict__.copy()
-        remove_fields = ["id", "app_id", "version", "config_type", "updated_at", "created_at", "_sa_instance_state"]
-        for field in remove_fields:
-            draft_app_config_dict.pop(field)
+        remove_fields(
+            draft_app_config_dict,
+            ["id", "app_id", "version", "config_type", "updated_at", "created_at", "_sa_instance_state"],
+        )
 
         # 4.校验历史版本配置信息
         draft_app_config_dict = self._validate_draft_app_config(draft_app_config_dict, account)
@@ -386,9 +475,7 @@ class AppService(BaseService):
 
         return app
 
-
-    def debug_chat(self,app_id: UUID, query: str, account: Account) -> Generator:
-        """根据传递的应用id+提问query向特定的应用发起会话调试"""
+    def debug_chat(self, app_id: UUID, query: str, account: Account) -> Generator:
         """根据传递的应用id+提问query向特定的应用发起会话调试"""
         # 1.获取应用信息并校验权限
         app = self.get_app(app_id, account)
@@ -410,7 +497,7 @@ class AppService(BaseService):
             status=MessageStatus.NORMAL,
         )
 
-
+        # 5.从语言模型管理器中加载大语言模型
         llm = self.language_model_service.load_language_model(draft_app_config.get("model_config", {}))
 
         # 6.实例化TokenBufferMemory用于提取短期记忆
@@ -438,8 +525,9 @@ class AppService(BaseService):
             )
             tools.append(dataset_retrieval)
 
-        # todo:10.构建Agent智能体，目前暂时使用FunctionCallAgent
-        agent = FunctionCallAgent(
+        # 10.根据LLM是否支持tool_call决定使用不同的Agent
+        agent_class = FunctionCallAgent if ModelFeature.TOOL_CALL in llm.features else ReACTAgent
+        agent = agent_class(
             llm=llm,
             agent_config=AgentConfig(
                 user_id=account.id,
@@ -503,9 +591,46 @@ class AppService(BaseService):
         )
         thread.start()
 
+    def stop_debug_chat(self, app_id: UUID, task_id: UUID, account: Account) -> None:
+        """根据传递的应用id+任务id+账号，停止某个应用的调试会话，中断流式事件"""
+        # 1.获取应用信息并校验权限
+        self.get_app(app_id, account)
 
+        # 2.调用智能体队列管理器停止特定任务
+        AgentQueueManager.set_stop_flag(task_id, InvokeFrom.DEBUGGER, account.id)
 
+    def get_debug_conversation_messages_with_page(
+            self,
+            app_id: UUID,
+            req: GetDebugConversationMessagesWithPageReq,
+            account: Account
+    ) -> tuple[list[Message], Paginator]:
+        """根据传递的应用id+请求数据，获取调试会话消息列表分页数据"""
+        # 1.获取应用信息并校验权限
+        app = self.get_app(app_id, account)
 
+        # 2.获取应用的调试会话
+        debug_conversation = app.debug_conversation
+
+        # 3.构建分页器并构建游标条件
+        paginator = Paginator(db=self.db, req=req)
+        filters = []
+        if req.created_at.data:
+            # 4.将时间戳转换成DateTime
+            created_at_datetime = datetime.fromtimestamp(req.created_at.data)
+            filters.append(Message.created_at <= created_at_datetime)
+
+        # 5.执行分页并查询数据
+        messages = paginator.paginate(
+            self.db.session.query(Message).filter(
+                Message.conversation_id == debug_conversation.id,
+                Message.status.in_([MessageStatus.STOP, MessageStatus.NORMAL]),
+                Message.answer != "",
+                *filters,
+            ).order_by(desc("created_at"))
+        )
+
+        return messages, paginator
 
     def _validate_draft_app_config(self, draft_app_config: dict[str, Any], account: Account) -> dict[str, Any]:
         """校验传递的应用草稿配置信息，返回校验后的数据"""
@@ -514,7 +639,7 @@ class AppService(BaseService):
             "model_config", "dialog_round", "preset_prompt",
             "tools", "workflows", "datasets", "retrieval_config",
             "long_term_memory", "opening_statement", "opening_questions",
-            "speech_to_text", "text_to_speech", "review_config",
+            "speech_to_text", "text_to_speech", "suggested_after_answer", "review_config",
         ]
 
         # 2.判断传递的草稿配置是否在可接受字段内
@@ -525,7 +650,70 @@ class AppService(BaseService):
         ):
             raise ValidateErrorException("草稿配置字段出错，请核实后重试")
 
-        # todo:3.校验model_config字段，等待多LLM接入时完成该步骤校验
+        # 3.校验model_config字段，provider/model使用严格校验(出错的时候直接抛出)，parameters使用宽松校验，出错时使用默认值
+        if "model_config" in draft_app_config:
+            # 3.1 获取模型配置并判断数据是否为字典
+            model_config = draft_app_config["model_config"]
+            if not isinstance(model_config, dict):
+                raise ValidateErrorException("模型配置格式错误，请核实后重试")
+
+            # 3.2 判断model_config键信息是否正确
+            if set(model_config.keys()) != {"provider", "model", "parameters"}:
+                raise ValidateErrorException("模型键配置格式错误，请核实后重试")
+
+            # 3.3 判断模型提供者信息是否正确
+            if not model_config["provider"] or not isinstance(model_config["provider"], str):
+                raise ValidateErrorException("模型服务提供商类型必须为字符串")
+            provider = self.language_model_manager.get_provider(model_config["provider"])
+            if not provider:
+                raise ValidateErrorException("该模型服务提供商不存在，请核实后重试")
+
+            # 3.4 判断模型信息是否正确
+            if not model_config["model"] or not isinstance(model_config["model"], str):
+                raise ValidateErrorException("模型名字必须是否字符串")
+            model_entity = provider.get_model_entity(model_config["model"])
+            if not model_entity:
+                raise ValidateErrorException("该服务提供商下不存在该模型，请核实后重试")
+
+            # 3.5 判断传递的parameters是否正确，如果不正确则设置默认值，并剔除多余字段，补全未传递的字段
+            parameters = {}
+            for parameter in model_entity.parameters:
+                # 3.6 从model_config中获取参数值，如果不存在则设置为默认值
+                parameter_value = model_config["parameters"].get(parameter.name, parameter.default)
+
+                # 3.7 判断参数是否必填
+                if parameter.required:
+                    # 3.8 参数必填，则值不允许为None，如果为None则设置默认值
+                    if parameter_value is None:
+                        parameter_value = parameter.default
+                    else:
+                        # 3.9 值非空则校验数据类型是否正确，不正确则设置默认值
+                        if get_value_type(parameter_value) != parameter.type.value:
+                            parameter_value = parameter.default
+                else:
+                    # 3.10 参数非必填，数据非空的情况下需要校验
+                    if parameter_value is not None:
+                        if get_value_type(parameter_value) != parameter.type.value:
+                            parameter_value = parameter.default
+
+                # 3.11 判断参数是否存在options，如果存在则数值必须在options中选择
+                if parameter.options and parameter_value not in parameter.options:
+                    parameter_value = parameter.default
+
+                # 3.12 参数类型为int/float，如果存在min/max时候需要校验
+                if parameter.type in [ModelParameterType.INT, ModelParameterType.FLOAT] and parameter_value is not None:
+                    # 3.13 校验数值的min/max
+                    if (
+                            (parameter.min and parameter_value < parameter.min)
+                            or (parameter.max and parameter_value > parameter.max)
+                    ):
+                        parameter_value = parameter.default
+
+                parameters[parameter.name] = parameter_value
+
+            # 3.13 覆盖Agent配置中的模型配置
+            model_config["parameters"] = parameters
+            draft_app_config["model_config"] = model_config
 
         # 4.校验dialog_round上下文轮数，校验数据类型以及范围
         if "dialog_round" in draft_app_config:
@@ -712,20 +900,34 @@ class AppService(BaseService):
             ):
                 raise ValidateErrorException("文本转语音设置格式错误")
 
-        # 15.校验review_config审核配置
+        # 15.校验回答后生成建议问题
+        if "suggested_after_answer" in draft_app_config:
+            suggested_after_answer = draft_app_config["suggested_after_answer"]
+
+            # 10.1 校验回答后建议问题格式
+            if not suggested_after_answer or not isinstance(suggested_after_answer, dict):
+                raise ValidateErrorException("回答后建议问题设置格式错误")
+            # 10.2 校验回答后建议问题格式
+            if (
+                    set(suggested_after_answer.keys()) != {"enable"}
+                    or not isinstance(suggested_after_answer["enable"], bool)
+            ):
+                raise ValidateErrorException("回答后建议问题设置格式错误")
+
+        # 16.校验review_config审核配置
         if "review_config" in draft_app_config:
             review_config = draft_app_config["review_config"]
 
-            # 15.1 校验字段格式，非空
+            # 16.1 校验字段格式，非空
             if not review_config or not isinstance(review_config, dict):
                 raise ValidateErrorException("审核配置格式错误")
-            # 15.2 校验字段信息
+            # 16.2 校验字段信息
             if set(review_config.keys()) != {"enable", "keywords", "inputs_config", "outputs_config"}:
                 raise ValidateErrorException("审核配置格式错误")
-            # 15.3 校验enable
+            # 16.3 校验enable
             if not isinstance(review_config["enable"], bool):
                 raise ValidateErrorException("review.enable格式错误")
-            # 15.4 校验keywords
+            # 16.4 校验keywords
             if (
                     not isinstance(review_config["keywords"], list)
                     or (review_config["enable"] and len(review_config["keywords"]) == 0)
@@ -735,7 +937,7 @@ class AppService(BaseService):
             for keyword in review_config["keywords"]:
                 if not isinstance(keyword, str):
                     raise ValidateErrorException("review.keywords敏感词必须是字符串")
-            # 15.5 校验inputs_config输入配置
+            # 16.5 校验inputs_config输入配置
             if (
                     not review_config["inputs_config"]
                     or not isinstance(review_config["inputs_config"], dict)
@@ -744,7 +946,7 @@ class AppService(BaseService):
                     or not isinstance(review_config["inputs_config"]["preset_response"], str)
             ):
                 raise ValidateErrorException("review.inputs_config必须是一个字典")
-            # 15.6 校验outputs_config输出配置
+            # 16.6 校验outputs_config输出配置
             if (
                     not review_config["outputs_config"]
                     or not isinstance(review_config["outputs_config"], dict)
@@ -752,7 +954,7 @@ class AppService(BaseService):
                     or not isinstance(review_config["outputs_config"]["enable"], bool)
             ):
                 raise ValidateErrorException("review.outputs_config格式错误")
-            # 15.7 在开启审核模块的时候，必须确保inputs_config或者是outputs_config至少有一个是开启的
+            # 16.7 在开启审核模块的时候，必须确保inputs_config或者是outputs_config至少有一个是开启的
             if review_config["enable"]:
                 if (
                         review_config["inputs_config"]["enable"] is False
@@ -767,113 +969,3 @@ class AppService(BaseService):
                     raise ValidateErrorException("输入审核预设响应不能为空")
 
         return draft_app_config
-
-    def stop_debug_chat(self, app_id:UUID, task_id: UUID, account: Account) -> None:
-        """ 中断"""
-        self.get_app(app_id, account)
-
-        AgentQueueManager.set_stop_flag(task_id, InvokeFrom.DEBUGGER, account.id)
-
-    def get_debug_conversation_messages_with_page(
-            self,
-            app_id: UUID,
-            req: GetDebugConversationMessagesWithPageReq,
-            account: Account
-    ) -> tuple[list[Message], Paginator]:
-        """根据传递的应用id+请求数据，获取调试会话消息列表分页数据"""
-        # 1.获取应用信息并校验权限
-        app = self.get_app(app_id, account)
-
-        # 2.获取应用的调试会话
-        debug_conversation = app.debug_conversation
-
-        # 3.构建分页器并构建游标条件
-        paginator = Paginator(db=self.db, req=req)
-        filters = []
-        if req.created_at.data:
-            # 4.将时间戳转换成DateTime
-            created_at_datetime = datetime.fromtimestamp(req.created_at.data)
-            filters.append(Message.created_at <= created_at_datetime)
-
-        # 5.执行分页并查询数据
-        messages = paginator.paginate(
-            self.db.session.query(Message).filter(
-                Message.conversation_id == debug_conversation.id,
-                Message.status.in_([MessageStatus.STOP, MessageStatus.NORMAL]),
-                Message.answer != "",
-                *filters,
-            ).order_by(desc("created_at"))
-        )
-
-        return messages, paginator
-
-    def delete_app(self, app_id, current_user: Account):
-        app = self.get_app(app_id, current_user)
-        self.delete( app)
-        return  app
-
-    def update_app(self, app_id, current_user:Account, **kwargs):
-        app = self.get_app(app_id, current_user)
-        self.update(app, **kwargs)
-        return app
-
-    def get_apps_with_page(self, req: GetAppsWithPageReq, current_user: Account) -> tuple[list[App], Paginator]:
-
-        paginator = Paginator(db=self.db, req=req)
-        filters = [App.account_id == current_user.id]
-        if req.search_word.data:
-            filters.append(App.name.ilike(f"%{req.search_word.data}%"))
-
-        apps = paginator.paginate(
-            self.db.session.query(App).filter(
-                *filters
-            ).order_by(desc("created_at"))
-        )
-        return apps, paginator
-
-    def copy_app(self, app_id, account: Account) -> App:
-        # 1.获取App+草稿配置，并校验权限
-        app = self.get_app(app_id, account)
-        draft_app_config = app.draft_app_config
-
-        # 2.将数据转换为字典并剔除无用数据
-        app_dict = app.__dict__.copy()
-        draft_app_config_dict = draft_app_config.__dict__.copy()
-
-        # 3.剔除无用字段
-        app_remove_fields = [
-            "id", "app_config_id", "draft_app_config_id", "debug_conversation_id",
-            "status", "updated_at", "created_at", "_sa_instance_state",
-        ]
-        draft_app_config_remove_fields = [
-            "id", "app_id", "version", "updated_at", "created_at", "_sa_instance_state",
-        ]
-        remove_fields(app_dict, app_remove_fields)
-        remove_fields(draft_app_config_dict, draft_app_config_remove_fields)
-
-        # 4.开启数据库自动提交上下文
-        with self.db.auto_commit():
-            # 5.创建一个新的应用记录
-            new_app = App(**app_dict, status=AppStatus.DRAFT)
-            new_app.name = f"{new_app.name}copy"
-            self.db.session.add(new_app)
-            self.db.session.flush()
-
-            # 6.添加草稿配置
-            new_draft_app_config = AppConfigVersion(
-                **draft_app_config_dict,
-                app_id=new_app.id,
-                version=0,
-            )
-            self.db.session.add(new_draft_app_config)
-            self.db.session.flush()
-
-            # 7.更新应用的草稿配置id
-            new_app.draft_app_config_id = new_draft_app_config.id
-
-        # 8.返回创建好的新应用
-        return new_app
-
-
-
-
