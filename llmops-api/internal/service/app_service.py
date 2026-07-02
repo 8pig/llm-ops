@@ -19,7 +19,7 @@ from redis import Redis
 from sqlalchemy import func, desc
 from werkzeug.datastructures import FileStorage
 
-from internal.core.agent.agents import FunctionCallAgent, AgentQueueManager
+from internal.core.agent.agents import FunctionCallAgent, AgentQueueManager, ReACTAgent
 from internal.core.agent.entities.agent_entity import AgentConfig
 from internal.core.agent.entities.queue_entity import QueueEvent
 from internal.core.language_model import LanguageModelManager

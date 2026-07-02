@@ -9,7 +9,7 @@ from injector import inject
 from langchain_core.messages import HumanMessage
 from langchain_openai import ChatOpenAI
 
-from internal.core.agent.agents import FunctionCallAgent
+from internal.core.agent.agents import FunctionCallAgent, ReACTAgent
 from internal.core.agent.entities.agent_entity import AgentConfig
 from internal.core.agent.entities.queue_entity import QueueEvent
 from internal.core.memory import TokenBufferMemory
@@ -27,6 +27,8 @@ from .base_service import BaseService
 from .conversation_service import ConversationService
 from .retrieval_service import RetrievalService
 from .language_model_service import LanguageModelService
+from ..core.language_model.entities.model_entity import ModelFeature
+
 
 @inject
 @dataclass
@@ -124,8 +126,8 @@ class OpenAPIService(BaseService):
             )
             tools.append(dataset_retrieval)
 
-        # todo:14.构建Agent智能体，目前暂时使用FunctionCallAgent
-        agent = FunctionCallAgent(
+        agent_class = FunctionCallAgent if ModelFeature.TOOL_CALL in llm.features else ReACTAgent
+        agent = agent_class(
             llm=llm,
             agent_config=AgentConfig(
                 user_id=account.id,
