@@ -151,7 +151,12 @@ class FunctionCallAgent(BaseAgent):
         llm = self.llm
 
         # 3.检测大语言模型实例是否有bind_tools方法，如果没有则不绑定，如果有还需要检测tools是否为空，不为空则绑定
-        if hasattr(llm, "bind_tools") and callable(getattr(llm, "bind_tools")) and len(self.agent_config.tools) > 0:
+        if (
+                ModelFeature.TOOL_CALL in llm.features
+                and hasattr(llm, "bind_tools")
+                and callable(getattr(llm, "bind_tools"))
+                and len(self.agent_config.tools) > 0
+        ):
             llm = llm.bind_tools(self.agent_config.tools)
 
         # 4.流式调用LLM输出对应内容
@@ -215,7 +220,6 @@ class FunctionCallAgent(BaseAgent):
             ))
 
         return {"messages": [gathered], "iteration_count": state["iteration_count"] + 1}
-
     def _tools_node(self, state: AgentState) -> AgentState:
         """工具执行节点"""
         # 1.将工具列表转换成字典，便于调用指定的工具
