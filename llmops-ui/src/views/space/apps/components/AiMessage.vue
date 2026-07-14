@@ -10,6 +10,7 @@ const props = defineProps({
   loading: { type: Boolean, default: false, required: false },
   agent_thoughts: { type: Array as PropType<Record<string, any>[]>, default: [], required: true },
   suggested_questions: { type: Array as PropType<string[]>, default: [], required: false },
+  message_class: { type: String, default: 'bg-gray-100', required: false },
 })
 const emits = defineEmits(['selectSuggestedQuestion'])
 </script>
@@ -17,7 +18,16 @@ const emits = defineEmits(['selectSuggestedQuestion'])
 <template>
   <div class="flex gap-2">
     <!-- 左侧图标 -->
-    <a-avatar :size="30" shape="circle" class="flex-shrink-0" :image-url="props.app?.icon" />
+    <a-avatar
+      v-if="props.app?.icon"
+      :size="30"
+      shape="circle"
+      class="flex-shrink-0"
+      :image-url="props.app?.icon"
+    />
+    <a-avatar v-else :size="30" shape="circle" class="flex-shrink-0 bg-blue-700">
+      <icon-apps />
+    </a-avatar>
     <!-- 右侧名称与消息 -->
     <div class="flex flex-col items-start gap-2">
       <!-- 应用名称 -->
@@ -25,7 +35,9 @@ const emits = defineEmits(['selectSuggestedQuestion'])
       <!-- 推理步骤 -->
       <agent-thought :agent_thoughts="props.agent_thoughts" :loading="props.loading" />
       <!-- AI消息 -->
-      <div class="bg-gray-100 border border-gray-200 text-gray-700 px-4 py-3 rounded-2xl break-all">
+      <div
+        :class="`${props.message_class} border border-gray-200 text-gray-700 px-4 py-3 rounded-2xl break-all`"
+      >
         <template v-if="props.loading && props.answer.trim() === ''">
           <dot-flashing />
         </template>
@@ -38,7 +50,7 @@ const emits = defineEmits(['selectSuggestedQuestion'])
         <div
           v-for="(suggested_question, idx) in props.suggested_questions"
           :key="idx"
-          class="px-4 py-1.5 border rounded-lg text-gray-700 cursor-pointer hover:bg-gray-50"
+          class="px-4 py-1.5 border rounded-lg text-gray-700 cursor-pointer bg-white hover:bg-gray-50"
           @click="() => emits('selectSuggestedQuestion', suggested_question)"
         >
           {{ suggested_question }}
