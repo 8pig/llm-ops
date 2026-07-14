@@ -319,7 +319,8 @@ export const useFallbackHistoryToDraft = () => {
 export const useGetDraftAppConfig = (app_id: string) => {
   // 1.定义hooks所需数据
   const loading = ref(false)
-  const draftAppConfigForm = reactive<Record<string, any>>({})
+  const draftAppConfigForm = ref<Record<string, any>>({})
+  // const draftAppConfigForm = reactive<Record<string, any>>({})
 
   // 2.定义加载数据函数
   const loadDraftAppConfig = async (app_id: string) => {
@@ -330,7 +331,9 @@ export const useGetDraftAppConfig = (app_id: string) => {
       const data = resp.data
 
       // 2.2 将数据同步到表单中
-      Object.assign(draftAppConfigForm, {
+      draftAppConfigForm.value = {
+        dialog_round: data.dialog_round,
+        model_config: data.model_config,
         preset_prompt: data.preset_prompt,
         long_term_memory: data.long_term_memory,
         opening_statement: data.opening_statement,
@@ -340,7 +343,7 @@ export const useGetDraftAppConfig = (app_id: string) => {
         datasets: data.datasets,
         retrieval_config: data.retrieval_config,
         tools: data.tools,
-      })
+      }
     } finally {
       loading.value = false
     }
