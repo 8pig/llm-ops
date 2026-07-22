@@ -164,6 +164,20 @@ class ReACTAgent(FunctionCallAgent):
                             latency=(time.perf_counter() - start_at),
                         ))
 
+
+
+        # 8.计算LLM的输入+输出token总数
+        input_token_count = self.llm.get_num_tokens_from_messages(state["messages"])
+        output_token_count = self.llm.get_num_tokens_from_messages([gathered])
+
+        # 9.获取输入/输出价格和单位
+        input_price, output_price, unit = self.llm.get_pricing()
+
+        # 10.计算总token+总成本
+        total_token_count = input_token_count + output_token_count
+        total_price = (input_token_count * input_price + output_token_count * output_price) * unit
+
+
         # 12.如果类型为推理则解析json，并添加智能体消息
         if generation_type == "thought":
             try:
@@ -181,8 +195,20 @@ class ReACTAgent(FunctionCallAgent):
                     id=id,
                     task_id=state["task_id"],
                     event=QueueEvent.AGENT_THOUGHT,
-                    thought=json.dumps(tool_calls),
+                    thought=json.dumps(gathered.tool_calls),
+                    # 消息相关字段
                     message=messages_to_dict(state["messages"]),
+                    message_token_count=input_token_count,
+                    message_unit_price=input_price,
+                    message_price_unit=unit,
+                    # 答案相关字段
+                    answer="",
+                    answer_token_count=output_token_count,
+                    answer_unit_price=output_price,
+                    answer_price_unit=unit,
+                    # Agent推理统计相关
+                    total_token_count=total_token_count,
+                    total_price=total_price,
                     latency=(time.perf_counter() - start_at),
                 ))
                 return {
@@ -203,6 +229,26 @@ class ReACTAgent(FunctionCallAgent):
 
         # 14.如果最终类型是message则表示已经拿到最终答案，则停止监听
         if generation_type == "message":
+            self.agent_queue_manager.publish(state["task_id"], AgentThought(
+                id=id,
+                task_id=state["task_id"],
+                event=QueueEvent.AGENT_THOUGHT,
+                thought=json.dumps(gathered.tool_calls),
+                # 消息相关字段
+                message=messages_to_dict(state["messages"]),
+                message_token_count=input_token_count,
+                message_unit_price=input_price,
+                message_price_unit=unit,
+                # 答案相关字段
+                answer="",
+                answer_token_count=output_token_count,
+                answer_unit_price=output_price,
+                answer_price_unit=unit,
+                # Agent推理统计相关
+                total_token_count=total_token_count,
+                total_price=total_price,
+                latency=(time.perf_counter() - start_at),
+            ))
             self.agent_queue_manager.publish(state["task_id"], AgentThought(
                 id=uuid.uuid4(),
                 task_id=state["task_id"],

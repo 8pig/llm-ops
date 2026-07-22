@@ -192,8 +192,19 @@ class ConversationService(BaseService):
                         observation=agent_thought.observation,
                         tool=agent_thought.tool,
                         tool_input=agent_thought.tool_input,
+                        # 消息相关数据
                         message=agent_thought.message,
+                        message_token_count=agent_thought.message_token_count,
+                        message_unit_price=agent_thought.message_unit_price,
+                        message_price_unit=agent_thought.message_price_unit,
+                        # 答案相关字段
                         answer=agent_thought.answer,
+                        answer_token_count=agent_thought.answer_token_count,
+                        answer_unit_price=agent_thought.answer_unit_price,
+                        answer_price_unit=agent_thought.answer_price_unit,
+                        # Agent推理统计相关
+                        total_token_count=agent_thought.total_token_count,
+                        total_price=agent_thought.total_price,
                         latency=agent_thought.latency,
                     )
 
@@ -202,8 +213,19 @@ class ConversationService(BaseService):
                     # 8.更新消息信息
                     self.update(
                         message,
+                        # 消息相关字段
                         message=agent_thought.message,
+                        message_token_count=agent_thought.message_token_count,
+                        message_unit_price=agent_thought.message_unit_price,
+                        message_price_unit=agent_thought.message_price_unit,
+                        # 答案相关字段
                         answer=agent_thought.answer,
+                        answer_token_count=agent_thought.answer_token_count,
+                        answer_unit_price=agent_thought.answer_unit_price,
+                        answer_price_unit=agent_thought.answer_price_unit,
+                        # Agent推理统计相关
+                        total_token_count=agent_thought.total_token_count,
+                        total_price=agent_thought.total_price,
                         latency=latency,
                     )
 
