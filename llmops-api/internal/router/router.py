@@ -5,7 +5,7 @@ from internal.handler import (
     AppHandler, BuiltinToolHandler, ApiToolHandler,
     UploadFileHandler, DatasetHandler, DocumentHandler, SegmentHandler,
     OAuthHandler, AccountHandler, AuthHandler, AIHandler, ApiKeyHandler, OpenAPIHandler, BuiltinAppHandler,
-    WorkflowHandler, LanguageModelHandler, AssistantAgentHandler
+    WorkflowHandler, LanguageModelHandler, AssistantAgentHandler, AnalysisHandler
 )
 from dataclasses import dataclass
 
@@ -32,6 +32,7 @@ class Router:
     workflow_handler: WorkflowHandler
     language_model_handler: LanguageModelHandler
     assistant_agent_handler: AssistantAgentHandler
+    analysis_handler: AnalysisHandler
 
 
 
@@ -441,6 +442,13 @@ class Router:
             methods=["POST"],
             view_func=self.assistant_agent_handler.delete_assistant_agent_conversation,
         )
+
+        # 统计
+        bp.add_url_rule(
+            "/analysis_handler/<uuid:app_id>",
+            view_func=self.analysis_handler.get_app_analysis
+        )
+
 
         app.register_blueprint(bp)
         app.register_blueprint(openapi_bp)
