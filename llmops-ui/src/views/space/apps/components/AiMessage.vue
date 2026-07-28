@@ -11,6 +11,8 @@ const props = defineProps({
   agent_thoughts: { type: Array as PropType<Record<string, any>[]>, default: [], required: true },
   suggested_questions: { type: Array as PropType<string[]>, default: [], required: false },
   message_class: { type: String, default: 'bg-gray-100', required: false },
+  latency: { type: Number, default: 0, required: false },
+  total_token_count: { type: Number, default: 0, required: false },
 })
 const emits = defineEmits(['selectSuggestedQuestion'])
 </script>
@@ -44,6 +46,20 @@ const emits = defineEmits(['selectSuggestedQuestion'])
         <template v-else>
           {{ props.answer }}
         </template>
+      </div>
+      <div class="flex items-center justify-between">
+        <!-- 消息数据额外展示 -->
+        <a-space class="text-xs">
+          <template #split>
+            <a-divider direction="vertical" class="m-0" />
+          </template>
+          <div class="flex items-center gap-1 text-gray-500">
+            <icon-check />
+            {{ props.latency.toFixed(2) }}s
+          </div>
+          <div class="text-gray-500">{{ props.total_token_count }} Tokens</div>
+        </a-space>
+        <!-- 操作 -->
       </div>
       <!-- 建议问题列表 -->
       <div v-if="props.suggested_questions.length > 0" class="flex flex-col gap-2">
