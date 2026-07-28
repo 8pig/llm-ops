@@ -145,6 +145,8 @@ const handleSubmit = async () => {
 
         // 5.14 更新/添加answer答案
         messages.value[0].answer += data?.thought
+        messages.value[0].latency = (data?.latency || '')
+        messages.value[0].total_token_count = (data?.total_token_count || '')
 
       } else {
         // 5.15 处理其他类型的事件，直接填充覆盖数据
@@ -235,6 +237,8 @@ onMounted(async () => {
                   :loading="item.id === message_id && assistantAgentChatLoading"
                   message_class="bg-white"
                   @select-suggested-question="handleSubmitQuestion"
+                  :total_token_count="item.total_token_count"
+                  :latency="item.latency"
                 />
               </div>
             </dynamic-scroller-item>
