@@ -27,3 +27,11 @@
   background: "#FF6900"
   supported_model_types:
     - chat
+
+- name: deepseek
+  label: deepseek
+  description: deepseek-v4 系列。
+  icon: icon.svg
+  background: "#FF6900"
+  supported_model_types:
+    - chat
