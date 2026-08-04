@@ -3,7 +3,7 @@ from enum import Enum
 
 from pydantic import BaseModel, Field, field_validator
 
-from internal.exception import ValidateException
+from internal.exception import ValidateException as ValidateErrorException
 
 
 class ParameterType(str, Enum):

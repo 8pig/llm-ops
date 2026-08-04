@@ -30,7 +30,7 @@ class ApiToolService(BaseService):
         """ 根据id 更新 """
         api_tool_provider = self.get(ApiToolProvider, provider_id)
         if api_tool_provider is None or api_tool_provider.account_id != account.id:
-            raise ValidateException("该工具提供者不存在")
+            raise ValidateException("该工具提供者不存在1")
 
         openapi_schema = self.parse_openapi_schema(req.openapi_schema.data)
 
@@ -94,7 +94,7 @@ class ApiToolService(BaseService):
             provider_id=provider_id,
             name=tool_name
         ).one_or_none()
-        if api_tool is None or str(api_tool.account_id) != account_id:
+        if api_tool is None or str(api_tool.account_id) != str(account_id):
             raise NotFoundException(f"该工具不存在{tool_name}")
 
         return api_tool
@@ -104,11 +104,9 @@ class ApiToolService(BaseService):
     def get_api_tool_provider(self, provider_id,  account: Account) -> ApiToolProvider:
         account_id = account.id
 
-
-
         api_tool_provider = self.get(ApiToolProvider, provider_id)
-        if api_tool_provider is None or str(api_tool_provider.account_id) != account_id:
-            raise NotFoundException("该工具提供者不存在")
+        if api_tool_provider is None or str(api_tool_provider.account_id) != str(account_id):
+            raise NotFoundException("该工具提供者不存在2")
 
         return api_tool_provider
 
@@ -159,8 +157,8 @@ class ApiToolService(BaseService):
         account_id = account.id
 
         api_tool_provider = self.get(ApiToolProvider, provider_id)
-        if api_tool_provider is None or str(api_tool_provider.account_id) != account_id:
-            raise NotFoundException("该工具提供者不存在")
+        if api_tool_provider is None or str(api_tool_provider.account_id) != str(account_id):
+            raise NotFoundException("该工具提供者不存在3")
 
         with self.db.auto_commit():
             self.db.session.query(ApiTool).filter(

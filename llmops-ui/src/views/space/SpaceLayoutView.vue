@@ -17,11 +17,6 @@ const search = (value: string) => {
   })
 }
 
-// 更新createType的值
-const updateCreateType = (value: string) => {
-  createType.value = value
-}
-
 // 监听路由里的search_word变化
 watch(
   () => route.query?.search_word,
@@ -121,7 +116,7 @@ watch(
       </div>
     </div>
     <!-- 中间内容 -->
-    <router-view :create-type="createType" @update-create-type="updateCreateType" />
+    <router-view v-model:create-type="createType" />
   </div>
 </template>
 

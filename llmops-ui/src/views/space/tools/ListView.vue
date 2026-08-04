@@ -22,7 +22,7 @@ const props = defineProps({
     required: true,
   },
 })
-const emits = defineEmits(['update-create-type'])
+const emits = defineEmits(['update:createType'])
 const providers = reactive<Array<any>>([])
 const paginator = reactive({
   current_page: 1,
@@ -234,7 +234,7 @@ const handleCancel = () => {
   formRef.value?.resetFields()
 
   // 2.隐藏表单模态窗
-  emits('update-create-type', '')
+  emits('update:createType', '')
   showUpdateModal.value = false
 }
 

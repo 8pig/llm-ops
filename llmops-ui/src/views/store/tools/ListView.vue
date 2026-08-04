@@ -51,7 +51,9 @@ onMounted(async () => {
           <div class="text-lg font-medium text-gray-900">插件广场</div>
         </div>
         <!-- 创建按钮 -->
-        <a-button type="primary" class="rounded-lg">创建自定义插件</a-button>
+        <router-link :to="{ name: 'space-tools-list' }">
+          <a-button type="primary" class="rounded-lg">创建自定义插件</a-button>
+        </router-link>
       </div>
       <!-- 插件分类+搜索框 -->
       <div class="flex items-center justify-between mb-6">
