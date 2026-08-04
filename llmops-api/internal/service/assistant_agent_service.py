@@ -59,8 +59,8 @@ class AssistantAgentService(BaseService):
 
         # 4.使用GPT模型作为辅助Agent的LLM大脑
         llm = Chat(
-            model="mimo-v2.5-pro",
-            temperature=0.8,
+            model="qwen3.7-max-preview",
+            temperature=0.5,
             features=[ModelFeature.TOOL_CALL, ModelFeature.AGENT_THOUGHT],
             metadata={},
         )

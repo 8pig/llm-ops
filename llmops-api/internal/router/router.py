@@ -445,7 +445,7 @@ class Router:
 
         # 统计
         bp.add_url_rule(
-            "/analysis_handler/<uuid:app_id>",
+            "/analysis/<uuid:app_id>",
             view_func=self.analysis_handler.get_app_analysis
         )
 

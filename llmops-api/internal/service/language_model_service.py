@@ -122,4 +122,4 @@ class LanguageModelService(BaseService):
     @classmethod
     def load_default_language_model(cls) -> BaseLanguageModel:
         """加载默认的大语言模型，在模型管理器中获取不到模型或者出错时使用默认模型进行兜底"""
-        return ChatOpenAI(model="mimo-v2.5-pro", temperature=0.4, max_tokens=1024)
+        return ChatOpenAI(model="qwen3.7-max-preview", temperature=0.4, max_tokens=1024)
