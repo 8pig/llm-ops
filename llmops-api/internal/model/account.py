@@ -11,7 +11,7 @@ from flask import request, current_app, Flask
 from flask_login import UserMixin
 from internal.extension.database_extension import db
 from .conversation import Conversation
-from ..entity.conversation_entity import InvokeFrom
+from internal.entity.conversation_entity import InvokeFrom
 
 
 class Account(UserMixin, db.Model):

@@ -5,8 +5,8 @@ from wtforms.validators import DataRequired, URL, length, Optional
 
 from pkg.paginator import PaginatorReq
 from .schema import ListField
-from ..exception import ValidateException
-from ..model import ApiToolProvider, ApiTool
+from internal.exception import ValidateException
+from internal.model import ApiToolProvider, ApiTool
 
 
 class ValidateOpenAPISchema(FlaskForm):

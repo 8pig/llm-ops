@@ -17,11 +17,11 @@ from pkg.db import SQLAlchemy
 from .base_service import BaseService
 from .jieba_service import JiebaService
 from .vector_database_service import VectorDatabaseService
-from ..core.agent.entities.agent_entity import DATASET_RETRIEVAL_TOOL_NAME
+from internal.core.agent.entities.agent_entity import DATASET_RETRIEVAL_TOOL_NAME
 
 from flask import Flask
 
-from ..lib.helper import combine_documents
+from internal.lib.helper import combine_documents
 
 
 @inject

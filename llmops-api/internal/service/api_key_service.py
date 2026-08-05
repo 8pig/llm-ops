@@ -12,7 +12,7 @@ import secrets
 
 from internal.model import Account, ApiKey
 from internal.schema.api_key_schema import CreateApiKeyReq
-from ..exception import ForbiddenException
+from internal.exception import ForbiddenException
 
 
 @inject

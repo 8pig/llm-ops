@@ -27,7 +27,7 @@ from .base_service import BaseService
 from .conversation_service import ConversationService
 from .retrieval_service import RetrievalService
 from .language_model_service import LanguageModelService
-from ..core.language_model.entities.model_entity import ModelFeature
+from internal.core.language_model.entities.model_entity import ModelFeature
 
 
 @inject
@@ -125,6 +125,14 @@ class OpenAPIService(BaseService):
                 **app_config["retrieval_config"],
             )
             tools.append(dataset_retrieval)
+
+
+        if app_config["workflows"]:
+            workflow_tools = self.app_config_service.get_langchain_tools_by_workflow_ids(
+                [workflow["id"] for workflow in app_config["workflows"]]
+            )
+            tools.extend(workflow_tools)
+
 
         agent_class = FunctionCallAgent if ModelFeature.TOOL_CALL in llm.features else ReACTAgent
         agent = agent_class(

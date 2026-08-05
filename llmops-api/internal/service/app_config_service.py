@@ -1,17 +1,24 @@
 from typing import Any, Union
+from uuid import UUID
+
 from flask import request, current_app, Flask
 from injector import inject
 from dataclasses import dataclass
 
 from langchain_core.tools import BaseTool
+from internal.core.workflow import Workflow as WorkflowTool
+
 from internal.core.tools.api_tools.entities import ToolEntity
 from internal.core.tools.api_tools.providers import ApiProviderManager
 from internal.core.tools.builtin_tools.providers import BuiltinProviderManager
-from internal.lib.helper import datetime_to_timestamp
-from internal.model import App, AppDatasetJoin, ApiTool, AppConfig, AppConfigVersion, Dataset
+from internal.lib.helper import datetime_to_timestamp, get_value_type
+from internal.model import App, AppDatasetJoin, ApiTool, AppConfig, AppConfigVersion, Dataset, Workflow
 from .base_service import BaseService
 from pkg.db import SQLAlchemy
-
+from internal.core.language_model.entities.model_entity import ModelParameterType
+from internal.entity.app_entity import DEFAULT_APP_CONFIG
+from internal.entity.workflow_entity import WorkflowStatus
+from internal.core.workflow.entities.workflow_entity import WorkflowConfig
 
 
 @inject
@@ -27,7 +34,10 @@ class AppConfigService(BaseService):
         # 1.提取应用的草稿配置
         draft_app_config = app.draft_app_config
 
-        # todo:2.校验model_config配置信息，等待多LLM实现的时候再来完成
+        # 2.校验model_config信息，如果使用了不存在的提供者或者模型，则使用默认值(宽松校验)
+        validate_model_config = self._process_and_validate_model_config(draft_app_config.model_config)
+        if draft_app_config.model_config != validate_model_config:
+            self.update(draft_app_config, model_config=validate_model_config)
 
         # 3.循环遍历工具列表删除已经被删除的工具信息
         tools, validate_tools = self._process_and_validate_tools(draft_app_config.tools)
@@ -44,18 +54,29 @@ class AppConfigService(BaseService):
         if set(validate_datasets) != set(draft_app_config.datasets):
             self.update(draft_app_config, datasets=validate_datasets)
 
-        # todo:7.校验工作流列表对应的数据
-        workflows = []
+        # 7.校验工作流列表对应的数据
+        workflows, validate_workflows = self._process_and_validate_workflows(draft_app_config.workflows)
+        if set(validate_workflows) != set(draft_app_config.workflows):
+            self.update(draft_app_config, workflows=validate_workflows)
 
         # 20.将数据转换成字典后返回
-        return self._process_and_transformer_app_config(tools, workflows, datasets, draft_app_config)
+        return self._process_and_transformer_app_config(
+            validate_model_config,
+            tools,
+            workflows,
+            datasets,
+            draft_app_config,
+        )
 
     def get_app_config(self, app: App) -> dict[str, Any]:
         """根据传递的应用获取该应用的运行配置"""
         # 1.提取应用的草稿配置
         app_config = app.app_config
 
-        # todo:2.校验model_config配置信息，等待多LLM实现的时候再来完成
+        # 2.校验model_config信息，如果运行时配置里的model_config发生变化则进行更新
+        validate_model_config = self._process_and_validate_model_config(app_config.model_config)
+        if app_config.model_config != validate_model_config:
+            self.update(app_config, model_config=validate_model_config)
 
         # 3.循环遍历工具列表删除已经被删除的工具信息
         tools, validate_tools = self._process_and_validate_tools(app_config.tools)
@@ -75,11 +96,19 @@ class AppConfigService(BaseService):
             with self.db.auto_commit():
                 self.db.session.query(AppDatasetJoin).filter(AppDatasetJoin.dataset_id == dataset_id).delete()
 
-        # todo:7.校验工作流列表对应的数据
-        workflows = []
+        # 7.校验工作流列表对应的数据
+        workflows, validate_workflows = self._process_and_validate_workflows(app_config.workflows)
+        if set(validate_workflows) != set(app_config.workflows):
+            self.update(app_config, workflows=validate_workflows)
 
-        # 20.将数据转换成字典后返回
-        return self._process_and_transformer_app_config(tools, workflows, datasets, app_config)
+        # 8.将数据转换成字典后返回
+        return self._process_and_transformer_app_config(
+            validate_model_config,
+            tools,
+            workflows,
+            datasets,
+            app_config,
+        )
 
     def get_langchain_tools_by_tools_config(self, tools_config: list[dict]) -> list[BaseTool]:
         """根据传递的工具配置列表获取langchain工具列表"""
@@ -251,3 +280,131 @@ class AppConfigService(BaseService):
             })
 
         return datasets, validate_datasets
+
+
+    def _process_and_validate_workflows(self, origin_workflows: list[UUID]) -> tuple[list[dict], list[UUID]]:
+        """根据传递的工作流列表并返回工作流配置和校验后的数据"""
+        # 1.校验工作流配置列表，如果引用了不存在/被删除的工作流，则需要提出数据并更新，同时获取工作流的额外信息
+        workflows = []
+        workflow_records = self.db.session.query(Workflow).filter(
+            Workflow.id.in_(origin_workflows),
+            Workflow.status == WorkflowStatus.PUBLISHED,
+        ).all()
+        workflow_dict = {str(workflow_record.id): workflow_record for workflow_record in workflow_records}
+        workflow_sets = set(workflow_dict.keys())
+
+        # 2.计算存在的工作流id列表，为了保留原始顺序，使用列表循环的方式来判断
+        validate_workflows = [workflow_id for workflow_id in origin_workflows if workflow_id in workflow_sets]
+
+        # 3.循环获取工作流数据
+        for workflow_id in validate_workflows:
+            workflow = workflow_dict.get(str(workflow_id))
+            workflows.append({
+                "id": str(workflow.id),
+                "name": workflow.name,
+                "icon": workflow.icon,
+                "description": workflow.description,
+            })
+
+        return workflows, validate_workflows
+
+
+    def _process_and_validate_model_config(self, origin_model_config: dict[str, Any]) -> dict[str, Any]:
+        """根据传递的模型配置处理并校验，随后返回校验后的信息"""
+        # 1.判断model_config是否为字典，如果不是则直接返回默认值
+        if not isinstance(origin_model_config, dict):
+            return DEFAULT_APP_CONFIG["model_config"]
+
+        # 2.提取origin_model_config中provider、model、parameters对应的信息
+        model_config = {
+            "provider": origin_model_config.get("provider", ""),
+            "model": origin_model_config.get("model", ""),
+            "parameters": origin_model_config.get("parameters", {}),
+        }
+
+        # 3.判断provider是否存在、类型是否正确，如果不符合规则则返回默认值
+        if not model_config["provider"] or not isinstance(model_config["provider"], str):
+            return DEFAULT_APP_CONFIG["model_config"]
+        provider = self.language_model_manager.get_provider(model_config["provider"])
+        if not provider:
+            return DEFAULT_APP_CONFIG["model_config"]
+
+        # 4.判断model是否存在、类型是否正确，如果不符合则返回默认值
+        if not model_config["model"] or not isinstance(model_config["model"], str):
+            return DEFAULT_APP_CONFIG["model_config"]
+        model_entity = provider.get_model_entity(model_config["model"])
+        if not model_entity:
+            return DEFAULT_APP_CONFIG["model_config"]
+
+        # 5.判断parameters信息类型是否错误，如果错误则设置为默认值
+        if not isinstance(model_config["parameters"], dict):
+            model_config["parameters"] = {
+                parameter.name: parameter.default for parameter in model_entity.parameters
+            }
+
+        # 6.剔除传递的多余的parameter，亦或者是少传递的参数使用默认值补上
+        parameters = {}
+        for parameter in model_entity.parameters:
+            # 7.从model_config中获取参数值，如果不存在则设置为默认值
+            parameter_value = model_config["parameters"].get(parameter.name, parameter.default)
+
+            # 8.判断参数是否必填
+            if parameter.required:
+                # 9.参数必填，则值不允许为None，如果为None则设置默认值
+                if parameter_value is None:
+                    parameter_value = parameter.default
+                else:
+                    # 10.值非空则校验数据类型是否正确，不正确则设置默认值
+                    if get_value_type(parameter_value) != parameter.type.value:
+                        parameter_value = parameter.default
+            else:
+                # 11.参数非必填，数据非空的情况下需要校验
+                if parameter_value is not None:
+                    if get_value_type(parameter_value) != parameter.type.value:
+                        parameter_value = parameter.default
+
+            # 12.判断参数是否存在options，如果存在则数值必须在options中选择
+            if parameter.options and parameter_value not in parameter.options:
+                parameter_value = parameter.default
+
+            # 13.参数类型为int/float，如果存在min/max时候需要校验
+            if parameter.type in [ModelParameterType.INT, ModelParameterType.FLOAT] and parameter_value is not None:
+                # 14.校验数值的min/max
+                if (
+                        (parameter.min and parameter_value < parameter.min)
+                        or (parameter.max and parameter_value > parameter.max)
+                ):
+                    parameter_value = parameter.default
+
+            parameters[parameter.name] = parameter_value
+
+        # 15.完成数据校验，赋值parameters参数
+        model_config["parameters"] = parameters
+
+        return model_config
+
+    def get_langchain_tools_by_workflow_ids(self, workflow_ids: list[UUID]) -> list[BaseTool]:
+        """根据传递的工作流配置列表获取langchain工具列表"""
+        # 1.根据传递的工作流id查询工作流记录信息
+        workflow_records = self.db.session.query(Workflow).filter(
+            Workflow.id.in_(workflow_ids),
+            Workflow.status == WorkflowStatus.PUBLISHED,
+        ).all()
+
+        # 2.循环遍历所有工作流记录列表
+        workflows = []
+        for workflow_record in workflow_records:
+            try:
+                # 3.创建工作流工具
+                workflow_tool = WorkflowTool(workflow_config=WorkflowConfig(
+                    account_id=workflow_record.account_id,
+                    name=f"wf_{workflow_record.tool_call_name}",
+                    description=workflow_record.description,
+                    nodes=workflow_record.graph.get("nodes", []),
+                    edges=workflow_record.graph.get("edges", []),
+                ))
+                workflows.append(workflow_tool)
+            except Exception:
+                continue
+
+        return workflows
