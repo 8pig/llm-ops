@@ -450,5 +450,16 @@ class Router:
         )
 
 
+        bp.add_url_rule(
+            "/apps/<uuid:app_id>/published-config",
+            view_func=self.app_handler.get_published_config,
+        )
+        bp.add_url_rule(
+            "/apps/<uuid:app_id>/published-config/regenerate-web-app-token",
+            methods=["POST"],
+            view_func=self.app_handler.regenerate_web_app_token,
+        )
+
+
         app.register_blueprint(bp)
         app.register_blueprint(openapi_bp)
