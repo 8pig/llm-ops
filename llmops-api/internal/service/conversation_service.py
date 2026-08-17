@@ -316,3 +316,14 @@ class ConversationService(BaseService):
         self.update(conversation, is_deleted=True)
 
         return conversation
+
+
+    def update_conversation(self, conversation_id: UUID, account: Account, **kwargs) -> Conversation:
+        """根据传递的会话id+账号+kwargs更新会话信息"""
+        # 1.获取会话记录并校验权限
+        conversation = self.get_conversation(conversation_id, account)
+
+        # 2.更新会话信息
+        self.update(conversation, **kwargs)
+
+        return conversation

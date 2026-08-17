@@ -114,9 +114,9 @@ const handleSubmit = async () => {
     }
 
     // 5.9 循环处理得到的事件，记录除ping之外的事件
-    if (event !== QueueEvent.ping) {
+    if (data?.event !== QueueEvent.ping) {
       // 5.10 除了agent_message数据为叠加，其他均为覆盖
-      if (event === QueueEvent.agentMessage) {
+      if (data?.event === QueueEvent.agentMessage) {
         // 5.11 获取数据索引并检测是否存在
         const agent_thought_idx = agent_thoughts.findIndex((item) => item?.id === event_id)
 
