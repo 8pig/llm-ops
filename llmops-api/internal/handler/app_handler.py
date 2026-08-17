@@ -192,6 +192,8 @@ class AppHandler:
     @login_required
     def get_published_config(self, app_id: UUID):
         published_config = self.app_service.get_published_config(app_id, current_user)
+        return success_json(published_config)
+
 
     @login_required
     def regenerate_web_app_token(self, app_id: UUID):
