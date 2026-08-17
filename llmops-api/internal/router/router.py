@@ -5,10 +5,9 @@ from internal.handler import (
     AppHandler, BuiltinToolHandler, ApiToolHandler,
     UploadFileHandler, DatasetHandler, DocumentHandler, SegmentHandler,
     OAuthHandler, AccountHandler, AuthHandler, AIHandler, ApiKeyHandler, OpenAPIHandler, BuiltinAppHandler,
-    WorkflowHandler, LanguageModelHandler, AssistantAgentHandler, AnalysisHandler
+    WorkflowHandler, LanguageModelHandler, AssistantAgentHandler, AnalysisHandler,WebAppHandler
 )
 from dataclasses import dataclass
-
 
 
 
@@ -33,6 +32,7 @@ class Router:
     language_model_handler: LanguageModelHandler
     assistant_agent_handler: AssistantAgentHandler
     analysis_handler: AnalysisHandler
+    web_app_handler: WebAppHandler
 
 
 
@@ -459,6 +459,21 @@ class Router:
             methods=["POST"],
             view_func=self.app_handler.regenerate_web_app_token,
         )
+
+
+        # web app
+        bp.add_url_rule("/web-apps/<string:token>", view_func=self.web_app_handler.get_web_app)
+        bp.add_url_rule(
+            "/web-apps/<string:token>/chat",
+            methods=["POST"],
+            view_func=self.web_app_handler.web_app_chat,
+        )
+        bp.add_url_rule(
+            "/web-apps/<string:token>/chat/<uuid:task_id>/stop",
+            methods=["POST"],
+            view_func=self.web_app_handler.stop_web_app_chat,
+        )
+        bp.add_url_rule("/web-apps/<string:token>/conversations", view_func=self.web_app_handler.get_conversations)
 
 
         app.register_blueprint(bp)
