@@ -314,7 +314,10 @@ class WorkflowService(BaseService):
                     "state": node_results,
                     "latency": (time.perf_counter() - start_at),
                 })
-                self.update(workflow, **{
+                # 8.流式输出在独立的请求上下文中执行，生成器外加载的workflow实例已脱离session，
+                #    需要重新查询后再更新，否则 is_debug_passed 的修改不会落库
+                workflow_record = self.get(Workflow, workflow_id)
+                self.update(workflow_record, **{
                     "is_debug_passed": True,
                 })
             except Exception:

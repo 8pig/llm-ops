@@ -367,6 +367,11 @@ onNodeDragStop((nodeDragEvent) => {
   )
 })
 
+// 调试成功后的回调函数，重新加载工作流详情以刷新 is_debug_passed 状态
+const onDebugSuccess = () => {
+  loadWorkflow(String(route.params?.workflow_id ?? ''))
+}
+
 // 工作流面板加载完毕后的回调函数
 onPaneReady((vueFlowInstance) => {
   vueFlowInstance.fitView()
@@ -696,6 +701,7 @@ onMounted(async () => {
         <debug-modal
           :workflow_id="String(route.params?.workflow_id ?? '')"
           v-model:visible="isDebug"
+          @debug-success="onDebugSuccess"
         />
         <!-- 节点信息容器 -->
         <start-node-info

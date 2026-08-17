@@ -9,7 +9,7 @@ const props = defineProps({
   visible: { type: Boolean, required: true, default: false },
   workflow_id: { type: String, required: true, default: '' },
 })
-const emits = defineEmits(['update:visible'])
+const emits = defineEmits(['update:visible', 'debug-success'])
 const { nodes } = useVueFlow()
 const form = ref<Record<string, any>>({})
 const nodeResults = ref<Record<string, any>[]>([])
@@ -72,6 +72,11 @@ const onSubmit = async ({ errors }: { errors: Record<string, ValidatedError> | u
   await handleDebugWorkflow(props.workflow_id, form.value, (event_response) => {
     nodeResults.value.push(event_response?.data)
   })
+
+  // 6.5 调试成功后通知父组件刷新工作流详情，同步最新的 is_debug_passed 状态
+  if (!debugWorkflowError.value) {
+    emits('debug-success')
+  }
 }
 
 // 7.监听调试模态窗的显示或隐藏
