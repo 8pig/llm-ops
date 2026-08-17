@@ -1,5 +1,6 @@
 
 import json
+import os
 from dataclasses import dataclass
 from datetime import datetime
 from threading import Thread
@@ -59,10 +60,12 @@ class AssistantAgentService(BaseService):
 
         # 4.使用GPT模型作为辅助Agent的LLM大脑
         llm = Chat(
-            model="qwen3.7-max-preview",
             temperature=0.5,
             features=[ModelFeature.TOOL_CALL, ModelFeature.AGENT_THOUGHT],
             metadata={},
+            model=os.getenv("LLM_MODEL"),
+            api_key=os.getenv("OPENAI_API_KEY"),
+            base_url=os.getenv("OPENAI_API_BASE_URL"),
         )
 
         # 5.实例化TokenBufferMemory用于提取短期记忆

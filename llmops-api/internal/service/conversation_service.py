@@ -1,4 +1,4 @@
-
+from datetime import datetime
 import logging
 import os
 from dataclasses import dataclass
@@ -10,18 +10,22 @@ from injector import inject
 from langchain_core.output_parsers import StrOutputParser, JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
+from sqlalchemy import desc
 
 from internal.entity.conversation_entity import (
     SUMMARIZER_TEMPLATE,
     CONVERSATION_NAME_TEMPLATE,
     ConversationInfo,
     SUGGESTED_QUESTIONS_TEMPLATE,
-    SuggestedQuestions, InvokeFrom,
+    SuggestedQuestions, InvokeFrom, MessageStatus,
 )
 from pkg.db import SQLAlchemy
+from pkg.paginator import Paginator
 from .base_service import BaseService
 from internal.core.agent.entities.queue_entity import QueueEvent, AgentThought
-from internal.model import MessageAgentThought, Conversation, Message
+from internal.model import MessageAgentThought, Conversation, Message, Account
+from internal.exception import NotFoundException
+from ..schema.conversation_schema import GetConversationMessagesWithPageReq
 
 
 @inject
@@ -257,3 +261,58 @@ class ConversationService(BaseService):
                         error=agent_thought.observation,
                     )
                     break
+    def get_conversation_messages_with_page(
+            self,
+            conversation_id: UUID,
+            req: GetConversationMessagesWithPageReq,
+            account: Account,
+    ) -> tuple[list[Message], Paginator]:
+        """根据传递的会话id+请求数据，获取当前账号下该会话的消息分页列表数据"""
+        # 1.获取会话并校验权限
+        conversation = self.get_conversation(conversation_id, account)
+
+        # 2.构建分页器并设置游标条件
+        paginator = Paginator(db=self.db, req=req)
+        filters = []
+        if req.created_at.data:
+            # 3.将时间戳转换成DateTime
+            created_at_datetime = datetime.fromtimestamp(req.created_at.data)
+            filters.append(Message.created_at <= created_at_datetime)
+
+        # 4.执行分页并查询数据
+        messages = paginator.paginate(
+            self.db.session.query(Message).filter(
+                Message.conversation_id == conversation.id,
+                Message.status.in_([MessageStatus.STOP, MessageStatus.NORMAL]),
+                Message.answer != "",
+                ~Message.is_deleted,
+                *filters,
+            ).order_by(desc("created_at"))
+        )
+
+        return messages, paginator
+
+
+    def get_conversation(self, conversation_id: UUID, account: Account) -> Conversation | Any:
+        """根据传递的会话id+account，获取指定的会话信息"""
+        # 1.根据conversation_id查询会话记录
+        conversation = self.get(Conversation, conversation_id)
+        if (
+                not conversation
+                or conversation.created_by != account.id
+                or conversation.is_deleted
+        ):
+            raise NotFoundException("该会话不存在或被删除，请核实后重试")
+
+        # 2.校验通过返回会话
+        return conversation
+
+    def delete_conversation(self, conversation_id: UUID, account: Account) -> Conversation:
+        """根据传递的会话id+账号删除指定的会话记录"""
+        # 1.获取会话记录并校验权限
+        conversation = self.get_conversation(conversation_id, account)
+
+        # 2.更新会话的删除状态
+        self.update(conversation, is_deleted=True)
+
+        return conversation
