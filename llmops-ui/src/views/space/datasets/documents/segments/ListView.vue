@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import moment from 'moment'
 import {
@@ -39,6 +39,9 @@ const handleScroll = async (event: UIEvent) => {
     await loadSegments()
   }
 }
+onMounted(() => {
+  loadSegments(true)
+})
 </script>
 
 <template>

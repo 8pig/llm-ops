@@ -6,13 +6,18 @@ import PreviewDebugHeader from './components/PreviewDebugHeader.vue'
 import AgentAppAbility from './components/AgentAppAbility.vue'
 import PreviewDebugChat from './components/PreviewDebugChat.vue'
 import ModelConfig from './components/ModelConfig.vue'
+import { onMounted } from 'vue'
 
 // 1.页面基础数据定义
 const route = useRoute()
 const props = defineProps({
   app: { type: Object, default: {}, required: true },
 })
-const { draftAppConfigForm } = useGetDraftAppConfig(String(route.params?.app_id))
+const { draftAppConfigForm, loadDraftAppConfig } = useGetDraftAppConfig(
+  String(route.params?.app_id),
+)
+
+onMounted(async () => await loadDraftAppConfig(<string>route.params?.app_id))
 </script>
 
 <template>

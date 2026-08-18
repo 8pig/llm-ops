@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import moment from 'moment'
 import {
@@ -17,9 +17,14 @@ const hitModalVisible = ref(false)
 const updateDocumentNameModalVisible = ref(false)
 const updateDocumentID = ref('')
 const { dataset, loadDataset } = useGetDataset(route.params?.dataset_id as string)
+onMounted(() => {
+  loadDataset(route.params?.dataset_id as string)
+  loadDocuments(true)
+})
 const { loading, documents, paginator, loadDocuments } = useGetDocumentsWithPage(
   route.params?.dataset_id as string,
 )
+
 const { handleDelete } = useDeleteDocument()
 const { handleUpdate: handleUpdateEnabled } = useUpdateDocumentEnabled()
 </script>

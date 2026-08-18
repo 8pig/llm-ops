@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, type PropType, ref, watch } from 'vue'
+import { nextTick, onMounted, type PropType, ref, watch } from 'vue'
 import { useUpdateDraftAppConfig } from '@/hooks/use-app'
 import { useGetDatasetsWithPage } from '@/hooks/use-dataset'
 import { cloneDeep, isEqual } from 'lodash'
@@ -52,6 +52,9 @@ const isDatasetsModified = () => {
   return isEqual(activateDatasets.value, originDatasets.value)
 }
 
+onMounted(async () => {
+  await loadDatasets(true)
+})
 // 4.定义判断检索设置是否发生变化函数
 const isRetrievalConfigFormModified = () => {
   return isEqual(retrievalConfigForm.value, originRetrievalConfigForm.value)

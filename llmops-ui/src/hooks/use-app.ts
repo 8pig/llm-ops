@@ -352,7 +352,7 @@ export const useGetDraftAppConfig = (app_id: string) => {
     }
   }
 
-  onMounted(async () => await loadDraftAppConfig(app_id))
+  // onMounted(async () => await loadDraftAppConfig(app_id))
 
   return { loading, draftAppConfigForm, loadDraftAppConfig }
 }

@@ -82,9 +82,9 @@ export const useGetDatasetsWithPage = () => {
   }
 
   // 5.页面DOM加载完毕时初始化数据
-  onMounted(async () => {
-    await loadDatasets(true)
-  })
+  // onMounted(async () => {
+  //   await loadDatasets(true)
+  // })
 
   // 6.监听路由query的变化
   watch(
@@ -184,7 +184,7 @@ export const useGetDataset = (dataset_id: string) => {
   }
 
   // 3.在页面挂在完毕时加载一次数据
-  onMounted(() => loadDataset(dataset_id))
+  // onMounted(() => loadDataset(dataset_id))
 
   return { loading, dataset, loadDataset }
 }
@@ -240,9 +240,9 @@ export const useGetDocumentsWithPage = (dataset_id: string) => {
   }
 
   // 5.页面DOM加载完成时初始化数据
-  onMounted(async () => {
-    await loadDocuments(true)
-  })
+  // onMounted(async () => {
+  //   await loadDocuments(true)
+  // })
 
   // 6.监听路由query的变化
   watch(
@@ -387,9 +387,9 @@ export const useGetSegmentsWithPage = (dataset_id: string, document_id: string) 
   }
 
   // 4.页面DOM加载完毕时初始化数据
-  onMounted(async () => {
-    await loadSegments(true)
-  })
+  // onMounted(async () => {
+  //   await loadSegments(true)
+  // })
 
   // 5.监听路由query的变化
   watch(

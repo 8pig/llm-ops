@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, type PropType, ref } from 'vue'
+import { computed, onMounted, type PropType, ref } from 'vue'
 import { type GetDraftAppConfigResponse } from '@/models/app'
 import { useUpdateDraftAppConfig } from '@/hooks/use-app'
 import { useGetApiTool, useGetApiToolProvidersWithPage } from '@/hooks/use-tool'
@@ -27,7 +27,7 @@ const {
   loadApiToolProviders,
 } = useGetApiToolProvidersWithPage()
 const { loading: getBuiltinToolLoading, builtin_tool, loadBuiltinTool } = useGetBuiltinTool()
-const { categories } = useGetCategories()
+const { categories, loadCategories } = useGetCategories()
 const { builtin_tools, loadBuiltinTools } = useGetBuiltinTools()
 const toolInfoModalVisible = ref(false)
 const toolInfoNavType = ref('info')
@@ -41,6 +41,9 @@ const computedBuiltinTools = computed(() => {
   if (toolsActivateCategory.value === 'all') return builtin_tools
   return builtin_tools.filter((item) => item.category === toolsActivateCategory.value)
 })
+
+// 3.页面DOM加载完毕后执行
+onMounted(async () => await loadCategories())
 
 // 2.定义显示工具设置模态窗
 const handleShowToolInfoModal = async (idx: number) => {

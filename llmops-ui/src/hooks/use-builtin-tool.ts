@@ -19,8 +19,8 @@ export const useGetCategories = () => {
     }
   }
 
-  // 3.页面DOM加载完毕后执行
-  onMounted(async () => await loadCategories())
+  // // 3.页面DOM加载完毕后执行
+  // onMounted(async () => await loadCategories())
 
   return { loading, categories, loadCategories }
 }

@@ -8,6 +8,7 @@ import { getDataset } from '@/services/dataset'
 import { uploadImage } from '@/services/upload-file'
 import moment from 'moment'
 import type { ValidatedError } from '@arco-design/web-vue'
+import { onMounted } from 'vue'
 
 let updateDatasetID = ''
 const props = defineProps({
@@ -27,6 +28,11 @@ const {
   updateShowUpdateModal,
 } = useCreateOrUpdateDataset()
 const { handleDelete } = useDeleteDataset()
+
+onMounted(async () => {
+  await loadDatasets(true)
+})
+
 
 // 滚动数据分页处理器
 const handleScroll = async (event: UIEvent) => {

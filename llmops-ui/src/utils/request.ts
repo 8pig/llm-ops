@@ -79,8 +79,12 @@ const baseFetch = <T>(url: string, fetchOptions: FetchOptionType): Promise<T> =>
             resolve(json)
           } else if (json.code === httpCode.unauthorized) {
             clearCredential()
-            await router.replace({ path: '/auth/login' })
-          } else {
+            await router.replace({ name: 'auth/login' })
+          }else if(json.code ===httpCode.notFound){
+            await router.push({ name: 'errors-not-found' })
+          }else if (json.code === httpCode.forbidden){
+            await router.push({ name: 'errors-forbidden' })
+          }else {
             Message.error(json.message)
             reject(new Error(json.message))
           }
@@ -117,7 +121,7 @@ export const ssePost = async (
 
   // 5.5 获取响应内容类型并判断类型
   const contentType = response.headers.get('Content-Type')
-  if (contentType && contentType.includes('application/json')) {
+  if (contentType?.includes('application/json')) {
     // 5.6 接口为json输出，意味着出错，直接返回json数据
     return await response.json()
   }
