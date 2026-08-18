@@ -30,6 +30,7 @@ const updateConversationNameModalVisible = ref(false)
 const updateConversationNameId = ref('')
 const newConversation = ref<any>(null)
 const selectedConversation = ref('')
+const skipReloadMessages = ref(false)
 const query = ref('')
 const message_id = ref('')
 const task_id = ref('')
@@ -210,6 +211,7 @@ const handleSubmit = async () => {
     query: humanQuery,
   }
   await handleWebAppChat(String(route.params?.token), req, (event_response) => {
+
     // 11.7 提取流式事件响应数据以及事件名称
     const event = event_response?.event
     const data = event_response?.data
@@ -294,6 +296,7 @@ const handleSubmit = async () => {
       // 11.15 清空newConversation并修改选中
       newConversation.value = null
       if (selectedConversation.value === 'new_conversation') {
+        skipReloadMessages.value = true
         selectedConversation.value = messages.value[0].conversation_id
       }
     }
@@ -336,6 +339,12 @@ const handleSubmitQuestion = async (question: string) => {
 watch(
   () => selectedConversation.value,
   async (newValue) => {
+    // 15.0 如果是由新会话转真实ID触发的变更，跳过服务端重载以保留本地流式消息
+    if (skipReloadMessages.value) {
+      skipReloadMessages.value = false
+      return
+    }
+
     // 15.1 判断数据的类型
     if (newValue === 'new_conversation') {
       // 15.2 点击了新会话，将消息清空
