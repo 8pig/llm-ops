@@ -532,7 +532,7 @@ const isToolSelected = (provider, tool) => {
           <!-- 标题 -->
           <div class="text-gray-900 font-bold text-lg mb-4">添加插件</div>
           <!-- 添加插件按钮 -->
-          <router-link :to="{ name: 'space-tools-list' }">
+          <router-link :to="{ name: 'space-tools-list', query: { create_type: 'tool' } }">
             <a-button long type="primary" class="rounded-lg mb-5">创建自定义插件</a-button>
           </router-link>
           <!-- 工具类别导航 -->

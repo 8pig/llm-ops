@@ -51,7 +51,7 @@ onMounted(async () => {
           <div class="text-lg font-medium text-gray-900">插件广场</div>
         </div>
         <!-- 创建按钮 -->
-        <router-link :to="{ name: 'space-tools-list' }">
+        <router-link :to="{ name: 'space-tools-list', query: { create_type: 'tool' } }">
           <a-button type="primary" class="rounded-lg">创建自定义插件</a-button>
         </router-link>
       </div>

@@ -4,10 +4,11 @@ import { useCopyApp, useDeleteApp, useGetAppsWithPage } from '@/hooks/use-app'
 import { onMounted, ref, watch } from 'vue'
 import { useAccountStore } from '@/stores/account'
 import CreateOrUpdateAppModal from './components/CreateOrUpdateAppModal.vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 // 1.定义页面所需数据
 const route = useRoute()
+const router = useRouter()
 const props = defineProps({
   createType: { type: String, default: '', required: true },
 })
@@ -36,12 +37,14 @@ onMounted(async () => {
   await loadApps(true)
 })
 
+const emits = defineEmits(['update:create-type'])
 watch(
   () => props.createType,
   (newValue) => {
     if (newValue === 'app') {
       updateAppId.value = ''
       createOrUpdateAppModalVisible.value = true
+      emits('update:create-type', '')
     }
   },
 )
@@ -49,6 +52,18 @@ watch(
 watch(
   () => route.query?.search_word,
   async () => await loadApps(true),
+)
+
+watch(
+  () => route.query?.create_type,
+  (n) => {
+    if (n === 'app') {
+      updateAppId.value = ''
+      createOrUpdateAppModalVisible.value = true
+      router.replace({ name: 'space-apps-list' })
+    }
+  },
+  { immediate: true },
 )
 </script>
 

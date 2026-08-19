@@ -11,7 +11,7 @@ const route = useRoute()
 const props = defineProps({
   createType: { type: String, default: '', required: true },
 })
-const emits = defineEmits(['update:createType'])
+const emits = defineEmits(['update:create-type'])
 const createOrUpdateWorkflowModalVisible = ref(false)
 const updateWorkflowId = ref('')
 const accountStore = useAccountStore()
@@ -47,7 +47,7 @@ watch(
     if (newValue === 'workflow') {
       updateWorkflowId.value = ''
       createOrUpdateWorkflowModalVisible.value = true
-      emits('update:createType', '')
+      emits('update:create-type', '')
     }
   },
 )
