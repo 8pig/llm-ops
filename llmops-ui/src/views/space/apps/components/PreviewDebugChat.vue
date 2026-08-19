@@ -189,10 +189,9 @@ const handleSubmit = async () => {
       scroller.value.scrollToBottom()
     }
   })
-  // ... existing code ...
 
   // 5.7 判断是否开启建议问题生成，如果开启了则发起api请求获取数据
-  if (props.suggested_after_answer.enable) {
+  if (props.suggested_after_answer.enable && message_id.value) {
     await handleGenerateSuggestedQuestions(message_id.value)
     setTimeout(() => scroller.value && scroller.value.scrollToBottom(), 100)
   }

@@ -17,7 +17,6 @@ import { QueueEvent } from '@/config'
 import HumanMessage from '@/components/HumanMessage.vue'
 import AiMessage from '@/components/AiMessage.vue'
 
-
 // 1.定义页面所需数据
 const query = ref('')
 const task_id = ref('')
@@ -170,10 +169,11 @@ const handleSubmit = async () => {
       scroller.value.scrollToBottom()
     }
   })
-
+  if (message_id.value) {
+    await handleGenerateSuggestedQuestions(message_id.value)
+    setTimeout(() => scroller.value && scroller.value.scrollToBottom(), 100)
+  }
   // 5.7 发起API请求获取建议问题列表
-  await handleGenerateSuggestedQuestions(message_id.value)
-  setTimeout(() => scroller.value && scroller.value.scrollToBottom(), 100)
 }
 
 // 6.定义停止调试会话函数

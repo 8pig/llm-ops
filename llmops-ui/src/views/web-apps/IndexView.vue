@@ -309,7 +309,7 @@ const handleSubmit = async () => {
       }
     }
     // 11.16 判断是否开启建议问题生成，如果开启了则发起api请求获取数据
-    if (web_app.value?.app_config?.suggested_after_answer.enable) {
+    if (web_app.value?.app_config?.suggested_after_answer.enable && message_id.value) {
       await handleGenerateSuggestedQuestions(message_id.value)
       setTimeout(() => scroller.value && scroller.value.scrollToBottom(), 100)
     }
