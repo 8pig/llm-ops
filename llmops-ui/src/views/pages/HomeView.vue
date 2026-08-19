@@ -14,8 +14,9 @@ import { useAccountStore } from '@/stores/account'
 import AssistantAgentBackground from '@/assets/images/assistant-agent-background.png'
 import { Message } from '@arco-design/web-vue'
 import { QueueEvent } from '@/config'
-import HumanMessage from '@/views/space/apps/components/HumanMessage.vue'
-import AiMessage from '@/views/space/apps/components/AiMessage.vue'
+import HumanMessage from '@/components/HumanMessage.vue'
+import AiMessage from '@/components/AiMessage.vue'
+
 
 // 1.定义页面所需数据
 const query = ref('')
@@ -145,9 +146,8 @@ const handleSubmit = async () => {
 
         // 5.14 更新/添加answer答案
         messages.value[0].answer += data?.thought
-        messages.value[0].latency = (data?.latency || '')
-        messages.value[0].total_token_count = (data?.total_token_count || '')
-
+        messages.value[0].latency = data?.latency || ''
+        messages.value[0].total_token_count = data?.total_token_count || ''
       } else {
         // 5.15 处理其他类型的事件，直接填充覆盖数据
         position += 1
@@ -302,7 +302,7 @@ onMounted(async () => {
                 <li>
                   随时来
                   <router-link :to="{ name: 'store-apps-list' }" class="text-blue-700"
-                  >应用广场
+                    >应用广场
                   </router-link>
                   逛逛，这里内置了许多超有趣的应用。
                 </li>

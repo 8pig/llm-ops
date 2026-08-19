@@ -19,8 +19,8 @@ import {
   useUpdateConversationIsPinned,
 } from '@/hooks/use-conversation'
 import UpdateNameModal from './components/UpdateNameModal.vue'
-import AiMessage from '@/views/space/apps/components/AiMessage.vue'
-import HumanMessage from '@/views/space/apps/components/HumanMessage.vue'
+import HumanMessage from '@/components/HumanMessage.vue'
+import AiMessage from '@/components/AiMessage.vue'
 import { useGenerateSuggestedQuestions } from '@/hooks/use-ai'
 import { QueueEvent } from '@/config'
 
@@ -211,10 +211,12 @@ const handleSubmit = async () => {
     query: humanQuery,
   }
   await handleWebAppChat(String(route.params?.token), req, (event_response) => {
-
     // 11.7 提取流式事件响应数据以及事件名称
     const event = event_response?.event
     const data = event_response?.data
+    console.log('event_response', event_response)
+    console.log('event', event)
+    console.log('data', data)
     const event_id = data?.id
     let agent_thoughts = messages.value[0].agent_thoughts
 
@@ -260,6 +262,12 @@ const handleSubmit = async () => {
         messages.value[0].answer += data?.thought
         messages.value[0].latency = data?.latency
         messages.value[0].total_token_count = data?.total_token_count
+      } else if (data.event === QueueEvent.error) {
+        // 5.15 事件为error，将错误信息(observation)填充到消息答案中进行展示
+        messages.value[0].answer = data?.observation
+      } else if (data.event === QueueEvent.timeout) {
+        // 5.16 事件为timeout，则人工提示超时信息
+        messages.value[0].answer = '当前Agent执行已超时，无法得到答案，请重试'
       } else {
         // 11.11 处理其他类型的事件，直接填充覆盖数据
         position += 1

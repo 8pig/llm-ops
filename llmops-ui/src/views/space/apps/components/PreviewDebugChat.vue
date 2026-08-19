@@ -12,8 +12,8 @@ import {
 } from '@/hooks/use-app'
 import { useGenerateSuggestedQuestions } from '@/hooks/use-ai'
 import { useAccountStore } from '@/stores/account'
-import HumanMessage from './HumanMessage.vue'
-import AiMessage from '@/views/space/apps/components/AiMessage.vue'
+import HumanMessage from '@/components/HumanMessage.vue'
+import AiMessage from '@/components/AiMessage.vue'
 import { Message } from '@arco-design/web-vue'
 import { QueueEvent } from '@/config'
 
@@ -121,7 +121,7 @@ const handleSubmit = async () => {
     }
 
     // 5.9 循环处理得到的事件，记录除ping之外的事件
-    if (event !== QueueEvent.ping) {
+    if (event_name !== QueueEvent.ping) {
       // 每次都从 messages.value[0] 获取最新的 agent_thoughts
       const agent_thoughts = messages.value[0].agent_thoughts
 
@@ -165,8 +165,8 @@ const handleSubmit = async () => {
 
         // 5.14 累加answer答案（用于聊天区域显示）
         messages.value[0].answer = (messages.value[0].answer || '') + (data?.thought || '')
-        messages.value[0].latency = (data?.latency || '')
-        messages.value[0].total_token_count = (data?.total_token_count || '')
+        messages.value[0].latency = data?.latency || ''
+        messages.value[0].total_token_count = data?.total_token_count || ''
       } else {
         // 5.15 处理其他类型的事件，直接添加新记录
         position += 1
