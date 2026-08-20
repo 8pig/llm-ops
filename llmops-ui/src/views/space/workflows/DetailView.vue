@@ -269,7 +269,7 @@ const onChange = () => {
   // 如果不是则发起更新图草稿配置
   handleUpdateDraftGraph(
     String(route.params?.workflow_id ?? ''),
-    convertGraphToReq(nodes.value, edges.value),
+    convertGraphToReq(nodes.value as any[], edges.value as any[]),
   )
 }
 
@@ -295,7 +295,7 @@ const onUpdateNode = (node_data: Record<string, any>) => {
 }
 
 // 节点链接hooks
-onConnect((connection) => {
+onConnect((connection: any) => {
   // 获取节点和目标的节点id
   const { source, target } = connection
 
@@ -335,19 +335,19 @@ onConnect((connection) => {
 })
 
 // 工作流面板点击hooks
-onPaneClick((mouseEvent) => {
+onPaneClick((mouseEvent: any) => {
   isDebug.value = false
   selectedNode.value = null
 })
 
 // 工作流Edge边点击hooks
-onEdgeClick((edgeMouseEvent) => {
+onEdgeClick((edgeMouseEvent: any) => {
   isDebug.value = false
   selectedNode.value = null
 })
 
 // 工作流Node点击hooks
-onNodeClick((nodeMouseEvent) => {
+onNodeClick((nodeMouseEvent: any) => {
   // 限制每个节点只能点击一次，点击的时候将节点的数据赋值给selectedNode
   if (!selectedNode.value || selectedNode.value?.id !== nodeMouseEvent.node.id) {
     selectedNode.value = nodeMouseEvent.node
@@ -358,7 +358,7 @@ onNodeClick((nodeMouseEvent) => {
 })
 
 // 工作流节点拖动停止hooks
-onNodeDragStop((nodeDragEvent) => {
+onNodeDragStop((nodeDragEvent: any) => {
   handleUpdateDraftGraph(
     String(route.params?.workflow_id ?? ''),
 
@@ -373,13 +373,13 @@ const onDebugSuccess = () => {
 }
 
 // 工作流面板加载完毕后的回调函数
-onPaneReady((vueFlowInstance) => {
+onPaneReady((vueFlowInstance: any) => {
   vueFlowInstance.fitView()
   instance.value = vueFlowInstance
 })
 
 // 定义视口变化回调函数
-onViewportChange((viewportTransform) => {
+onViewportChange((viewportTransform: any) => {
   zoomLevel.value = viewportTransform.zoom
 })
 
@@ -695,7 +695,7 @@ onMounted(async () => {
                 @click="
                   () => {
                     // 清空选中节点
-                    selectedNode = null;
+                    selectedNode = null
                     isDebug = true
                   }
                 "
