@@ -16,6 +16,7 @@ from sqlalchemy import (
     asc,
 )
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import relationship
 
 from internal.extension.database_extension import db
 
@@ -106,13 +107,15 @@ class Message(db.Model):
     )
     created_at = Column(DateTime, nullable=False, server_default=text('CURRENT_TIMESTAMP(0)'))
 
-    @property
-    def agent_thoughts(self) -> list["MessageAgentThought"]:
-        """只读属性，返回该消息对应的智能体推理过程列表"""
-        return db.session.query(MessageAgentThought).filter(
-            MessageAgentThought.message_id == self.id,
-        ).order_by(asc("position")).all()
-
+    agent_thoughts = relationship(
+        "MessageAgentThought",
+        backref="msg",
+        lazy="selectin",
+        passive_deletes="all",
+        uselist=True,
+        foreign_keys=[id],
+        primaryjoin="MessageAgentThought.message_id == Message.id",
+    )
 
 
 class MessageAgentThought(db.Model):
