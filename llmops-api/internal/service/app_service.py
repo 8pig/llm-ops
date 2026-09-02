@@ -596,19 +596,15 @@ class AppService(BaseService):
         # 22.将消息以及推理过程添加到数据库
         # todo: 数据库存储更新 转同步,  summary conversation 放thread执行
         # TODO: 错误 超时信息 也存储到answer
-        thread = Thread(
-            target=self.conversation_service.save_agent_thoughts,
-            kwargs={
-                "flask_app": current_app._get_current_object(),
-                "account_id": account.id,
-                "app_id": app_id,
-                "app_config": draft_app_config,
-                "conversation_id": debug_conversation.id,
-                "message_id": message.id,
-                "agent_thoughts": [agent_thought for agent_thought in agent_thoughts.values()],
-            }
+        # 22.将消息以及推理过程添加到数据库
+        self.conversation_service.save_agent_thoughts(
+            account_id=account.id,
+            app_id=app.id,
+            app_config=draft_app_config,
+            conversation_id=debug_conversation.id,
+            message_id=message.id,
+            agent_thoughts=[agent_thought for agent_thought in agent_thoughts.values()],
         )
-        thread.start()
 
     def stop_debug_chat(self, app_id: UUID, task_id: UUID, account: Account) -> None:
         """根据传递的应用id+任务id+账号，停止某个应用的调试会话，中断流式事件"""

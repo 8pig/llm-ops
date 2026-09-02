@@ -194,19 +194,14 @@ class OpenAPIService(BaseService):
                     yield f"event: {agent_thought.event}\ndata:{json.dumps(data)}\n\n"
 
                 # 22.将消息以及推理过程添加到数据库
-                thread = Thread(
-                    target=self.conversation_service.save_agent_thoughts,
-                    kwargs={
-                        "flask_app": current_app._get_current_object(),
-                        "account_id": account.id,
-                        "app_id": app.id,
-                        "app_config": app_config,
-                        "conversation_id": conversation_id,
-                        "message_id": message_id,
-                        "agent_thoughts": [agent_thought for agent_thought in agent_thoughts_dict.values()],
-                    }
+                self.conversation_service.save_agent_thoughts(
+                    account_id=account.id,
+                    app_id=app.id,
+                    app_config=app_config,
+                    conversation_id=conversation.id,
+                    message_id=message.id,
+                    agent_thoughts=[agent_thought for agent_thought in agent_thoughts_dict.values()],
                 )
-                thread.start()
 
             return handle_stream()
 
@@ -214,19 +209,16 @@ class OpenAPIService(BaseService):
         agent_result = agent.invoke(agent_state)
 
         # 18.将消息以及推理过程添加到数据库
-        thread = Thread(
-            target=self.conversation_service.save_agent_thoughts,
-            kwargs={
-                "flask_app": current_app._get_current_object(),
-                "account_id": account.id,
-                "app_id": app.id,
-                "app_config": app_config,
-                "conversation_id": conversation_id,
-                "message_id": message_id,
-                "agent_thoughts": agent_result.agent_thoughts,
-            }
+        # 18.将消息以及推理过程添加到数据库
+        self.conversation_service.save_agent_thoughts(
+            account_id=account.id,
+            app_id=app.id,
+            app_config=app_config,
+            conversation_id=conversation.id,
+            message_id=message.id,
+            agent_thoughts=agent_result.agent_thoughts,
         )
-        thread.start()
+
 
         return Response(data={
             "id": message_id,

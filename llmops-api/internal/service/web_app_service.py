@@ -1,7 +1,6 @@
 
 import json
 from dataclasses import dataclass
-from threading import Thread
 from typing import Generator
 from uuid import UUID
 
@@ -10,8 +9,14 @@ from injector import inject
 from langchain_core.messages import HumanMessage
 from sqlalchemy import desc
 
+from internal.core.agent.agents import FunctionCallAgent, ReACTAgent, AgentQueueManager
+from internal.core.agent.entities.agent_entity import AgentConfig
+from internal.core.agent.entities.queue_entity import QueueEvent
+from internal.core.language_model.entities.model_entity import ModelFeature
+from internal.core.memory import TokenBufferMemory
 from internal.entity.app_entity import AppStatus
 from internal.entity.conversation_entity import InvokeFrom, MessageStatus
+from internal.entity.dataset_entity import RetrievalSource
 from internal.exception import NotFoundException, ForbiddenException
 from internal.model import App, Account, Conversation, Message
 from internal.schema.web_app_schema import WebAppChatReq
@@ -21,12 +26,6 @@ from .base_service import BaseService
 from .conversation_service import ConversationService
 from .language_model_service import LanguageModelService
 from .retrieval_service import RetrievalService
-from internal.core.agent.agents import FunctionCallAgent, ReACTAgent, AgentQueueManager
-from internal.core.agent.entities.agent_entity import AgentConfig
-from internal.core.agent.entities.queue_entity import QueueEvent
-from internal.core.language_model.entities.model_entity import ModelFeature
-from internal.core.memory import TokenBufferMemory
-from internal.entity.dataset_entity import RetrievalSource
 
 
 @inject
@@ -66,7 +65,7 @@ class WebAppService(BaseService):
                     or conversation.created_by != account.id
                     or conversation.is_deleted is True
             ):
-                raise ForbiddenException("该会话不存在，或不属于当前应用/用户/调用方式")
+                raise ForbiddenException("该会话不存在，或者不属于当前应用/用户/调用方式")
         else:
             # 3.如果没传递conversation_id表示新会话，这时候需要创建一个会话
             conversation = self.create(Conversation, **{
@@ -191,19 +190,14 @@ class WebAppService(BaseService):
             yield f"event: {agent_thought.event}\ndata:{json.dumps(data)}\n\n"
 
         # 20.将消息以及推理过程添加到数据库
-        thread = Thread(
-            target=self.conversation_service.save_agent_thoughts,
-            kwargs={
-                "flask_app": current_app._get_current_object(),
-                "account_id": account.id,
-                "app_id": app.id,
-                "app_config": app_config,
-                "conversation_id": conversation.id,
-                "message_id": message.id,
-                "agent_thoughts": [agent_thought for agent_thought in agent_thoughts.values()],
-            }
+        self.conversation_service.save_agent_thoughts(
+            account_id=account.id,
+            app_id=app.id,
+            app_config=app_config,
+            conversation_id=conversation.id,
+            message_id=message.id,
+            agent_thoughts=[agent_thought for agent_thought in agent_thoughts.values()],
         )
-        thread.start()
 
     def stop_web_app_chat(self, token: str, task_id: UUID, account: Account):
         """根据传递的token+task_id停止与指定WebApp对话"""
