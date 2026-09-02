@@ -70,7 +70,8 @@ class IndexingService(BaseService):
                 self._completed(document, lc_segments)
 
             except Exception as e:
-                logging.exception(f"构建文档发生错误，错误信息：{str(e)}")
+                logging.exception("构建文档发生错误, 错误信息: %s", e)
+
                 self.update(
                     document,
                     status=DocumentStatus.ERROR,
@@ -86,7 +87,7 @@ class IndexingService(BaseService):
         # 2.根据传递的document_id获取文档记录
         document = self.get(Document, document_id)
         if document is None:
-            logging.exception(f"当前文档不存在，文档id：{document_id}")
+            logging.exception("当前文档不存在，文档id：%s", document_id)
             raise NotFoundException("当前文档不存在")
 
         # 3.查询归属于当前文档的所有片段的节点id
@@ -129,7 +130,7 @@ class IndexingService(BaseService):
                 self.keyword_table_service.delete_keyword_table_from_ids(document.dataset_id, segment_ids)
         except Exception as e:
             # 5.记录日志并将状态修改回原来的状态
-            logging.exception(f"修改向量数据库文档启用状态失败，文档id：{document_id}，错误信息：{str(e)}")
+            logging.exception("修改向量数据库文档启用状态失败，文档id：%s，错误信息：%s", document_id, str(e))
             origin_enabled = not document.enabled
             self.update(
                 document,
@@ -193,7 +194,7 @@ class IndexingService(BaseService):
                 where=Filter.by_property("dataset_id").equal(str(dataset_id))
             )
         except Exception as e:
-            logging.exception(f"异步删除知识库关联内容出错, dataset_id: {dataset_id}, 错误信息: {str(e)}")
+            logging.exception("异步删除知识库关联内容出错, dataset_id: %s, 错误信息: %s", dataset_id, str(e))
 
     def _parsing(self, document: Document) -> list[LCDocument]:
         """解析传递的文档为LangChain文档列表"""
@@ -341,7 +342,7 @@ class IndexingService(BaseService):
                             "enabled": True,
                         })
                 except Exception as e:
-                    logging.exception(f"构建文档片段索引发生异常，错误信息： {str(e)}")
+                    logging.exception("构建文档片段索引发生异常，错误信息：%s", str(e))
                     with self.db.auto_commit():
                         self.db.session.query(Segment).filter(
                             Segment.node_id.in_(ids)

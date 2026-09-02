@@ -56,7 +56,7 @@ class DocumentService(BaseService):
             if upload_file.extension.lower() in ALLOWED_DOCUMENT_EXTENSION
         ]
         if len(upload_files)  == 0:
-            logging.warning(f"暂未解析到合法文件,{account_id},dataset_id: {dataset_id}, upload_file_ids:{upload_file_ids}")
+            logging.warning("暂未解析到合法文件, %s, dataset_id: %s, upload_file_ids: %s", account_id, dataset_id, upload_file_ids)
             raise FailException("暂未解析到合法文件, 请重新上传")
 
         # 创建批次 与处理规则

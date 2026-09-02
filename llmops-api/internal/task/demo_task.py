@@ -12,7 +12,7 @@ def demo_task(id: UUID) -> str:
     """demo task"""
     logging.info("睡5秒")
     time.sleep(5)
-    logging.info(f"id: {id}")
-    logging.info(f"config: {dict(current_app.config)}")
+    logging.info("id: %s", id)
+    logging.info("config: %s", dict(current_app.config))
     print("demo task")
     return "demo task"

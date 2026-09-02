@@ -60,7 +60,7 @@ class DatasetHandler:
                 "content": content,
             })
         except Exception as e:
-            logging.error(f"处理文件时出错: {str(e)}", exc_info=True)
+            logging.error("处理文件时出错: %s", str(e), exc_info=True)
             return success_json({
                 "error": f"处理文件失败: {str(e)}",
                 "error_type": type(e).__name__

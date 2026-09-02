@@ -171,7 +171,7 @@ class AppConfigService(BaseService):
                 ))
                 workflows.append(workflow_tool)
             except Exception as e:
-                logging.exception(f"创建工作流工具失败, workflow_id={workflow_record.id}, error={e}")
+                logging.exception("创建工作流工具失败, workflow_id=%s, error=%s", workflow_record.id, e)
                 continue
 
         return workflows

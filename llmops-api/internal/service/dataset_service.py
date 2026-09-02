@@ -199,5 +199,5 @@ class DatasetService(BaseService):
             # 3.调用异步任务执行后续的操作
             delete_dataset.delay(dataset_id)
         except Exception as e:
-            logging.exception(f"删除知识库失败, dataset_id: {dataset_id}, 错误信息: {str(e)}")
+            logging.exception("删除知识库失败, dataset_id: %s, 错误信息: %s", dataset_id, str(e))
             raise FailException("删除知识库失败，请稍后重试")
