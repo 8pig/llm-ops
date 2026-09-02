@@ -1,4 +1,13 @@
 ﻿import warnings
+import os
+
+if os.environ.get("FLASK_DEBUG") == "0" or os.environ.get("FLASK_ENV") == "production":
+    from gevent import monkey
+
+    monkey.patch_all()
+
+    import grpc.experimental.gevent
+    grpc.experimental.gevent.init_gevent()
 
 from flask_login import LoginManager
 
