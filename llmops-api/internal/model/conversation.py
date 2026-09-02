@@ -10,7 +10,10 @@ from sqlalchemy import (
     Numeric,
     Float,
     text,
-    PrimaryKeyConstraint, func, asc,
+    PrimaryKeyConstraint,
+    Index,
+    func,
+    asc,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 
@@ -22,6 +25,8 @@ class Conversation(db.Model):
     __tablename__ = "conversation"
     __table_args__ = (
         PrimaryKeyConstraint("id", name="pk_conversation_id"),
+        Index("conversation_app_id_idx", "app_id"),
+        Index("conversation_app_created_by_idx", "created_by"),
     )
 
     id = Column(UUID, nullable=False, server_default=text("uuid_generate_v4()"))
@@ -55,6 +60,8 @@ class Message(db.Model):
     __tablename__ = "message"
     __table_args__ = (
         PrimaryKeyConstraint("id", name="pk_message_id"),
+        Index("message_conversation_id_idx", "conversation_id"),
+        Index("message_created_by_idx", "created_by"),
     )
 
     id = Column(UUID, nullable=False, server_default=text("uuid_generate_v4()"))
@@ -113,6 +120,9 @@ class MessageAgentThought(db.Model):
     __tablename__ = "message_agent_thought"
     __table_args__ = (
         PrimaryKeyConstraint("id", name="pk_message_agent_thought_id"),
+        Index("message_agent_thought_app_id_idx", "app_id"),
+        Index("message_agent_thought_conversation_id_idx", "conversation_id"),
+        Index("message_agent_thought_message_id_idx", "message_id"),
     )
 
     id = Column(UUID, nullable=False, server_default=text("uuid_generate_v4()"))
