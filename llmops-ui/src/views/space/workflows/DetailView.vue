@@ -36,6 +36,7 @@ import HttpRequestNodeInfo from '@/views/space/workflows/components/infos/HttpRe
 import DatasetRetrievalNodeInfo from '@/views/space/workflows/components/infos/DatasetRetrievalNodeInfo.vue'
 import ToolNodeInfo from '@/views/space/workflows/components/infos/ToolNodeInfo.vue'
 import EndNodeInfo from '@/views/space/workflows/components/infos/EndNodeInfo.vue'
+import { v4 } from 'uuid'
 
 // 1.定义页面所需数据
 const route = useRoute()
@@ -251,7 +252,7 @@ const addNode = (node_type: string) => {
 
   // 3.6 添加节点数据
   nodes.value.push({
-    id: crypto.randomUUID(),
+    id: v4(),
     type: node_type,
     position: { x: xAverage, y: yAverage },
     data: {
@@ -326,7 +327,7 @@ onConnect((connection: any) => {
   // 将数据添加到edges
   edges.value.push({
     ...connection,
-    id: crypto.randomUUID(),
+    id: v4(),
     source_type: source_node?.type,
     target_type: target_node?.type,
     animated: true,
