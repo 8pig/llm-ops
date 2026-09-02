@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Banner from './components/Banner.vue'
+import Banner from './components/LoginBanner.vue'
 import LoginForm from './components/LoginForm.vue'
 </script>
 

@@ -1,0 +1,12 @@
+version: '3'
+services:
+  llmops-ui:
+    image: llmops-ui:0.1.0
+    build:
+      context: ../llmops-ui
+      dockerfile: Dockerfile
+    container_name: llmops-ui
+    restart: always
+    environment: []
+    ports:
+      - "5173:80"

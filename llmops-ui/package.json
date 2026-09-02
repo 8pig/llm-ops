@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "run-p type-check \"build-only {@}\" --",
+    "build": "vite build",
+    "build1": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "test:unit": "vitest",
     "build-only": "vite build",
@@ -53,6 +54,7 @@
     "npm-run-all2": "^6.1.2",
     "postcss": "^8.4.38",
     "prettier": "^3.8.1",
+    "sass-embedded": "^1.103.1",
     "tailwindcss": "^3.4.4",
     "typescript": "~5.9.3",
     "vite": "^5.2.8",
