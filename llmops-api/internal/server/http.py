@@ -14,7 +14,7 @@ from internal.extension import logging_extension, redis_extension, celery_exeten
 from flask_migrate import Migrate
 from flask_login import LoginManager
 from internal.middleware import Middleware
-
+from flask_weaviate import FlaskWeaviate
 
 class Http(Flask):
 
@@ -23,6 +23,7 @@ class Http(Flask):
             *args,
             conf: Config,
             db: SQLAlchemy,
+            weaviate: FlaskWeaviate,
             migrate: Migrate,
             login_manager: LoginManager,
 
@@ -50,6 +51,7 @@ class Http(Flask):
 
         # 初始化db
         db.init_app(self)
+        weaviate.init_app(self)
         migrate.init_app(self, db, directory="internal/migration")
         
         redis_extension.init_app(self)

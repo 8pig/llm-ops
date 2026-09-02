@@ -47,6 +47,7 @@ dependencies = [
     "flask-login>=0.6.3",
     "email-validator>=2.3.0",
     "concurrent-log-handler>=0.9.29",
+    "flask-weaviate>=1.1.0",
 ]
 
 [tool.setuptools.packages.find]

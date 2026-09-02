@@ -1,7 +1,9 @@
 
 import os
 
+from dataclasses import dataclass
 import weaviate
+from flask_weaviate import FlaskWeaviate
 from injector import inject
 from langchain_core.documents import Document
 from langchain_core.vectorstores import VectorStoreRetriever
@@ -18,54 +20,25 @@ from .embeddings_service import EmbeddingsService
 COLLECTION_NAME = "Dataset"
 
 @inject
+@dataclass
 class VectorDatabaseService:
     """向量数据库服务"""
     _instance = None
     _initialized = False
 
-    client: WeaviateClient
-    vector_store: WeaviateVectorStore
+    weaviate: FlaskWeaviate
     embedding_service: EmbeddingsService
-
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
-
-    def __init__(self, embedding_service: EmbeddingsService):
-        if VectorDatabaseService._initialized:
-            return
-
-        VectorDatabaseService._initialized = True
-        self.embedding_service = embedding_service
-
-        # 1.创建/连接weaviate向量数据库
-        self.client = weaviate.connect_to_local(
-            host=os.getenv("WEAVIATE_HOST"),
-            port=int(os.getenv("WEAVIATE_PORT"))
-        )
-
-        # 2.确保集合存在，如果不存在则创建
-        self._ensure_collection()
-
-        # 3.创建LangChain向量数据库
-        self.vector_store = WeaviateVectorStore(
-            client=self.client,
-            index_name=COLLECTION_NAME,
-            text_key="text",
-            embedding=self.embedding_service.embeddings
-        )
 
     def _ensure_collection(self) -> None:
         """确保向量集合存在，如果不存在则创建"""
         try:
-            if not self.client.collections.exists(COLLECTION_NAME):
+            if not self.weaviate.client.collections.exists(COLLECTION_NAME):
                 test_embedding = self.embedding_service.embeddings.embed_query("test")
                 vector_dim = len(test_embedding)
 
                 print(f"Creating collection '{COLLECTION_NAME}' with vector dimension: {vector_dim}")
 
-                self.client.collections.create(
+                self.weaviate.client.collections.create(
                     name=COLLECTION_NAME,
                     vectorizer_config=Configure.Vectorizer.none(),
                     properties=[
@@ -90,7 +63,16 @@ class VectorDatabaseService:
         """获取检索器"""
         return self.vector_store.as_retriever()
 
+    @property
+    def vector_store(self) -> WeaviateVectorStore:
+        return WeaviateVectorStore(
+            client=self.weaviate.client,
+            index_name=COLLECTION_NAME,
+            text_key="text",
+            embedding=self.embedding_service.cache_backed_embeddings
+        )
+
 
     @property
     def collection(self) -> Collection:
-        return self.client.collections.get(COLLECTION_NAME)
+        return self.weaviate.client.collections.get(COLLECTION_NAME)
