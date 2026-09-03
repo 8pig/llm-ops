@@ -27,7 +27,8 @@ from pkg.paginator import Paginator
 from .base_service import BaseService
 from internal.core.agent.entities.queue_entity import QueueEvent, AgentThought
 from internal.model import MessageAgentThought, Conversation, Message, Account
-from internal.exception import NotFoundException
+from internal.exception import NotFoundException, FailException
+from internal.lib.llm_error import friendly_llm_error
 from internal.schema.conversation_schema import GetConversationMessagesWithPageReq
 
 
@@ -56,10 +57,17 @@ class ConversationService(BaseService):
         summary_chain = prompt | llm | StrOutputParser()
 
         # 4.调用链并获取新摘要信息
-        new_summary = summary_chain.invoke({
-            "summary": old_summary,
-            "new_lines": f"Human: {human_message}\nAI: {ai_message}",
-        })
+        try:
+            new_summary = summary_chain.invoke({
+                "summary": old_summary,
+                "new_lines": f"Human: {human_message}\nAI: {ai_message}",
+            })
+        except Exception as e:
+            message = friendly_llm_error(e)
+            if message is None:
+                raise
+            logging.warning("长期记忆总结失败，沿用旧摘要: %s", message)
+            return old_summary
 
         return new_summary
 
@@ -89,7 +97,14 @@ class ConversationService(BaseService):
         query = query.replace("\n", " ")
 
         # 5.调用链并获取会话信息
-        conversation_info = chain.invoke({"query": query})
+        try:
+            conversation_info = chain.invoke({"query": query})
+        except Exception as e:
+            message = friendly_llm_error(e)
+            if message is None:
+                raise
+            logging.warning("会话命名失败，使用默认名称: %s", message)
+            conversation_info = None
         print(conversation_info)
         # 6.提取会话名称
 
@@ -130,7 +145,13 @@ class ConversationService(BaseService):
         chain = prompt | structured_llm
 
         # 4.调用链并获取建议问题列表
-        suggested_questions = chain.invoke({"histories": histories})
+        try:
+            suggested_questions = chain.invoke({"histories": histories})
+        except Exception as e:
+            message = friendly_llm_error(e)
+            if message is None:
+                raise
+            raise FailException(message) from e
 
         # 5.提取建议问题列表
         questions = []
