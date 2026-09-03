@@ -338,7 +338,7 @@ class ConversationService(BaseService):
                 Message.answer != "",
                 ~Message.is_deleted,
                 *filters,
-            ).order_by(desc("created_at"))
+            ).order_by(desc(Message.created_at))
         )
 
         return messages, paginator

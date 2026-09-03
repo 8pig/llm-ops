@@ -122,7 +122,7 @@ class WorkflowService(BaseService):
 
         # 3.分页查询数据
         workflows = paginator.paginate(
-            self.db.session.query(Workflow).filter(*filters).order_by(desc("created_at"))
+            self.db.session.query(Workflow).filter(*filters).order_by(desc(Workflow.created_at))
         )
 
         return workflows, paginator

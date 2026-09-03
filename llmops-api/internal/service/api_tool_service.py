@@ -82,7 +82,7 @@ class ApiToolService(BaseService):
             filters.append(ApiToolProvider.name.ilike(f"%{req.search_word.data}%"))
     # 执行分页 获取数据
         api_tool_providers = paginator.paginate(
-            self.db.session.query(ApiToolProvider).filter(*filters).order_by(desc("created_at"))
+            self.db.session.query(ApiToolProvider).filter(*filters).order_by(desc(ApiToolProvider.created_at))
         )
         return api_tool_providers,  paginator
 

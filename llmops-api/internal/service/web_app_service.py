@@ -219,6 +219,6 @@ class WebAppService(BaseService):
             Conversation.invoke_from == InvokeFrom.WEB_APP,
             Conversation.is_pinned == is_pinned,
             ~Conversation.is_deleted,
-        ).order_by(desc("created_at")).all()
+        ).order_by(desc(Conversation.created_at)).all()
 
         return conversations

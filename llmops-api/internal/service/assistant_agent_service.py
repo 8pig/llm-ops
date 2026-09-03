@@ -173,12 +173,12 @@ class AssistantAgentService(BaseService):
 
         # 4.执行分页并查询数据
         messages = paginator.paginate(
-            self.db.session.options(joinedload(Message.agent_thoughts)).query(Message).filter(
+            self.db.session.query(Message).options(joinedload(Message.agent_thoughts)).filter(
                 Message.conversation_id == conversation.id,
                 Message.status.in_([MessageStatus.STOP, MessageStatus.NORMAL]),
                 Message.answer != "",
                 *filters,
-            ).order_by(desc("created_at"))
+            ).order_by(desc(Message.created_at))
         )
 
         return messages, paginator

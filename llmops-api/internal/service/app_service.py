@@ -252,7 +252,7 @@ class AppService(BaseService):
 
         # 3.执行分页操作
         apps = paginator.paginate(
-            self.db.session.query(App).filter(*filters).order_by(desc("created_at"))
+            self.db.session.query(App).filter(*filters).order_by(desc(App.created_at))
         )
 
         return apps, paginator
@@ -393,7 +393,7 @@ class AppService(BaseService):
             self.db.session.query(AppConfigVersion).filter(
                 AppConfigVersion.app_id == app_id,
                 AppConfigVersion.config_type == AppConfigType.PUBLISHED,
-            ).order_by(desc("version"))
+            ).order_by(desc(AppConfigVersion.version))
         )
 
         return app_config_versions, paginator
@@ -642,7 +642,7 @@ class AppService(BaseService):
                 Message.status.in_([MessageStatus.STOP, MessageStatus.NORMAL]),
                 Message.answer != "",
                 *filters,
-            ).order_by(desc("created_at"))
+            ).order_by(desc(Message.created_at))
         )
 
         return messages, paginator

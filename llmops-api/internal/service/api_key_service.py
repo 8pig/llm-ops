@@ -67,7 +67,7 @@ class ApiKeyService(BaseService):
         api_keys = paginator.paginate(
             self.db.session.query(ApiKey).filter(
                 ApiKey.account_id == account.id
-            ).order_by(desc("created_at"))
+            ).order_by(desc(ApiKey.created_at))
         )
 
         return api_keys, paginator

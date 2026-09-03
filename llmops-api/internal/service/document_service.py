@@ -103,7 +103,7 @@ class DocumentService(BaseService):
         documents = self.db.session.query(Document).filter(
             Document.dataset_id == dataset_id,
             Document.batch == batch
-        ).order_by(asc("position")).all()
+        ).order_by(asc(Document.position)).all()
 
         if documents is None or len(documents) == 0:
             raise ModuleNotFoundError("批次下无文档")
@@ -149,7 +149,7 @@ class DocumentService(BaseService):
     def get_latest_position(self, dataset_id: UUID) -> int:
         document = self.db.session.query(Document).filter(
             Document.dataset_id == dataset_id
-        ).order_by(desc("position")).first()
+        ).order_by(desc(Document.position)).first()
         return document.position if document else 0
 
     def get_document(self, dataset_id, document_id, account: Account) -> Document:
@@ -245,6 +245,6 @@ class DocumentService(BaseService):
             filters.append(Document.name.ilike(f"%{req.search_word.data}%"))
 
         documents = paginator.paginate(
-            self.db.session.query(Document).filter(*filters).order_by(desc("created_at"))
+            self.db.session.query(Document).filter(*filters).order_by(desc(Document.created_at))
         )
         return  documents, paginator

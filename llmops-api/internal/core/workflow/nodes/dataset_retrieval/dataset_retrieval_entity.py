@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 from internal.core.workflow.entities.node_entity import BaseNodeData
 from internal.core.workflow.entities.variable_entity import VariableEntity, VariableType, VariableValueType
@@ -26,13 +26,13 @@ class DatasetRetrievalNodeData(BaseNodeData):
         ]
     )
 
-    @validator("outputs", pre=True)
+    @field_validator("outputs", mode="before")
     def validate_outputs(cls, value: list[VariableEntity]):
         return [
             VariableEntity(name="combine_documents", value={"type": VariableValueType.GENERATED})
         ]
 
-    @validator("inputs")
+    @field_validator("inputs")
     def validate_inputs(cls, value: list[VariableEntity]):
         """校验输入变量信息"""
         # 1.判断是否只有一个输入变量，如果有多个则抛出错误

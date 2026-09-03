@@ -97,7 +97,7 @@ class DatasetService(BaseService):
 
         # 3.执行分页并获取数据
         datasets = paginator.paginate(
-            self.db.session.query(Dataset).filter(*filters).order_by(desc("created_at"))
+            self.db.session.query(Dataset).filter(*filters).order_by(desc(Dataset.created_at))
         )
 
         return datasets, paginator
@@ -174,7 +174,7 @@ class DatasetService(BaseService):
             raise NotFoundException("该知识库不存在")
         dataset_queries= self.db.session.query(DatasetQuery).filter(
             DatasetQuery.dataset_id == dataset_id
-        ).order_by(desc("created_at")).limit(10).all()
+        ).order_by(desc(DatasetQuery.created_at)).limit(10).all()
 
         return  dataset_queries
 
