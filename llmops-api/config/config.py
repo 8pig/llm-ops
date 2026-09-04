@@ -35,7 +35,7 @@ class Config:
         self.REDIS_HOST = _get_env("REDIS_HOST")
         self.REDIS_PORT = int(_get_env("REDIS_PORT"))
         self.REDIS_PASSWORD = _get_env("REDIS_PASSWORD")
-        self.REDIS_USERNAME = _get_bool_env("REDIS_USERNAME")
+        self.REDIS_USERNAME = _get_env("REDIS_USERNAME")
         self.REDIS_USE_SSL = _get_bool_env("REDIS_USE_SSL")
         self.REDIS_DB = int(_get_env("REDIS_DB"))
 
