@@ -44,8 +44,22 @@ onMounted(async () => {
           <!-- 顶部Logo -->
           <router-link
             to="/home"
-            class="block h-9 w-[110px] mb-5 bg-gray-200 hover:bg-gray-300 transition-all rounded-lg"
-          />
+            class="flex items-center gap-2 w-full h-11 px-3 mb-5 rounded-lg text-white transition-all bg-gradient-to-br from-[#0a1740] to-[#1e40af] hover:from-[#122052] hover:to-[#2750d6]"
+          >
+            <span
+              class="w-6 h-6 shrink-0 rounded-md flex items-center justify-center bg-white/10"
+            >
+              <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" aria-hidden="true">
+                <path
+                  d="M12 3v18M12 3l-2.2 2.4M12 3l2.2 2.4M6.5 12.5h11M6.5 12.5a2.2 2.2 0 1 0-2.2 2.2M17.5 12.5a2.2 2.2 0 1 1-2.2 2.2"
+                  stroke="#e5cf96"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </span>
+            <span class="text-sm font-semibold tracking-wide">坤盛AI辅助平台</span>
+          </router-link>
           <!-- 创建AI应用按钮 -->
           <router-link :to="{ name: 'space-apps-list', query: { create_type: 'app' } }">
             <a-button type="primary" long class="rounded-lg mb-4">

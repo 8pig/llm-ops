@@ -52,10 +52,34 @@ const handleSubmit = async ({ errors }: { errors: Record<string, ValidatedError>
 </script>
 
 <template>
-  <div class="">
-    <!-- 顶部标题 -->
-    <div class="text-gray-900 font-bold text-2xl leading-8">JokerLLMOps AppBuilder</div>
-    <p class="text-base leading-6 text-gray-600">高效开发你的AI原生应用</p>
+  <div class="w-[380px]">
+    <!-- 顶部品牌 -->
+    <div class="flex items-center gap-3">
+      <div
+        class="w-11 h-11 rounded-xl flex items-center justify-center shadow-sm"
+        style="background: linear-gradient(135deg, #0a1740 0%, #1e40af 100%)"
+      >
+        <svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" aria-hidden="true">
+          <path
+            d="M12 3v18M12 3l-2.2 2.4M12 3l2.2 2.4M12 6.2v0M6.5 12.5h11M6.5 12.5a2.2 2.2 0 1 0-2.2 2.2M17.5 12.5a2.2 2.2 0 1 1-2.2 2.2"
+            stroke="#e5cf96"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
+        </svg>
+      </div>
+      <div class="flex flex-col leading-tight">
+        <div class="text-gray-900 font-bold text-xl leading-7">坤盛AI辅助平台</div>
+        <p class="text-xs leading-5 text-gray-400 tracking-wide">
+          法律科技赋能 · 让团队专注专业价值
+        </p>
+      </div>
+    </div>
+    <!-- 登录说明 -->
+    <div class="mt-7 mb-1">
+      <div class="text-gray-900 font-semibold text-lg">欢迎回来</div>
+      <p class="text-sm text-gray-500 mt-0.5">请使用机构分配的账号登录系统</p>
+    </div>
     <!-- 错误提示占位符 -->
     <div class="h-8 text-red-700 leading-8 line-clamp-1">{{ errorMessage }}</div>
     <!-- 登录表单 -->
@@ -72,7 +96,7 @@ const handleSubmit = async ({ errors }: { errors: Record<string, ValidatedError>
         :validate-trigger="['change', 'blur']"
         hide-label
       >
-        <a-input v-model="loginForm.email" size="large" placeholder="登录账号">
+        <a-input v-model="loginForm.email" size="large" placeholder="登录账号（邮箱）">
           <template #prefix>
             <icon-user />
           </template>
@@ -96,14 +120,13 @@ const handleSubmit = async ({ errors }: { errors: Record<string, ValidatedError>
           <a-link @click="forgetPassword">忘记密码?</a-link>
         </div>
         <a-button :loading="passwordLoading" size="large" type="primary" html-type="submit" long>
-          登录
+          登 录
         </a-button>
-        <a-divider>第三方授权</a-divider>
-        <a-button :loading="githubLoading" size="large" type="dashed" long @click="githubLogin">
+        <a-button :loading="githubLoading" size="large" type="text" long @click="githubLogin">
           <template #icon>
             <icon-github />
           </template>
-          Github
+          使用 GitHub 账号登录
         </a-button>
       </a-space>
     </a-form>
