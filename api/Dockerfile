@@ -1,8 +1,10 @@
 # ===== 构建阶段 =====
 FROM python:3.13-slim-bookworm AS builder
 
-# 引入 uv
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+# 用 pip 安装 uv（走阿里云 PyPI 镜像），避免从 ghcr.io 拉基础层卡死
+ENV PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/ \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+RUN pip install --no-cache-dir uv
 
 ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
