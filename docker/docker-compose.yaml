@@ -196,6 +196,9 @@ services:
     image: postgres:15-alpine
     restart: always
     container_name: llmops-db
+    # CentOS7 + kernel3.10 默认 seccomp 会拦 postgres 写 postmaster.pid/pg_wal(EPERM)，故关闭 seccomp
+    security_opt:
+      - seccomp:unconfined
     environment:
       # 配置默认的账户名、账户密码、默认数据库、数据存储的位置
       PGUSER: postgres
