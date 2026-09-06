@@ -1,5 +1,6 @@
 # 1. 使用 alpine 版本，体积减小 60% 以上，拉取和构建更快
-FROM node:20-alpine as builder
+# node>=22.22.2：满足 nopt@10 等依赖的 engines 要求
+FROM node:22-alpine as builder
 
 WORKDIR /app/web
 
