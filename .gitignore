@@ -208,3 +208,8 @@ __marimo__/
 llmops-api/.env
 *.env
 *.log.*
+
+# Docker 运行时数据卷（不入库）
+docker/volumes/
+docker/.env
+
