@@ -201,10 +201,10 @@ services:
       PGUSER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: llmops
-      PGDATA: /var/lib/postgresql/data/pgdata
+      # 直接挂载到镜像声明的 VOLUME 路径 /var/lib/postgresql/data，避免 PGDATA 子目录造成镜像匿名卷叠加(EPERM)
     volumes:
       # 将postgres数据挂载到本地./volumes/db/data上
-      - ./volumes/db/data:/var/lib/postgresql/data/pgdata
+      - ./volumes/db/data:/var/lib/postgresql/data
       # 初始化脚本只有在空数据挂载的情况下才会触发执行(.sql/.sh等)，如果已经存在数据则不会执行
       - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
