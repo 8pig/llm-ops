@@ -1,272 +1,157 @@
-# AI 智能体开发平台
+# LLMOps · AI 应用开发平台
 
-#### api 概览
+LLMOps 是一个开箱即用的 **AI 原生应用开发平台**：通过可视化方式编排 **智能体（Agent）** 与 **工作流（Workflow）**，接入 **知识库（RAG）** 与多款大模型，即可快速构建问答、对话、数据分析等各类 AI 应用，并一键发布为 **网页应用 / 开放 API** 供二次开发。
 
- *https://ptrb24jefd.apifox.cn/*
-
-> 《LLMOps平台：AI应用构建器》是新一代 AI 原生应用开发服务平台，可在平台上搭建基于 AI 模型的各类问答应用、工作 流应用，从解决简单的问答到处理复杂的逻辑任务。还可将 AI 应用一键发布到对应的社交平台、Web网页、可供第三方调用的MCP服务，甚至是基于平台的开放 API 进行二次开发。
+![cover](./v2-de187d0b3ac4b7975731b2f1229d67f5_1440w.png)
 
 ---
 
-## 🛠️ 核心技术栈
+## ✨ 核心特性
 
-### 1. AI 与 基础
+### 🧠 Agent 与工作流编排
+- **单 / 多 Agent**：基于函数调用（Function Call）的智能体运行框架，自带思考 → 规划 → 调工具 → 总结的完整循环
+- **可视化工作流**：基于 **LangGraph** 的图形化编排，复杂逻辑可视化构建、调试
+- **工具生态**：内置搜索、高德、图片生成等工具，并支持通过 **OpenAPI Schema 一键导入自定义 API 工具**
 
-- **Prompt 提示词**: 提示词工程与优化
-- **LangChain / LangGraph**: 大模型应用开发框架
-- **RAG 知识库与优化**: 检索增强生成技术
-- **向量数据库**:  embeddings 存储与检索
-- **LLM 提供商**: 对接各大模型接口
-- **微调基础**: Fine-tuning
+### 📚 知识库与 RAG
+- 支持 PDF / Word / 图片等多格式文档上传、解析与智能切片
+- 语义向量检索（Weaviate）+ 全文检索 + 关键词表（jieba）混合召回
+- 向量 **Redis 缓存**，重复 embedding 零开销
 
-### 2. Agent 与 协议
+### 🔌 多模型接入
+- 兼容 **OpenAI / DashScope（通义）/ 月之暗面 / 百度千帆** 等主流大模型
+- 本地 **Ollama** 提供 `Qwen3-Embedding` 等向量模型（0.6B / 4B / 8B 可选），离线零成本
 
-- **单/多 Agent**: 智能体架构设计
-- **Workflow 工作流**: 业务流程编排
-- **MCP 协议**: Model Context Protocol 标准
-- **Celery 消息队列**: 异步任务处理
+### 🚀 应用发布
+- 会话式 **网页应用** 开箱即用
+- **开放 API 平台**：API Key 鉴权、请求限额，支持第三方二次开发
+- **OAuth（GitHub）** 一键登录
 
-### 3. 全栈开发
-
-- **前端**: VUE / TypeScript / acro
-- **后端**: Flask (Python)
-- **部署**: 本地/云服务部署
-- 数据库: postgres / Weaviate
-
----
-
-## ️ LLMOps 平台能力
-
-### 平台核心功能
-
-- **可视化编排 + 智能化定制**: 拖拽式开发界面
-- **工作流编排**: 复杂逻辑图形化构建
-- **自定义插件**: 扩展系统功能
-- **对接知识库**: 快速接入 RAG 能力
-- **一键发布到多平台**: 多渠道部署
-- **多 LLM 模型快速接入**: 支持模型切换
-- **单/多 Agent 定制开发**: 灵活配置智能体
-- **将 Agent 发布为 MCP 服务**: 标准化服务输出
-- **多模态**: 支持图文音视频处理
+### 🛠️ 工程化能力
+- Celery 异步任务（文档解析、数据集索引、长时记忆召回）
+- JWT 鉴权、Token 记忆、数据集 / 应用 / 工具全生命周期管理
+- Docker Compose 一键部署，Nginx 反向代理与 HTTPS
 
 ---
 
-## 🚀 实现场景
+## 🧱 技术栈
 
-基于自研llm平台编排的各类 AI 应用：
+| 层 | 技术 |
+|---|---|
+| 后端 | Flask · SQLAlchemy · LangChain / LangGraph · Celery · uv |
+| 前端 | Vue 3 · TypeScript · Arco Design · Tailwind CSS · Vite |
+| AI | FunctionCallAgent · RAG · 多 Provider（OpenAI / DashScope / Moonshot / Ollama） |
+| 存储 | PostgreSQL · Redis · Weaviate · 腾讯云 COS |
+| 部署 | Docker Compose · Nginx |
 
-1. **智能客服系统**: 自动化客户支持
-2. **PPT 自动生成工具**: 文档转演示文稿
-3. DataAgent: 数据可视化
-4. Law: pdf.word材料审计
-5. 
+---
 
-### env config
-
-```
-OPENAI_API_KEY=<your-api-key>
-OPENAI_API_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
-
-FLASK_ENV=development
-FLASK_DEBUG=1
-
-# sql congig
-
-SQLALCHEMY_DATABASE_URI=postgresql://postgres:postgres@localhost:5432/llmops?client_encoding=utf8
-SQLALCHEMY_POOL_SIZE=30
-SQLALCHEMY_POOL_RECYCLE=3600
-SQLALCHEMY_ECHO=True
-WTF_CSRF_ENABLED=False
-
-
-
-
-#### LangSmith
-# https://smith.langchain.com/
-> langsmith 官方会有信息泄露风险, 本地部署不友好
-> 转 langfuse, 项目完成后会介入callBack
-LANGSMITH_TRACING=true
-LANGSMITH_ENDPOINT=https://api.smith.langchain.com
-LANGSMITH_API_KEY=<your-api-key>
-LANGSMITH_PROJECT="llmops" # project name
-
-
-# redis
-REDIS_HOST=127.0.0.1
-REDIS_PORT=6379
-REDIS_DB=0
-REDIS_PASSWORD=
-REDIS_USERNAME=
-REDIS_USE_SSL=False
-
-#celery
-CELERY_BROKER_DB=1
-CELERY_RESULT_BACKEND_DB=1
-CELERY_TASK_IGNORE_RESULT=False
-CELERY_RESULT_EXPIRES=3600
-CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP=True
-
-
-# 高德工具
-GAODE_API_KEY=
-
-# 谷歌serper搜索 https://serper.dev/api-keys
-SERPER_API_KEY=
-
-
-# 腾讯云
-COS_SECRET_ID=
-COS_SECRET_KEY=
-COS_BUCKET=
-COS_REGION=
-COS_SCHEME=https
-COS_DOMAIN=
-
-
-EMBEDDING_MODEL=qwen3-embedding:0.6b
-OLLAMA_BASE_URL=http://127.0.0.1:11434
-```
-
-#### docker postgres
-
-```bash
-docker run  --name postgres-dev -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -d postgres
-```
-
-#### docker Weaviate
-
-```bash
- docker run -d --name weaviate-dev  -p 8080:8080 -p 50051:50051 cr.weaviate.io/semitechnologies/weaviate:1.35.3
-```
-
-#### docker redis
-
-```bash
-docker run  --name redis-dev -d -p 6379:6379 redis
-```
-
-#### embedding  local
-
-> 开发环境使用ollama运行qw3-embedding:0.6b, 根据实际情况选择模型
-
-#### run project
-
-```bash
-# celery 异步任务处理
-celery -A app.http.app.celery worker -l info --pool eventlet --logfile storage/log/celery.log
-
-# dev
- uv run python app\http\app.py
-```
-
-##### 初始化生成迁移脚本
-
-```bash
-flask --app app.http.app db init 
-flask --app app.http.app db migrate 
-# -m "msg"
-
-# 升级
-flask --app app.http.app db upgrade
-
-#回退
-flask --app app.http.app db downgrade
-```
-
-#### 数据库关系图
+## 📁 目录结构
 
 ```
-
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│   UploadFile    │◄────│    Document     │◄────│     Segment     │
-│  (上传文件)       │ 1:1 │  (文档)          │ 1:N│   (片段)         │
-└─────────────────┘     └────────┬────────┘     └────────┬────────┘
-                                 │                       │
-                                 │                       │
-                    ┌────────────┘                       │
-                    │                                    │
-                    ▼                                    ▼
-           ┌─────────────────┐                 ┌─────────────────┐
-           │     Dataset     │◄────────────────│  KeywordTable   │
-           │   (知识库)       │ 1:1             │  (关键词表)       │
-           └────────┬────────┘                 └─────────────────┘
-                    │
-                    │ N:M
-                    ▼
-           ┌─────────────────┐
-           │ AppDatasetJoin  │
-           │(应用-知识库关联)   │
-           └─────────────────┘
-                    │
-                    ▼
-           ┌─────────────────┐
-           │       App       │
-           │    (AI应用)      │
-           └─────────────────┘
-```
-
-### Agent 概念和运行流程
-
-```
-在 LLM 应用中，如果我们知道用户输入所需的工具使用特定顺序时，使用 LCEL 表达式构建链应用非常有用，但是对于某一些特例，我们使用工具的次数与顺序取决于输入，在这种情况下，我们希望让 LLM 本身决定使用工具的次数和顺序，而 Agent 智能体 能做到这一点。
-在 LangChain 中，Agent 是一个核心概念，它代表了一种能够利用语言模型（LLM）和其他工具来执行复杂任务的系统，Agent 设计的目的是为了处理那些语言模型可能无法直接解决的问题，尤其是当这些任务涉及到多个步骤或者需要外部数据源的情况。
-无论一个 Agent 设计得多么复杂，使用什么架构，最基础的工作流程其实都非常简单，只有 5 个步骤：
-输入理解：Agent 首先解析用户输入，理解其意图和需求。
-计划定制：基于对输入的理解，Agent 会制定一个执行计划，决定使用哪些工具和执行的顺序。
-工具调用：Agent 按照计划调用相应的工具，执行必要的操作。
-结果整合：收集所有工具返回的结果，进行整合和解析，形成最终的输出。
-反馈循环：如果任务没有完成或者需要进一步的消息，Agent 可以迭代上述过程直到满足条件为止。
-┌─────────────┐     ┌─────┐     ┌─────────────┐     ┌─────────┐
-│   初始问题   │────▶│ LLM │────▶│ 格式化输出   │────▶│选择工具 │
-└─────────────┘     └──┬──┘     └─────────────┘     └────┬────┘
-                       │                                    │
-                      函数调用                            工具列表
-                                                              │
-                        ←───────────────────────────────────┘
-                        │        观察/循环执行              │
-                        │   (直到最终完成条件满足)          ↓
-                        ▼                              ┌──────────────┐
-                    ┌──────────┐                       │ 工具执行结果  │
-                    │   LLM    │ ◀────────────────────┤              │
-                    │(再次调用) │                       └──────────────┘
-                    └──────────┘                          │
-                            │                           │ 最终调用
-                            │                           ↓
-                            └────────────────────────►┌──────────────┐
-                                                      │  最终答案      │
-                                                      └──────────────┘
+llm-ops/
+├── api/                  # Flask 后端（uv 管理依赖）
+│   ├── app/http/         #   应用入口
+│   └── internal/         #   core / service / handler / router / task 等
+├── ui/                   # Vue3 前端
+├── docker/               # Docker Compose 编排（含 nginx 反代、.env.example）
+│   └── postgres/         #   数据库初始化脚本
+├── docs/                 # 文档与截图
+└── storage/              # 本地运行产物
 ```
 
 ---
 
-![image](./v2-de187d0b3ac4b7975731b2f1229d67f5_1440w.png)
+## 🖼️ 界面预览
+
+|  |  |  |
+|---|---|---|
+| ![preview-1](./docs/Snipaste_2026-08-18_19-19-07.png) | ![preview-2](./docs/Snipaste_2026-08-18_19-19-47.png) | ![preview-3](./docs/Snipaste_2026-08-18_19-19-56.png) |
+| ![preview-4](./docs/Snipaste_2026-08-18_19-20-18.png) | ![preview-5](./docs/Snipaste_2026-08-18_19-20-40.png) | ![preview-6](./docs/Snipaste_2026-08-181_19-20-40.png) |
 
 ---
 
-#### PARSING Error
+## 🚀 快速开始
 
-> he words “dog”, “cat” and “banana” are all pretty common in English, so they’re part of the pipeline’s vocabulary, and come with a vector. The word “afskfsd” on the other hand is a lot less common and out-of-vocabulary – so its vector representation consists of 300 dimensions of `0`, which means it’s practically nonexistent. If your application will benefit from a large vocabulary with more vectors, you should consider using one of the larger pipeline packages or loading in a full vector package, for example, [`en_core_web_lg`](https://spacy.io/models/en#en_core_web_lg), which includes 685k unique vectors.
->
-> [spacy](https://release-assets.githubusercontent.com/github-production-release-asset/84940268/15132ab6-4050-4914-8fe8-ac2c2fdcb9cf?sp=r&sv=2018-11-09&sr=b&spr=https&se=2026-04-21T16%3A41%3A16Z&rscd=attachment%3B+filename%3Den_core_web_sm-3.8.0-py3-none-any.whl&rsct=application%2Foctet-stream&skoid=96c2d410-5711-43a1-aedd-ab1947aa7ab0&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skt=2026-04-21T15%3A41%3A12Z&ske=2026-04-21T16%3A41%3A16Z&sks=b&skv=2018-11-09&sig=aHrTt9wj8TfEgObDEoIzzNVlpSij42nozL%2BwdsAW34c%3D&jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmVsZWFzZS1hc3NldHMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwia2V5Ijoia2V5MSIsImV4cCI6MTc3Njc4Nzg3MiwibmJmIjoxNzc2Nzg2MDcyLCJwYXRoIjoicmVsZWFzZWFzc2V0cHJvZHVjdGlvbi5ibG9iLmNvcmUud2luZG93cy5uZXQifQ.ZhgBi8DhMZDGxlME2M_MlPB7iubVUKFXdStaeWcZwd0&response-content-disposition=attachment%3B%20filename%3Den_core_web_sm-3.8.0-py3-none-any.whl&response-content-type=application%2Foctet-stream)
+### 方式一：Docker Compose（推荐）
 
+前置要求：安装 Docker / Docker Compose；可选安装 Ollama 用于本地向量化。
+
+```bash
+cd docker
+
+# 1. 准备环境变量（模板见 .env.example，替换成你自己的密钥）
+cp .env.example .env
+
+# 2. 构建并启动全部服务（ui / api / celery / db / redis / weaviate / nginx）
+docker compose up -d --build
+
+# 3. 访问
+#    前端页面    http://localhost
+#    开放 API    http://localhost/api/...   （或直连 http://localhost:5001）
 ```
-pip install en_core_web_sm-3.8.0-py3-none-any.whl
+
+- 后端 API 容器暴露 `5001`；PostgreSQL `5432`、Redis `6379`、Weaviate `8080/50051` 均已映射到宿主机。
+- 本地向量化（可选）：先在运行 Ollama 的机器上拉取 embedding 模型，再给 `llmops-api` 注入对应环境变量：
+
+  ```bash
+  ollama pull qwen3-embedding:0.6b      # 或 qwen3-embedding:4b / 8b
+  # docker/docker-compose.yaml -> llmops-api.environment:
+  #   EMBEDDING_MODEL=qwen3-embedding:0.6b
+  #   OLLAMA_BASE_URL=http://<ollama主机IP>:11434
+  ```
+
+- 想启用 HTTPS：把证书文件放入 `docker/nginx/ssl/`，并按需调整 `docker/nginx/conf.d/default.conf`（默认已去除域名与证书依赖，可直接用公网 IP 通过 HTTP 访问）。
+
+### 方式二：本地开发
+
+前置要求：Python 3.13+（uv）、Node.js；PostgreSQL / Redis / Weaviate 服务可用。
+
+```bash
+# 1. 启动基础服务（任选）：docker compose 仅跑依赖，或手动 docker run
+
+# 2. 后端
+cd api
+cp .env.example .env 2>/dev/null || touch .env   # 按需填写数据库、模型密钥等
+uv sync
+uv run python app/http/app.py                     # dev server :5000
+
+# 异步任务（另开终端）
+celery -A app.http.app.celery worker -l info --pool eventlet
+
+# 3. 前端（另开终端）
+cd ../ui
+npm install
+npm run dev                                       # Vite :5173，/api 代理到 :5000
 ```
 
-#### 参考文档
+### 环境变量速查
 
-[Hello-Agents](https://datawhalechina.github.io/hello-agents/#/)
+| 变量 | 说明 |
+|---|---|
+| `SQLALCHEMY_DATABASE_URI` | PostgreSQL 连接串 |
+| `REDIS_PASSWORD` / `REDIS_HOST` / `REDIS_PORT` | Redis（缓存 + Celery broker） |
+| `WEAVIATE_*` + `WEAVIATE_API_KEY` | Weaviate 向量库 |
+| `OPENAI_API_KEY` / `DASHSCOPE_API_KEY` / `MOONSHOT_API_KEY` / `QIANFAN_*` | 大模型服务商密钥 |
+| `JWT_SECRET_KEY` | 登录令牌加密密钥 |
+| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | GitHub OAuth（可选） |
+| `EMBEDDING_MODEL` / `OLLAMA_BASE_URL` | 向量模型与本地 Ollama 地址 |
+| `COS_*` | 腾讯云对象存储（文件上传，可选） |
 
-[langchain Docs(TS) ](https://docs.langchain.com/oss/javascript/langchain/quickstart)
+> Docker 部署：修改 `docker/docker-compose.yaml` 中对应服务的 `environment`，或统一放入 `docker/.env`（敏感项已用 `${VAR}` 占位）。
+> 本地开发：密钥放 `api/.env`。数据库迁移：`flask --app app.http.app db upgrade`。
 
-[langchain Docs(py) ](https://docs.langchain.com/oss/python/langchain/quickstart)
+---
 
-[langchain Docs中文文档 ](https://langchain-doc.cn/)
+## 📖 更多文档
 
-[uv/pip](https://uv.oaix.tech/blog/2025/06/17/quickly-set-uv-package-index-is-china-mirror/#__tabbed_1_3)
+- [开发笔记 / ER 图 / Agent 流程 / 数据库迁移](./docs/DEVELOPMENT.md)
+- [LangGraph 工作流实践](./docs/langgraph-workflow.md)
+- [TODO 路线图](./TODO.md)
 
-[weaviate](https://docs.weaviate.org.cn/deploy)
+---
 
-[flask](https://flask.org.cn/en/stable/)
+## ⚠️ 说明
 
-[llm-action](https://github.com/liguodongiot/llm-action)
+- 本仓库主要用于学习与二次开发参考；请勿在生产环境直接使用示例密钥，部署前务必替换 `docker/.env` 与 `docker/docker-compose.yaml` 中所有默认凭证。
+- 若为某个课程/教程的配套代码，建议在 README 顶部保留出处与致谢。

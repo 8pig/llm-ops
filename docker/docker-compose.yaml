@@ -72,6 +72,8 @@ services:
       LANGCHAIN_PROJECT: llmops
       # HuggingFace配置
       TRANSFORMERS_OFFLINE: 1
+      # tiktoken编码缓存目录
+      TIKTOKEN_CACHE_DIR: /app/api/tiktoken_cache
       # 辅助Agent智能体应用id标识
       ASSISTANT_AGENT_ID: 6774fcef-b594-8008-b30c-a05b8190afe6
       # OpenAI服务提供者
@@ -156,6 +158,8 @@ services:
       LANGCHAIN_PROJECT: LLMOpsDev
       # HuggingFace配置
       TRANSFORMERS_OFFLINE: 1
+      # tiktoken编码缓存目录
+      TIKTOKEN_CACHE_DIR: /app/api/tiktoken_cache
       # 辅助Agent智能体应用id标识
       ASSISTANT_AGENT_ID: 6774fcef-b594-8008-b30c-a05b8190afe6
       # OpenAI服务提供者
