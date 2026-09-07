@@ -4,6 +4,22 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --arcoblue-1: 235, 241, 255;
+  --arcoblue-2: 204, 219, 252;
+  --arcoblue-3: 161, 184, 247;
+  --arcoblue-4: 117, 147, 240;
+  --arcoblue-5: 72, 104, 224;
+  --arcoblue-6: 30, 64, 175;
+  --arcoblue-7: 20, 47, 140;
+  --arcoblue-8: 13, 33, 106;
+  --arcoblue-9: 8, 21, 76;
+  --arcoblue-10: 3, 10, 48;
+  --law-navy: #0a1740;
+  --law-blue: #1e40af;
+  --law-gold: #c6a458;
+}
+
 @layer base {
   .scrollbar-w-none {
     scrollbar-width: none;

@@ -1,0 +1,4 @@
+name: esign_service
+label: e签宝电子签章
+description: 电子签章服务，支持合同签署、印章管理、签署流程管理等电子签章相关功能
+params: []

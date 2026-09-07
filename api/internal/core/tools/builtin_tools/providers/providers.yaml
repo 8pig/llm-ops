@@ -1,13 +1,6 @@
-- name: google
-  label: Google
-  description: 谷歌服务提供商，涵盖了谷歌搜索等工具。
-  icon: icon.svg
-  background: "#E5E7EB"
-  category: search
-  created_at: 1778299097
 - name: time
   label: 时间
-  description: 一个用于获取当前时间的工具
+  description: 一个用于获取当前时间的工具, 输出为字典包含UTC和格式化年月日的时间。
   icon: icon.svg
   background: "#E5E7EB"
   category: tool
@@ -33,10 +26,17 @@
   background: "#E5E7EB"
   category: tool
   created_at: 1778299097
-- name: wikipedia
-  label: 维基百科
-  description: 维基百科是一个由全世界的志愿者创建和编辑的免费在线百科全书。
+- name: qichacha
+  label: 企查查
+  description: 企查查企业信息查询服务，提供工商注册、股东信息等企业公开数据查询。
   icon: icon.svg
-  background: "#FFFFFF"
-  category: other
+  background: "#E5E7EB"
+  category: tool
+  created_at: 1778299097
+- name: esign
+  label: e签宝
+  description: e签宝电子签章服务，提供合同签署、印章管理等电子签章功能。
+  icon: icon.svg
+  background: "#E5E7EB"
+  category: tool
   created_at: 1778299097

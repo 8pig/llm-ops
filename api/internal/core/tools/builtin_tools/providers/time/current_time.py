@@ -9,7 +9,7 @@ from pydantic import BaseModel
 class CurrentTimeTool(BaseTool):
     """一个用于获取当前时间的工具"""
     name: str = "current_time"
-    description: str = "一个用于获取当前时间的工具"
+    description: str = "一个用于获取当前时间的工具, 输出为字典包含UTC和格式化年月日的时间。"
     args_schema : Type[BaseModel] = BaseModel
 
     def _run(self, *args: Any, **kwargs: Any) -> Any:
