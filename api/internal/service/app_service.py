@@ -49,7 +49,7 @@ from internal.schema.app_schema import (
     CreateAppReq,
     GetAppsWithPageReq,
     GetPublishHistoriesWithPageReq,
-    GetDebugConversationMessagesWithPageReq,
+    GetDebugConversationMessagesWithPageReq, DebugChatReq,
 )
 from pkg.paginator import Paginator
 from pkg.db import SQLAlchemy
@@ -81,7 +81,7 @@ class AppService(BaseService):
     def auto_create_app(self, name: str, description: str, account_id: UUID) -> None:
         """根据传递的应用名称、描述、账号id利用AI创建一个Agent智能体"""
         # 1.创建LLM，用于生成icon提示与预设提示词
-        llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.8)
+        llm = ChatOpenAI(model="gpt-4o", temperature=0.8)
 
         # 2.创建DallEApiWrapper包装器
         dalle_api_wrapper = DallEAPIWrapper(model="dall-e-3", size="1024x1024")
@@ -476,7 +476,7 @@ class AppService(BaseService):
 
         return app
 
-    def debug_chat(self, app_id: UUID, query: str, account: Account) -> Generator:
+    def debug_chat(self, app_id: UUID, req: DebugChatReq, account: Account) -> Generator:
         """根据传递的应用id+提问query向特定的应用发起会话调试"""
         # 1.获取应用信息并校验权限
         app = self.get_app(app_id, account)
@@ -494,7 +494,8 @@ class AppService(BaseService):
             conversation_id=debug_conversation.id,
             invoke_from=InvokeFrom.DEBUGGER,
             created_by=account.id,
-            query=query,
+            query=req.query.data,
+            image_urls=req.image_urls.data,
             status=MessageStatus.NORMAL,
         )
 
@@ -526,6 +527,7 @@ class AppService(BaseService):
             )
             tools.append(dataset_retrieval)
 
+        # 10.检测是否关联工作流，如果关联了工作流则将工作流构建成工具添加到tools中
         if draft_app_config["workflows"]:
             workflow_tools = self.app_config_service.get_langchain_tools_by_workflow_ids(
                 [workflow["id"] for workflow in draft_app_config["workflows"]]
@@ -548,7 +550,7 @@ class AppService(BaseService):
 
         agent_thoughts = {}
         for agent_thought in agent.stream({
-            "messages": [HumanMessage(query)],
+            "messages": [llm.convert_to_human_message(req.query.data, req.image_urls.data)],
             "history": history,
             "long_term_memory": debug_conversation.summary,
         }):
@@ -566,14 +568,17 @@ class AppService(BaseService):
                         # 15.叠加智能体消息
                         agent_thoughts[event_id] = agent_thoughts[event_id].model_copy(update={
                             "thought": agent_thoughts[event_id].thought + agent_thought.thought,
+                            # 消息相关数据
                             "message": agent_thought.message,
                             "message_token_count": agent_thought.message_token_count,
                             "message_unit_price": agent_thought.message_unit_price,
                             "message_price_unit": agent_thought.message_price_unit,
+                            # 答案相关数据
                             "answer": agent_thoughts[event_id].answer + agent_thought.answer,
                             "answer_token_count": agent_thought.answer_token_count,
                             "answer_unit_price": agent_thought.answer_unit_price,
                             "answer_price_unit": agent_thought.answer_price_unit,
+                            # Agent推理统计相关
                             "total_token_count": agent_thought.total_token_count,
                             "total_price": agent_thought.total_price,
                             "latency": agent_thought.latency,
@@ -583,8 +588,8 @@ class AppService(BaseService):
                     agent_thoughts[event_id] = agent_thought
             data = {
                 **agent_thought.model_dump(include={
-                    "event", "thought", "observation", "tool", "tool_input", "answer", "latency",
-                    "total_token_count", "total_price",
+                    "event", "thought", "observation", "tool", "tool_input", "answer",
+                    "total_token_count", "total_price", "latency",
                 }),
                 "id": event_id,
                 "conversation_id": str(debug_conversation.id),
@@ -594,9 +599,6 @@ class AppService(BaseService):
             yield f"event: {agent_thought.event}\ndata:{json.dumps(data)}\n\n"
 
         # 22.将消息以及推理过程添加到数据库
-        # todo: 数据库存储更新 转同步,  summary conversation 放thread执行
-        # TODO: 错误 超时信息 也存储到answer
-        # 22.将消息以及推理过程添加到数据库
         self.conversation_service.save_agent_thoughts(
             account_id=account.id,
             app_id=app.id,
@@ -605,7 +607,6 @@ class AppService(BaseService):
             message_id=message.id,
             agent_thoughts=[agent_thought for agent_thought in agent_thoughts.values()],
         )
-
     def stop_debug_chat(self, app_id: UUID, task_id: UUID, account: Account) -> None:
         """根据传递的应用id+任务id+账号，停止某个应用的调试会话，中断流式事件"""
         # 1.获取应用信息并校验权限

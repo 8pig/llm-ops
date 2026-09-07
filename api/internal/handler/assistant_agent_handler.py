@@ -31,7 +31,7 @@ class AssistantAgentHandler:
             return validate_error_json(req.errors)
 
         # 2.调用服务创建会话响应
-        response = self.assistant_agent_service.chat(req.query.data, current_user)
+        response = self.assistant_agent_service.chat(req, current_user)
 
         return compact_generate_response(response)
 

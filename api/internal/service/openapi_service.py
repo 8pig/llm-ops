@@ -91,6 +91,7 @@ class OpenAPIService(BaseService):
             "invoke_from": InvokeFrom.SERVICE_API,
             "created_by": end_user.id,
             "query": req.query.data,
+            "image_urls": req.image_urls.data,
             "status": MessageStatus.NORMAL,
         })
 
@@ -149,7 +150,7 @@ class OpenAPIService(BaseService):
 
         # 15.定义智能体状态基础数据
         agent_state = {
-            "messages": [HumanMessage(req.query.data)],
+            "messages": [llm.convert_to_human_message(req.query.data, req.image_urls.data)],
             "history": history,
             "long_term_memory": conversation.summary,
         }

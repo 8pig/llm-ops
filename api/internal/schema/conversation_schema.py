@@ -27,6 +27,7 @@ class GetConversationMessagesWithPageResp(Schema):
     latency = fields.Float(dump_default=0)
     agent_thoughts = fields.List(fields.Dict, dump_default=[])
     created_at = fields.Integer(dump_default=0)
+    image_urls = fields.List(fields.String, dump_default=[])
 
     @pre_dump
     def process_data(self, data: Message, **kwargs):
@@ -35,6 +36,7 @@ class GetConversationMessagesWithPageResp(Schema):
             "conversation_id": data.conversation_id,
             "query": data.query,
             "answer": data.answer,
+            "image_urls": data.image_urls,
             "total_token_count": data.total_token_count,
             "latency": data.latency,
             "agent_thoughts": [{

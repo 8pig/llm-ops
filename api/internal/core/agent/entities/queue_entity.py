@@ -56,6 +56,7 @@ class AgentThought(BaseModel):
 class AgentResult(BaseModel):
     """ 最后结果"""
     query: str = ""  # 原始用户提问
+    image_urls: list[str] = Field(default_factory=list) 
 
     message: list[dict] = Field(default_factory=list)  # 产生最终答案的消息列表
     message_token_count: int = 0  # 消息花费的token数

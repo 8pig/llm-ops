@@ -1,20 +1,37 @@
+from urllib.parse import urlparse
 
 from flask_wtf import FlaskForm
 from marshmallow import Schema, fields, pre_dump
 from wtforms import StringField, IntegerField
-from wtforms.validators import DataRequired, Optional, NumberRange
+from wtforms.validators import DataRequired, Optional, NumberRange, ValidationError
 
 from internal.lib.helper import datetime_to_timestamp
 from internal.model import Message
+from internal.schema import ListField
 from pkg.paginator import PaginatorReq
 
 
 class AssistantAgentChat(FlaskForm):
     """辅助Agent会话请求结构体"""
+    image_urls = ListField("image_urls", default=[])
     query = StringField("query", validators=[
         DataRequired("用户提问query不能为空")
     ])
+    def validate_image_urls(self, field: ListField) -> None:
+        """校验传递的图片URL链接列表"""
+        # 1.校验数据类型如果为None则设置默认值空列表
+        if not isinstance(field.data, list):
+            return []
 
+        # 2.校验数据的长度，最多不能超过5条URL记录
+        if len(field.data) > 5:
+            raise ValidationError("上传的图片数量不能超过5，请核实后重试")
+
+        # 3.循环校验image_url是否为URL
+        for image_url in field.data:
+            result = urlparse(image_url)
+            if not all([result.scheme, result.netloc]):
+                raise ValidationError("上传的图片URL地址格式错误，请核实后重试")
 
 class GetAssistantAgentMessagesWithPageReq(PaginatorReq):
     """获取辅助智能体消息列表分页请求"""
@@ -29,6 +46,7 @@ class GetAssistantAgentMessagesWithPageResp(Schema):
     id = fields.UUID(dump_default="")
     conversation_id = fields.UUID(dump_default="")
     query = fields.String(dump_default="")
+    image_urls = fields.List(fields.String, dump_default=[])
     answer = fields.String(dump_default="")
     total_token_count = fields.Integer(dump_default=0)
     latency = fields.Float(dump_default=0)
@@ -41,6 +59,7 @@ class GetAssistantAgentMessagesWithPageResp(Schema):
             "id": data.id,
             "conversation_id": data.conversation_id,
             "query": data.query,
+            "image_urls": data.image_urls,
             "answer": data.answer,
             "total_token_count": data.total_token_count,
             "latency": data.latency,
