@@ -1,7 +1,7 @@
 id: "8ba40348-bfff-4c64-b4ab-ff1da85329f5"
 category: "assistant"
 name: "赋强公证律助"
-icon: "https://imooc-llmops-1304251364.cos.ap-guangzhou.myqcloud.com/2024/12/06/5af57d6d-d71b-4396-9c59-89ae55145b94.png"
+icon: "https://www.baidu.com/5af57d6d-d71b-4396-9c59-89ae55145b94.png"
 description: "专业的赋强公证法律顾问，专注于赋予强制执行效力的债权文书公证，提供合同公证、法律风险评估和强制执行申请指导。"
 model_config:
   provider: "openai"
