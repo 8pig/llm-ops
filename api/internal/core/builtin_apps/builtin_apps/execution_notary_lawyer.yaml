@@ -4,8 +4,8 @@ name: "执行公证律助"
 icon: "https://www.baidu.com/5af57d6d-d71b-4396-9c59-89ae55145b94.png"
 description: "专业的执行公证法律顾问，专注于证据保全公证、现场监督公证和执行相关公证业务，提供保全证据、执行程序指导。"
 model_config:
-  provider: "openai"
-  model: "xiaomi-v2.5-pro"
+  provider: "xiaomi"
+  model: "mimo-v2.5-pro"
   parameters:
     temperature: 0.5
     top_p: 0.85

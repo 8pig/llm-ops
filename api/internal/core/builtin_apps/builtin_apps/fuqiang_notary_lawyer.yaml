@@ -4,8 +4,8 @@ name: "赋强公证律助"
 icon: "https://www.baidu.com/5af57d6d-d71b-4396-9c59-89ae55145b94.png"
 description: "专业的赋强公证法律顾问，专注于赋予强制执行效力的债权文书公证，提供合同公证、法律风险评估和强制执行申请指导。"
 model_config:
-  provider: "openai"
-  model: "xiaomi-v2.5-pro"
+  provider: "xiaomi"
+  model: "mimo-v2.5-pro"
   parameters:
     temperature: 0.5
     top_p: 0.85
