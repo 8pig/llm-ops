@@ -15,6 +15,7 @@ const props = defineProps({
 const createOrUpdateAppModalVisible = ref(false)
 const updateAppId = ref('')
 const accountStore = useAccountStore()
+const navigatingAppId = ref('')
 const { handleCopyApp } = useCopyApp()
 const { loading: getAppsWithPageLoading, apps, paginator, loadApps } = useGetAppsWithPage()
 const { handleDeleteApp } = useDeleteApp()
@@ -65,19 +66,26 @@ watch(
   },
   { immediate: true },
 )
+
+const handleCardClick = (app_id: string) => {
+  navigatingAppId.value = app_id
+  router.push({ name: 'space-apps-detail', params: { app_id } })
+}
 </script>
 
 <template>
-  <a-spin
-    :loading="getAppsWithPageLoading"
-    class="block h-full w-full scrollbar-w-none overflow-scroll"
-    @scroll="handleScroll"
-  >
+  <div class="block h-full w-full scrollbar-w-none overflow-scroll" @scroll="handleScroll">
     <!-- 底部应用列表 -->
     <a-row :gutter="[20, 20]" class="flex-1">
       <!-- 有数据的UI状态 -->
       <a-col v-for="app in apps" :key="app.id" :span="6">
-        <a-card hoverable class="cursor-pointer rounded-lg">
+        <a-card hoverable class="cursor-pointer rounded-lg relative" @click="handleCardClick(app.id)">
+          <div
+            v-if="navigatingAppId === app.id"
+            class="absolute inset-0 bg-white/70 rounded-lg z-10 flex items-center justify-center"
+          >
+            <a-spin />
+          </div>
           <!-- 顶部应用名称 -->
           <div class="flex items-center gap-3 mb-3">
             <!-- 左侧图标 -->
@@ -85,21 +93,15 @@ watch(
             <!-- 右侧App信息 -->
             <div class="flex flex-1 justify-between">
               <div class="flex flex-col">
-                <router-link
-                  :to="{
-                    name: 'space-apps-detail',
-                    params: { app_id: app.id },
-                  }"
-                  class="text-base text-gray-900 font-bold"
-                >
+                <div class="text-base text-gray-900 font-bold">
                   {{ app.name }}
-                </router-link>
+                </div>
                 <div class="text-xs text-gray-500 line-clamp-1">
                   {{ app.model_config.provider }} · {{ app.model_config.model }}
                 </div>
               </div>
               <!-- 操作按钮 -->
-              <a-dropdown position="br">
+              <a-dropdown position="br" @click.stop>
                 <a-button type="text" size="small" class="rounded-lg !text-gray-700">
                   <template #icon>
                     <icon-more />
@@ -175,7 +177,7 @@ watch(
       v-model:app_id="updateAppId"
       :callback="async () => await loadApps(true)"
     />
-  </a-spin>
+  </div>
 </template>
 
 <style scoped></style>
