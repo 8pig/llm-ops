@@ -5,7 +5,7 @@ from threading import Thread
 from typing import Optional, Any, Iterator
 
 from langchain_core.load import Serializable
-from pydantic import PrivateAttr
+from pydantic import PrivateAttr, Field
 from langchain_core.runnables import Runnable, RunnableConfig
 from langgraph.graph.state import CompiledStateGraph
 
@@ -20,6 +20,7 @@ class BaseAgent(Serializable, Runnable):
     """基于Runnable的基础智能体基类"""
     llm: BaseLanguageModel
     agent_config: AgentConfig
+    name: Optional[str] = Field(default=None, description="Agent名称")
     _agent: CompiledStateGraph = PrivateAttr(None)
     _agent_queue_manager: AgentQueueManager = PrivateAttr(None)
 
