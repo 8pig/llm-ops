@@ -63,7 +63,7 @@ class AssistantAgentService(BaseService):
         # 4.使用GPT模型作为辅助Agent的LLM大脑
         llm = Chat(
             temperature=0.5,
-            features=[ModelFeature.TOOL_CALL, ModelFeature.AGENT_THOUGHT],
+            features=[ModelFeature.TOOL_CALL, ModelFeature.AGENT_THOUGHT, ModelFeature.IMAGE_INPUT],
             metadata={},
             model=os.getenv("LLM_MODEL"),
             api_key=os.getenv("OPENAI_API_KEY"),

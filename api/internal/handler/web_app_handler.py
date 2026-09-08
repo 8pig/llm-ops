@@ -7,7 +7,6 @@ from flask_login import login_required, current_user
 from injector import inject
 
 from internal.schema.web_app_schema import (
-    GetWebAppResp,
     WebAppChatReq,
     GetConversationsReq,
     GetConversationsResp,
@@ -25,13 +24,11 @@ class WebAppHandler:
     @login_required
     def get_web_app(self, token: str):
         """根据传递的token凭证标识获取WebApp基础信息"""
-        # 1.调用服务根据传递的token获取应用信息
-        app = self.web_app_service.get_web_app_info(token)
+        # 1.调用服务根据传递的token获取应用信息（添加features模型特性）
+        resp = self.web_app_service.get_web_app_info(token)
 
-        # 2.构建响应结构并返回
-        resp = GetWebAppResp()
-
-        return success_json(resp.dump(app))
+        # 2.返回成功响应
+        return success_json(resp)
 
     @login_required
     def web_app_chat(self, token: str):
@@ -41,7 +38,7 @@ class WebAppHandler:
         if not req.validate():
             return validate_error_json(req.errors)
 
-        # 2.调用服务获取对应响应内容
+        # 2.嗲用服务获取对应响应内容
         response = self.web_app_service.web_app_chat(token, req, current_user)
 
         return compact_generate_response(response)

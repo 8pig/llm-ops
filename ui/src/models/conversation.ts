@@ -11,6 +11,7 @@ export type GetConversationMessagesWithPageResponse = BasePaginatorResponse<{
   conversation_id: string
   query: string
   answer: string
+  image_urls: string[]
   total_token_count: number
   latency: number
   agent_thoughts: {

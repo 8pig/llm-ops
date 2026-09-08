@@ -1,5 +1,6 @@
 <script setup lang="ts">
 // @ts-ignore
+import AudioRecorder from 'js-audio-recorder'
 import { DynamicScroller, DynamicScrollerItem } from 'vue-virtual-scroller'
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
 import { nextTick, onMounted, ref } from 'vue'
@@ -9,6 +10,7 @@ import {
   useGetAssistantAgentMessagesWithPage,
   useStopAssistantAgentChat,
 } from '@/hooks/use-assistant-agent'
+import { useAudioToText } from '@/hooks/use-audio'
 import { useGenerateSuggestedQuestions } from '@/hooks/use-ai'
 import { useAccountStore } from '@/stores/account'
 import AssistantAgentBackground from '@/assets/images/assistant-agent-background.png'
@@ -16,10 +18,17 @@ import { Message } from '@arco-design/web-vue'
 import { QueueEvent } from '@/config'
 import HumanMessage from '@/components/HumanMessage.vue'
 import AiMessage from '@/components/AiMessage.vue'
+import { uploadImage } from '@/services/upload-file'
 
 // 1.定义页面所需数据
 const query = ref('')
 const task_id = ref('')
+const image_urls = ref<string[]>([])
+const fileInput = ref(null)
+const uploadFileLoading = ref(false)
+const isRecording = ref(false) // 是否正在录音
+const audioBlob = ref<any>(null) // 录音后音频的blob
+let recorder: any = null // RecordRTC实例
 const message_id = ref('')
 const scroller = ref<any>(null)
 const scrollHeight = ref(0)
@@ -36,10 +45,10 @@ const {
   messages,
   loadAssistantAgentMessages,
 } = useGetAssistantAgentMessagesWithPage()
-const {
-  loading: deleteAssistantAgentConversationLoading,
-  handleDeleteAssistantAgentConversation, //
-} = useDeleteAssistantAgentConversation()
+const { loading: deleteAssistantAgentConversationLoading, handleDeleteAssistantAgentConversation } =
+  useDeleteAssistantAgentConversation()
+
+const { loading: audioToTextLoading, text, handleAudioToText } = useAudioToText()
 
 // 2.定义保存滚动高度函数
 const saveScrollHeight = () => {
@@ -90,15 +99,18 @@ const handleSubmit = async () => {
     latency: 0,
     agent_thoughts: [],
     created_at: 0,
+    image_urls: image_urls.value,
   })
 
   // 5.5 初始化推理过程数据，并清空输入数据
   let position = 0
   const humanQuery = query.value
+  const humanImageUrls = image_urls.value
   query.value = ''
+  image_urls.value = []
 
   // 5.6 调用hooks发起请求
-  await handleAssistantAgentChat(humanQuery, (event_response) => {
+  await handleAssistantAgentChat(humanQuery, humanImageUrls, (event_response) => {
     // 5.7 提取流式事件响应数据以及事件名称
     const event = event_response?.event
     const data = event_response?.data
@@ -176,6 +188,72 @@ const handleSubmit = async () => {
   // 5.7 发起API请求获取建议问题列表
 }
 
+// 9.定义文件变化监听器
+const handleFileChange = async (event: Event) => {
+  // 1.判断是否在上传中
+  if (uploadFileLoading.value) return
+
+  // 2.获取当前选中的图片
+  const input = event.target as HTMLInputElement
+  const selectedFile = input.files?.[0]
+  if (selectedFile) {
+    try {
+      // 3.调用API接口上传图片
+      uploadFileLoading.value = true
+      const resp = await uploadImage(selectedFile)
+      image_urls.value.push(resp.data.image_url)
+      Message.success('上传图片成功')
+    } finally {
+      uploadFileLoading.value = false
+    }
+  }
+}
+
+// 8.定义文件上传触发器
+const triggerFileInput = () => {
+  // 1.检测上传的图片数量是否超过5
+  if (image_urls.value.length >= 5) {
+    Message.error('对话上传图片数量不能超过5张')
+    return
+  }
+
+  // 2.满足条件触发上传
+  fileInput.value?.click()
+}
+// 10.开始录音处理器
+const handleStartRecord = async () => {
+  // 10.1 创建AudioRecorder
+  recorder = new AudioRecorder()
+
+  // 10.2 开始录音并记录录音状态
+  try {
+    isRecording.value = true
+    await recorder.start()
+    Message.success('开始录音')
+  } catch (error: any) {
+    Message.error(`录音失败: ${error}`)
+    isRecording.value = false
+  }
+}
+
+// 11.停止录音处理器
+const handleStopRecord = async () => {
+  if (recorder) {
+    try {
+      // 11.1 等待录音停止并获取录音数据
+      await recorder.stop()
+      audioBlob.value = recorder.getWAVBlob()
+
+      // 11.2 调用语音转文本处理器并将文本填充到query中
+      await handleAudioToText(audioBlob.value)
+      query.value = text.value
+    } catch (error: any) {
+      Message.error(`录音失败: ${error}`)
+    } finally {
+      isRecording.value = false // 标记为停止录音
+    }
+  }
+}
 // 6.定义停止调试会话函数
 const handleStop = async () => {
   // 6.1 如果没有任务id或者未在加载中，则直接停止
@@ -216,7 +294,7 @@ onMounted(async () => {
       <!-- 历史对话列表 -->
       <div
         v-if="messages.length > 0"
-        class="flex flex-col px-6 h-[calc(100%-100px)] min-h-[calc(100vh-100px)]"
+        :class="`flex flex-col px-6 ${image_urls.length > 0 ? 'h-[calc(100%-150px)] min-h-[calc(100vh-150px)]' : 'h-[calc(100%-100px)] min-h-[calc(100vh-100px)]'}`"
       >
         <dynamic-scroller
           ref="scroller"
@@ -228,7 +306,7 @@ onMounted(async () => {
           <template v-slot="{ item, index, active }">
             <dynamic-scroller-item :item="item" :active="active" :data-index="item.id">
               <div class="flex flex-col gap-6 py-6">
-                <human-message :query="item.query" :account="accountStore.account" />
+                <human-message :query="item.query" :account="accountStore.account" :image_urls="item.image_urls" />
                 <ai-message
                   :agent_thoughts="item.agent_thoughts"
                   :answer="item.answer"
@@ -264,7 +342,7 @@ onMounted(async () => {
       <!-- 对话列表为空时展示的对话开场白 -->
       <div
         v-else
-        class="flex flex-col p-6 gap-2 items-center justify-center overflow-scroll scrollbar-w-none h-[calc(100%-100px)] min-h-[calc(100vh-100px)]"
+        :class="`flex flex-col p-6 gap-2 items-center justify-center overflow-scroll scrollbar-w-none ${image_urls.length > 0 ? 'h-[calc(100%-150px)] min-h-[calc(100vh-150px)]' : 'h-[calc(100%-100px)] min-h-[calc(100vh-100px)]'}`"
       >
         <div class="mb-9">
           <div class="text-[40px] font-bold text-gray-700 mt-[52px] mb-4">Hi，我是坤盛AI小助手</div>
@@ -354,26 +432,93 @@ onMounted(async () => {
           </a-button>
           <!-- 输入框组件 -->
           <div
-            class="bg-white h-[50px] flex items-center gap-2 px-4 flex-1 border border-gray-200 rounded-full"
+            :class="`bg-white ${image_urls.length > 0 ? 'h-[100px]' : 'h-[50px]'} flex flex-col justify-center gap-2 px-4 flex-1 border border-gray-200 rounded-[24px]`"
           >
-            <input
-              v-model="query"
-              type="text"
-              class="flex-1 outline-0"
-              placeholder="发送消息或创建AI应用..."
-              @keyup.enter="handleSubmit"
-            />
-            <a-button
-              :loading="assistantAgentChatLoading"
-              type="text"
-              shape="circle"
-              class="!text-gray-700"
-              @click="handleSubmit"
-            >
-              <template #icon>
-                <icon-send :size="16" />
+            <!-- 图片列表 -->
+            <div v-if="image_urls.length > 0" class="flex items-center gap-2">
+              <div
+                v-for="(image_url, idx) in image_urls"
+                :key="image_url"
+                class="w-10 h-10 relative rounded-lg overflow-hidden group cursor-pointer"
+              >
+                <a-avatar shape="square" :image-url="image_url" />
+                <div
+                  class="hidden group-hover:flex items-center justify-center bg-gray-700/50 w-10 h-10 absolute top-0"
+                >
+                  <icon-close class="text-white" @click="() => image_urls.splice(idx, 1)" />
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <input
+                v-model="query"
+                type="text"
+                class="flex-1 outline-0"
+                placeholder="发送消息或创建AI应用..."
+                @keyup.enter="handleSubmit"
+              />
+              <!-- 上传图片输入框 -->
+              <input
+                type="file"
+                ref="fileInput"
+                accept="image/*"
+                @change="handleFileChange"
+                class="hidden"
+              />
+              <a-button
+                :loading="uploadFileLoading"
+                size="mini"
+                type="text"
+                shape="circle"
+                class="!text-gray-700"
+                @click="triggerFileInput"
+              >
+                <template #icon>
+                  <icon-plus />
+                </template>
+              </a-button>
+              <!-- 语音转文本加载按钮 -->
+              <template v-if="audioToTextLoading">
+                <a-button size="mini" type="text" shape="circle">
+                  <template #icon>
+                    <icon-loading />
+                  </template>
+                </a-button>
               </template>
-            </a-button>
+              <template v-else>
+                <!-- 开始音频录制按钮 -->
+                <a-button
+                  v-if="!isRecording"
+                  size="mini"
+                  type="text"
+                  shape="circle"
+                  class="!text-gray-700"
+                  @click="handleStartRecord"
+                >
+                  <template #icon>
+                    <icon-voice />
+                  </template>
+                </a-button>
+                <!-- 结束音频录制按钮 -->
+                <a-button v-else size="mini" type="text" shape="circle" @click="handleStopRecord">
+                  <template #icon>
+                    <icon-pause />
+                  </template>
+                </a-button>
+              </template>
+              <a-button
+                :loading="assistantAgentChatLoading"
+                size="mini"
+                type="text"
+                shape="circle"
+                class="!text-gray-700"
+                @click="handleSubmit"
+              >
+                <template #icon>
+                  <icon-send :size="16" />
+                </template>
+              </a-button>
+            </div>
           </div>
         </div>
         <!-- 底部提示信息 -->
@@ -381,8 +526,6 @@ onMounted(async () => {
           内容由AI生成，无法确保真实准确，仅供参考。
         </div>
       </div>
-      <!-- 顶部提示信息 -->
-      <!-- 空页面对话开场白 -->
     </div>
   </div>
 </template>

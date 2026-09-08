@@ -98,6 +98,9 @@ class Message(db.Model):
     total_token_count = Column(Integer, nullable=False, server_default=text("0"))  # 消耗的总token数，计算步骤的消耗
     total_price = Column(Numeric(10, 7), nullable=False, server_default=text("0.0"))  # 消耗的总价格，计算步骤的总消耗
 
+    # 用户多模态输入的图片URL列表
+    image_urls = Column(JSONB, nullable=False, server_default=text("'[]'::jsonb"))  # 用户提问携带的图片URL列表
+
     # 消息时间相关信息
     updated_at = Column(
         DateTime,

@@ -228,6 +228,7 @@ class OpenAPIService(BaseService):
             "query": req.query.data,
             "answer": agent_result.answer,
             "total_token_count": 0,
+            "image_urls": req.image_urls.data,
             "latency": agent_result.latency,
             "agent_thoughts": [{
                 "id": str(agent_thought.id),

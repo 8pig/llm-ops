@@ -130,7 +130,7 @@ class GetDebugConversationMessagesWithPageResp(Schema):
     """获取调试会话消息列表分页响应结构体"""
     id = fields.UUID(dump_default="")
     conversation_id = fields.UUID(dump_default="")
-    image_urls = fields.List(fields.List, dump_default=[])
+    image_urls = fields.List(fields.String, dump_default=[])
     query = fields.String(dump_default="")
     answer = fields.String(dump_default="")
     total_token_count = fields.Integer(dump_default=0)

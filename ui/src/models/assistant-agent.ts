@@ -9,6 +9,7 @@ export type GetAssistantAgentMessagesWithPageRequest = BasePaginatorRequest & {
 export type GetAssistantAgentMessagesWithPageResponse = BasePaginatorResponse<{
   id: string
   conversation_id: string
+  image_urls: string[],
   query: string
   answer: string
   total_token_count: number

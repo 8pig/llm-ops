@@ -108,6 +108,7 @@ export type GetDebugConversationMessagesWithPageResponse = BasePaginatorResponse
   query: string
   answer: string
   total_token_count: number
+  image_urls: string[]
   latency: number
   agent_thoughts: {
     id: string
