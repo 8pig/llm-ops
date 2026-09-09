@@ -6,6 +6,8 @@ import ReviewConfigAbilityItem from './abilities/ReviewConfigAbilityItem.vue'
 import DatasetsAbilityItem from './abilities/DatasetsAbilityItem.vue'
 import ToolsAbilityItem from './abilities/ToolsAbilityItem.vue'
 import WorkflowsAbilityItem from './abilities/WorkflowsAbilityItem.vue'
+import SpeechToTextAbilityItem from '@/views/space/apps/components/abilities/SpeechToTextAbilityItem.vue'
+import TextToSpeechAbilitiItem from '@/views/space/apps/components/abilities/TextToSpeechAbilitiItem.vue'
 
 // 1.定义自定义组件所需数据
 const props = defineProps({
@@ -21,6 +23,8 @@ const defaultActivateKeys = [
   'opening',
   'suggested_after_answer',
   'review_config',
+  'speech_to_text',
+  'text_to_speech',
 ]
 </script>
 
@@ -60,6 +64,23 @@ const defaultActivateKeys = [
         <suggested-after-answer-ability-item
           v-model:suggested_after_answer="draft_app_config.suggested_after_answer"
           :app_id="app_id"
+        />
+        <!-- 语音输入 -->
+        <speech-to-text-ability-item
+          :speech_to_text="props.draft_app_config.speech_to_text"
+          @update:speech_to_text="
+            (speech_to_text) =>
+              emits('update:draft_app_config', {
+                ...props.draft_app_config,
+                speech_to_text,
+              })
+          "
+          :app_id="props.app_id"
+        />
+        <!-- 语音输出 -->
+        <text-to-speech-abiliti-item
+          :text_to_speech="props.draft_app_config.text_to_speech"
+          :app_id="props.app_id"
         />
         <!-- 内容审核 -->
         <review-config-ability-item
