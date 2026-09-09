@@ -23,6 +23,7 @@ import UpdateNameModal from './components/UpdateNameModal.vue'
 import HumanMessage from '@/components/HumanMessage.vue'
 import AiMessage from '@/components/AiMessage.vue'
 import { useGenerateSuggestedQuestions } from '@/hooks/use-ai'
+import { useScrollToBottomUntilStable } from '@/hooks/use-auto-scroll'
 import { QueueEvent } from '@/config'
 import { uploadImage } from '@/services/upload-file'
 import AudioRecorder from 'js-audio-recorder'
@@ -72,6 +73,7 @@ const can_speech_to_text = computed(() => {
 })
 const { loading: audioToTextLoading, text, handleAudioToText } = useAudioToText()
 const { startAudioStream, stopAudioStream } = useAudioPlayer()
+const { scrollToBottomUntilStable } = useScrollToBottomUntilStable(scroller)
 
 // 2.定义会话计算属性，动态展示当前选中会话
 const conversation = computed(() => {
@@ -458,9 +460,7 @@ watch(
       await loadConversationMessagesWithPage(newValue, true)
       await nextTick(() => {
         // 15.4 确保在视图更新完成后执行滚动操作
-        if (scroller.value) {
-          scroller.value.scrollToBottom()
-        }
+        scrollToBottomUntilStable()
       })
     }
 

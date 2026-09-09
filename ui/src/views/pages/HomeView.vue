@@ -12,6 +12,7 @@ import {
 } from '@/hooks/use-assistant-agent'
 import { useAudioToText } from '@/hooks/use-audio'
 import { useGenerateSuggestedQuestions } from '@/hooks/use-ai'
+import { useScrollToBottomUntilStable } from '@/hooks/use-auto-scroll'
 import { useAccountStore } from '@/stores/account'
 import AssistantAgentBackground from '@/assets/images/assistant-agent-background.png'
 import { Message } from '@arco-design/web-vue'
@@ -34,6 +35,7 @@ const scroller = ref<any>(null)
 const scrollHeight = ref(0)
 const accountStore = useAccountStore()
 const opening_questions = ['生成公证书', '查询赋强公证数量', '担保物权车辆最新进度']
+const { scrollToBottomUntilStable } = useScrollToBottomUntilStable(scroller)
 const { suggested_questions, handleGenerateSuggestedQuestions } = useGenerateSuggestedQuestions()
 const { loading: assistantAgentChatLoading, handleAssistantAgentChat } = useAssistantAgentChat()
 const {
@@ -276,10 +278,7 @@ const handleSubmitQuestion = async (question: string) => {
 onMounted(async () => {
   await loadAssistantAgentMessages(true)
   await nextTick(() => {
-    // 确保在视图更新完成后执行滚动操作
-    if (scroller.value) {
-      scroller.value.scrollToBottom()
-    }
+    scrollToBottomUntilStable()
   })
 })
 </script>
