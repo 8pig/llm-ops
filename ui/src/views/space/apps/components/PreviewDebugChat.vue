@@ -13,6 +13,7 @@ import {
 } from '@/hooks/use-app'
 import { useAudioPlayer, useAudioToText } from '@/hooks/use-audio'
 import { useGenerateSuggestedQuestions } from '@/hooks/use-ai'
+import { useScrollToBottomUntilStable } from '@/hooks/use-auto-scroll'
 import { useAccountStore } from '@/stores/account'
 import HumanMessage from '@/components/HumanMessage.vue'
 import AiMessage from '@/components/AiMessage.vue'
@@ -68,6 +69,7 @@ const { loading: stopDebugChatLoading, handleStopDebugChat } = useStopDebugChat(
 const { suggested_questions, handleGenerateSuggestedQuestions } = useGenerateSuggestedQuestions()
 const { loading: audioToTextLoading, text, handleAudioToText } = useAudioToText()
 const { startAudioStream, stopAudioStream } = useAudioPlayer()
+const { scrollToBottomUntilStable } = useScrollToBottomUntilStable(scroller)
 
 // 2.定义保存滚动高度函数
 const saveScrollHeight = () => {
@@ -317,10 +319,7 @@ const handleStopRecord = async () => {
 onMounted(async () => {
   await loadDebugConversationMessages(String(route.params?.app_id), true)
   await nextTick(() => {
-    // 确保在视图更新完成后执行滚动操作
-    if (scroller.value) {
-      scroller.value.scrollToBottom()
-    }
+    scrollToBottomUntilStable()
   })
 })
 

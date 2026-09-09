@@ -61,6 +61,7 @@ from .language_model_service import LanguageModelService
 from .retrieval_service import RetrievalService
 from internal.core.language_model.entities.model_entity import ModelParameterType, ModelFeature
 from internal.entity.workflow_entity import WorkflowStatus
+from ..entity.audio_entity import ALLOWED_AUDIO_VOICES
 
 
 @inject
@@ -933,7 +934,7 @@ class AppService(BaseService):
             if (
                     set(text_to_speech.keys()) != {"enable", "voice", "auto_play"}
                     or not isinstance(text_to_speech["enable"], bool)
-                    # todo:等待多模态Agent实现时添加音色
+                    or text_to_speech["voice"] not in ALLOWED_AUDIO_VOICES
                     or text_to_speech["voice"] not in ["echo"]
                     or not isinstance(text_to_speech["auto_play"], bool)
             ):

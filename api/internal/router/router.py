@@ -5,7 +5,7 @@ from internal.handler import (
     AppHandler, BuiltinToolHandler, ApiToolHandler,
     UploadFileHandler, DatasetHandler, DocumentHandler, SegmentHandler,
     OAuthHandler, AccountHandler, AuthHandler, AIHandler, ApiKeyHandler, OpenAPIHandler, BuiltinAppHandler,
-    WorkflowHandler, LanguageModelHandler, AssistantAgentHandler, AnalysisHandler,WebAppHandler, ConversationHandler
+    WorkflowHandler, LanguageModelHandler, AssistantAgentHandler, AnalysisHandler,WebAppHandler, ConversationHandler,AudioHandler
 )
 from dataclasses import dataclass
 
@@ -34,6 +34,7 @@ class Router:
     analysis_handler: AnalysisHandler
     web_app_handler: WebAppHandler
     conversation_handler: ConversationHandler
+    audio_handler: AudioHandler
 
 
 
@@ -517,6 +518,18 @@ class Router:
             "/conversations/<uuid:conversation_id>/is-pinned",
             methods=["POST"],
             view_func=self.conversation_handler.update_conversation_is_pinned,
+        )
+
+
+        bp.add_url_rule(
+            "/audio/audio-to-text",
+            methods=["POST"],
+            view_func=self.audio_handler.audio_to_text,
+        )
+        bp.add_url_rule(
+            "/audio/message-to-audio",
+            methods=["POST"],
+            view_func=self.audio_handler.message_to_audio,
         )
         app.register_blueprint(bp)
         app.register_blueprint(openapi_bp)

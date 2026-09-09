@@ -20,6 +20,7 @@ from .assistant_agent_handler import AssistantAgentHandler
 from .analysis_handler import AnalysisHandler
 from .web_app_handler import WebAppHandler
 from .conversation_handler import ConversationHandler
+from .audio_handler import AudioHandler
 
 
 __all__ = [
@@ -42,5 +43,6 @@ __all__ = [
     "AssistantAgentHandler",
     "AnalysisHandler",
     "WebAppHandler",
-    "ConversationHandler"
+    "ConversationHandler",
+    "AudioHandler"
 ]

@@ -204,9 +204,10 @@ class AppHandler:
 
     @login_required
     def ping(self):
-        model_class = self.language_model_manager.get_model_class_by_provider_and_model("xiaomi", "mimo-v2.5-pro")
-        llm = model_class(model="mimo-v2.5-pro")
-        return success_message(llm.invoke("你好 你是谁").content)
+        return success_json({"ping": "success"})
+        # model_class = self.language_model_manager.get_model_class_by_provider_and_model("xiaomi", "mimo-v2.5-pro")
+        # llm = model_class(model="mimo-v2.5-pro")
+        # return success_message(llm.invoke("你好 你是谁").content)
 
 
 
