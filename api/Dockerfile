@@ -28,7 +28,8 @@ ENV FLASK_APP=app/http/app.py \
     FLASK_DEBUG=0 \
     NLTK_DATA=/app/api/internal/core/unstructured/nltk_data \
     TZ=Asia/Shanghai \
-    PATH="/app/api/.venv/bin:$PATH"
+    PATH="/app/api/.venv/bin:$PATH" \
+    HF_ENDPOINT=https://hf-mirror.com
 
 WORKDIR /app/api
 
