@@ -39,7 +39,7 @@ class AudioService(BaseService):
         # 2.创建OpenAI客户端，并调用whisper服务将音频转换成文字
         client = self._get_openai_client()
         transcription = client.audio.transcriptions.create(
-            model="whisper-1",
+            model=os.environ.get("WHISPER_MODEL", "whisper-1"),
             file=audio_file,
         )
 
@@ -118,8 +118,8 @@ class AudioService(BaseService):
 
     @classmethod
     def _get_openai_client(cls) -> OpenAI:
-        """获取OpenAI客户端"""
+        """获取OpenAI客户端（Whisper转写 + TTS）"""
         return OpenAI(
-            api_key=os.environ.get("OPENAI_API_KEY"),
-            base_url=os.environ.get("OPENAI_API_BASE"),
+            api_key=os.environ.get("AUDIO_API_KEY") or os.environ.get("OPENAI_API_KEY"),
+            base_url=os.environ.get("AUDIO_API_BASE_URL") or os.environ.get("OPENAI_API_BASE_URL"),
         )
