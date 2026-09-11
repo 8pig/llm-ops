@@ -78,8 +78,12 @@ services:
       ASSISTANT_AGENT_ID: 6774fcef-b594-8008-b30c-a05b8190afe6
       # OpenAI服务提供者
       OPENAI_API_KEY: ${OPENAI_API_KEY}
-      OPENAI_API_BASE: https://dashscope.aliyuncs.com/compatible-mode/v1
+      OPENAI_API_BASE_URL: ${OPENAI_API_BASE_URL}
       LLM_MODEL: glm-5.2
+      # 自建音频服务（Whisper语音识别 + TTS）
+      AUDIO_API_BASE_URL: ${AUDIO_API_BASE_URL}
+      AUDIO_API_KEY: ${AUDIO_API_KEY}
+      WHISPER_MODEL: ${WHISPER_MODEL}
       # 百度千帆服务提供者
       qianfan_ak: ${QIANFAN_AK}
       qianfan_sk: ${QIANFAN_SK}
@@ -164,7 +168,11 @@ services:
       ASSISTANT_AGENT_ID: 6774fcef-b594-8008-b30c-a05b8190afe6
       # OpenAI服务提供者
       OPENAI_API_KEY: ${OPENAI_API_KEY}
-      OPENAI_API_BASE: https://xiaoai.plus/v1
+      OPENAI_API_BASE_URL: ${OPENAI_API_BASE_URL}
+      # 自建音频服务（Whisper语音识别 + TTS）
+      AUDIO_API_BASE_URL: ${AUDIO_API_BASE_URL}
+      AUDIO_API_KEY: ${AUDIO_API_KEY}
+      WHISPER_MODEL: ${WHISPER_MODEL}
       # 百度千帆服务提供者
       qianfan_ak: ${QIANFAN_AK}
       qianfan_sk: ${QIANFAN_SK}
