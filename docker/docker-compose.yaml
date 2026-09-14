@@ -79,6 +79,8 @@ services:
       # OpenAI服务提供者
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       OPENAI_API_BASE_URL: ${OPENAI_API_BASE_URL}
+      OPENAI_BASE_URL: ${OPENAI_API_BASE_URL}
+      OPENAI_API_BASE: ${OPENAI_API_BASE_URL}
       LLM_MODEL: glm-5.2
       # 自建音频服务（Whisper语音识别 + TTS）
       AUDIO_API_BASE_URL: ${AUDIO_API_BASE_URL}
@@ -169,6 +171,8 @@ services:
       # OpenAI服务提供者
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       OPENAI_API_BASE_URL: ${OPENAI_API_BASE_URL}
+      OPENAI_BASE_URL: ${OPENAI_API_BASE_URL}
+      OPENAI_API_BASE: ${OPENAI_API_BASE_URL}
       # 自建音频服务（Whisper语音识别 + TTS）
       AUDIO_API_BASE_URL: ${AUDIO_API_BASE_URL}
       AUDIO_API_KEY: ${AUDIO_API_KEY}
