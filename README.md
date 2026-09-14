@@ -81,23 +81,15 @@ llm-ops/
 </p>
 
 <p align="center">
-  <img src="./docs/Snipaste_2026-08-18_19-20-40.png" alt="preview-5" width="100%">
+  <img src="./docs/Snipaste_2026-09-14_18-56-59.png" alt="preview-5" width="100%">
 </p>
 
 <p align="center">
-  <img src="./docs/Snipaste_2026-08-181_19-20-40.png" alt="preview-6" width="100%">
+  <img src="./docs/Snipaste_2026-09-14_19-58-29.png" alt="preview-6" width="100%">
 </p>
 
 <p align="center">
-  <img src="./docs/Snipaste_2026-09-07_09-52-25.png" alt="preview-7" width="100%">
-</p>
-
-<p align="center">
-  <img src="./docs/Snipaste_2026-09-14_18-56-31.png" alt="preview-8" width="100%">
-</p>
-
-<p align="center">
-  <img src="./docs/Snipaste_2026-09-14_18-56-59.png" alt="preview-9" width="100%">
+  <img src="./docs/Snipaste_2026-09-14_19-58-54.png" alt="preview-7" width="100%">
 </p>
 
 ---
