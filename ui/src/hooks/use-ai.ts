@@ -10,6 +10,7 @@ export const useGenerateSuggestedQuestions = () => {
   const handleGenerateSuggestedQuestions = async (message_id: string) => {
     try {
       loading.value = true
+      suggested_questions.value = []
       const resp = await generateSuggestedQuestions(message_id)
       suggested_questions.value = resp.data
     } finally {

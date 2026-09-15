@@ -46,6 +46,7 @@ const props = defineProps({
 })
 const query = ref('')
 const message_id = ref('')
+const active_message_id = ref('')
 const image_urls = ref<string[]>([])
 const fileInput = ref<any>(null)
 const uploadFileLoading = ref(false)
@@ -66,7 +67,8 @@ const {
 } = useGetDebugConversationMessagesWithPage()
 const { loading: debugChatLoading, handleDebugChat } = useDebugChat()
 const { loading: stopDebugChatLoading, handleStopDebugChat } = useStopDebugChat()
-const { suggested_questions, handleGenerateSuggestedQuestions } = useGenerateSuggestedQuestions()
+const { loading: suggestedQuestionsLoading, suggested_questions, handleGenerateSuggestedQuestions } =
+  useGenerateSuggestedQuestions()
 const { loading: audioToTextLoading, text, handleAudioToText } = useAudioToText()
 const { startAudioStream, stopAudioStream } = useAudioPlayer()
 const { createPendingId, scrollToBottom, scrollToBottomUntilStable } =
@@ -112,8 +114,10 @@ const handleSubmit = async () => {
   task_id.value = ''
   stopAudioStream()
   // 5.4 往消息列表中添加基础人类消息，id使用临时值避免虚拟滚动key冲突
+  const pending_id = createPendingId()
+  active_message_id.value = pending_id
   messages.value.unshift({
-    id: createPendingId(),
+    id: pending_id,
     conversation_id: '',
     query: query.value,
     answer: '',
@@ -147,6 +151,7 @@ const handleSubmit = async () => {
     if (message_id.value === '' && data?.message_id) {
       task_id.value = data?.task_id
       message_id.value = data?.message_id
+      active_message_id.value = data?.message_id
       messages.value[0].id = data?.message_id
       messages.value[0].conversation_id = data?.conversation_id
     }
@@ -220,15 +225,18 @@ const handleSubmit = async () => {
       // 5.17 等待DOM更新后再滚动，避免高度未重算导致滚不到底部
       scrollToBottom()
     }
+  }).finally(() => {
+    active_message_id.value = ''
   })
 
   // 5.18 响应结束后再次滚动到稳定位置，覆盖建议问题渲染带来的高度变化
   await scrollToBottomUntilStable()
 
-  // 5.19 判断是否开启建议问题生成，如果开启了则发起api请求获取数据
+  // 5.19 判断是否开启建议问题生成，如果开启了则非阻塞发起请求，生成期间展示占位
   if (props.suggested_after_answer.enable && message_id.value) {
-    await handleGenerateSuggestedQuestions(message_id.value)
-    await scrollToBottomUntilStable()
+    handleGenerateSuggestedQuestions(message_id.value)
+      .catch(() => {})
+      .finally(() => scrollToBottomUntilStable())
   }
   // 5.20 检测是否自动播放，如果是则调用hooks播放音频
   if (props.text_to_speech.enable && props.text_to_speech.auto_play && message_id.value) {
@@ -366,7 +374,8 @@ onUnmounted(() => {
                 :answer="item.answer"
                 :app="props.app"
                 :suggested_questions="item.id === message_id ? suggested_questions : []"
-                :loading="item.id === message_id && debugChatLoading"
+                :suggested_questions_loading="item.id === message_id && suggestedQuestionsLoading"
+                :loading="item.id === active_message_id"
                 @select-suggested-question="handleSubmitQuestion"
                 :latency="item.latency"
                 :total_token_count="item.total_token_count"

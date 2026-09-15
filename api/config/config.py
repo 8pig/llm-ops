@@ -18,7 +18,7 @@ class Config:
 
         # 数据库配置
         self.SQLALCHEMY_DATABASE_URI = os.getenv("SQLALCHEMY_DATABASE_URI")
-        self.SQLALCHEMY_ENgINE_OPTIONS = {
+        self.SQLALCHEMY_ENGINE_OPTIONS = {
             "pool_size": int(_get_env("SQLALCHEMY_POOL_SIZE")),
             "pool_recycle": int(_get_env("SQLALCHEMY_POOL_RECYCLE"))
         }

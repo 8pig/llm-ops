@@ -2,7 +2,7 @@
 // @ts-ignore
 import { DynamicScroller, DynamicScrollerItem } from 'vue-virtual-scroller'
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { cloneDeep } from 'lodash'
 import { Message } from '@arco-design/web-vue'
@@ -42,6 +42,7 @@ const isRecording = ref(false) // 是否正在录音
 const audioBlob = ref<any>(null) // 录音后音频的blob
 let recorder: any = null // RecordRTC实例
 const message_id = ref('')
+const active_message_id = ref('')
 const task_id = ref('')
 const scroller = ref<any>(null)
 const scrollHeight = ref(0)
@@ -58,7 +59,8 @@ const { messages, loadConversationMessagesWithPage } = useGetConversationMessage
 const { handleUpdateConversationIsPinned } = useUpdateConversationIsPinned()
 const { loading: webAppChatLoading, handleWebAppChat } = useWebAppChat()
 const { loading: stopWebAppChatLoading, handleStopWebAppChat } = useStopWebAppChat()
-const { suggested_questions, handleGenerateSuggestedQuestions } = useGenerateSuggestedQuestions()
+const { loading: suggestedQuestionsLoading, suggested_questions, handleGenerateSuggestedQuestions } =
+  useGenerateSuggestedQuestions()
 const can_image_input = computed(() => {
   if (web_app.value) {
     return web_app.value?.app_config?.features?.includes('image_input')
@@ -215,8 +217,10 @@ const handleSubmit = async () => {
   const selectedConversationTmp = cloneDeep(selectedConversation.value)
 
   // 11.4 往消息列表中添加基础人类消息，id使用临时值避免虚拟滚动key冲突
+  const pending_id = createPendingId()
+  active_message_id.value = pending_id
   messages.value.unshift({
-    id: createPendingId(),
+    id: pending_id,
     conversation_id: '',
     query: query.value,
     image_urls: image_urls.value,
@@ -255,6 +259,7 @@ const handleSubmit = async () => {
     if (message_id.value === '' && data?.message_id) {
       task_id.value = data?.task_id
       message_id.value = data?.message_id
+      active_message_id.value = data?.message_id
       messages.value[0].id = data?.message_id
       messages.value[0].conversation_id = data?.conversation_id
     }
@@ -321,6 +326,8 @@ const handleSubmit = async () => {
       // 11.13 等待DOM更新后再滚动，避免高度未重算导致滚不到底部
       scrollToBottom()
     }
+  }).finally(() => {
+    active_message_id.value = ''
   })
 
   // 11.13 响应结束后再次滚动到稳定位置，覆盖建议问题渲染带来的高度变化
@@ -342,11 +349,11 @@ const handleSubmit = async () => {
         selectedConversation.value = messages.value[0].conversation_id
       }
     }
-    // 11.15 判断是否开启建议问题生成，如果开启了则发起api请求获取数据
+    // 11.15 判断是否开启建议问题生成，如果开启了则非阻塞发起请求，生成期间展示占位
     if (web_app.value?.app_config?.suggested_after_answer.enable && message_id.value) {
       handleGenerateSuggestedQuestions(message_id.value)
-      await nextTick()
-      scrollToBottom()
+        .catch(() => {})
+        .finally(() => scrollToBottomUntilStable())
     }
 
     // 11.17 判断是否自动播放
@@ -654,7 +661,8 @@ onUnmounted(() => {
                   :answer="item.answer"
                   :app="{ name: web_app.name, icon: web_app.icon }"
                   :suggested_questions="item.id === message_id ? suggested_questions : []"
-                  :loading="item.id === message_id && webAppChatLoading"
+                  :suggested_questions_loading="item.id === message_id && suggestedQuestionsLoading"
+                  :loading="item.id === active_message_id"
                   :latency="item.latency"
                   :total_token_count="item.total_token_count"
                   @select-suggested-question="handleSubmitQuestion"

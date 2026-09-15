@@ -24,6 +24,7 @@ const props = defineProps({
     required: true,
   },
   suggested_questions: { type: Array as PropType<string[]>, default: () => [], required: false },
+  suggested_questions_loading: { type: Boolean, default: false, required: false },
   message_class: { type: String, default: '!bg-gray-100', required: false },
 })
 const emits = defineEmits(['selectSuggestedQuestion'])
@@ -31,6 +32,9 @@ const md = MarkdownIt()
 const compiledMarkdown = computed(() => {
   return md.render(props.answer)
 })
+const has_latency = computed(() => Number(props.latency) > 0)
+const has_tokens = computed(() => Number(props.total_token_count) > 0)
+const show_meta = computed(() => !props.loading && (has_latency.value || has_tokens.value))
 </script>
 
 <template>
@@ -67,20 +71,28 @@ const compiledMarkdown = computed(() => {
       <!-- 消息展示与操作 -->
       <div class="flex items-center justify-between">
         <!-- 消息数据额外展示 -->
-        <a-space class="text-xs">
+        <a-space v-if="show_meta" class="text-xs">
           <template #split>
             <a-divider direction="vertical" class="m-0" />
           </template>
-          <div class="flex items-center gap-1 text-gray-500">
+          <div v-if="has_latency" class="flex items-center gap-1 text-gray-500">
             <icon-check />
-            {{ props.latency.toFixed(2) }}s
+            {{ Number(props.latency).toFixed(2) }}s
           </div>
-          <div class="text-gray-500">{{ props.total_token_count }} Tokens</div>
+          <div v-if="has_tokens" class="text-gray-500">{{ props.total_token_count }} Tokens</div>
         </a-space>
         <!-- 操作 -->
       </div>
+      <!-- 建议问题生成中的占位 -->
+      <div
+        v-if="props.suggested_questions_loading && props.suggested_questions.length === 0"
+        class="flex items-center gap-2 text-xs text-gray-400"
+      >
+        正在生成建议问题
+        <dot-flashing />
+      </div>
       <!-- 建议问题列表 -->
-      <div v-if="props.suggested_questions.length > 0" class="flex flex-col gap-2">
+      <div v-else-if="props.suggested_questions.length > 0" class="flex flex-col gap-2">
         <div
           v-for="(suggested_question, idx) in props.suggested_questions"
           :key="idx"

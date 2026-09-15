@@ -31,13 +31,15 @@ const isRecording = ref(false) // 是否正在录音
 const audioBlob = ref<any>(null) // 录音后音频的blob
 let recorder: any = null // RecordRTC实例
 const message_id = ref('')
+const active_message_id = ref('')
 const scroller = ref<any>(null)
 const scrollHeight = ref(0)
 const accountStore = useAccountStore()
 const opening_questions = ['生成公证书', '查询赋强公证数量', '担保物权车辆最新进度']
 const { createPendingId, scrollToBottom, scrollToBottomUntilStable } =
   useScrollToBottomUntilStable(scroller)
-const { suggested_questions, handleGenerateSuggestedQuestions } = useGenerateSuggestedQuestions()
+const { loading: suggestedQuestionsLoading, suggested_questions, handleGenerateSuggestedQuestions } =
+  useGenerateSuggestedQuestions()
 const { loading: assistantAgentChatLoading, handleAssistantAgentChat } = useAssistantAgentChat()
 const {
   loading: stopAssistantAgentChatLoading,
@@ -93,8 +95,10 @@ const handleSubmit = async () => {
   task_id.value = ''
 
   // 5.4 往消息列表中添加基础人类消息，id使用临时值避免虚拟滚动key冲突
+  const pending_id = createPendingId()
+  active_message_id.value = pending_id
   messages.value.unshift({
-    id: createPendingId(),
+    id: pending_id,
     conversation_id: '',
     query: query.value,
     answer: '',
@@ -127,6 +131,7 @@ const handleSubmit = async () => {
     if (message_id.value === '' && data?.message_id) {
       task_id.value = data?.task_id
       message_id.value = data?.message_id
+      active_message_id.value = data?.message_id
       messages.value[0].id = data?.message_id
       messages.value[0].conversation_id = data?.conversation_id
     }
@@ -187,16 +192,19 @@ const handleSubmit = async () => {
       // 5.17 等待DOM更新后再滚动，避免高度未重算导致滚不到底部
       scrollToBottom()
     }
+  }).finally(() => {
+    active_message_id.value = ''
   })
 
   // 5.18 响应结束后再次滚动到稳定位置
   await scrollToBottomUntilStable()
 
+  // 5.19 非阻塞发起建议问题请求，生成期间展示占位，返回后再滚动到底部
   if (message_id.value) {
-    await handleGenerateSuggestedQuestions(message_id.value)
-    await scrollToBottomUntilStable()
+    handleGenerateSuggestedQuestions(message_id.value)
+      .catch(() => {})
+      .finally(() => scrollToBottomUntilStable())
   }
-  // 5.7 发起API请求获取建议问题列表
 }
 
 // 9.定义文件变化监听器
@@ -322,7 +330,8 @@ onMounted(async () => {
                   :answer="item.answer"
                   :app="{ name: '辅助Agent' }"
                   :suggested_questions="item.id === message_id ? suggested_questions : []"
-                  :loading="item.id === message_id && assistantAgentChatLoading"
+                  :suggested_questions_loading="item.id === message_id && suggestedQuestionsLoading"
+                  :loading="item.id === active_message_id"
                   message_class="bg-white"
                   @select-suggested-question="handleSubmitQuestion"
                   :total_token_count="item.total_token_count"
@@ -347,6 +356,20 @@ onMounted(async () => {
             </template>
             停止响应
           </a-button>
+        </div>
+      </div>
+      <!-- 首次加载对话列表时展示的骨架屏 -->
+      <div
+        v-else-if="getAssistantAgentMessagesWithPageLoading"
+        :class="`flex flex-col px-6 ${image_urls.length > 0 ? 'h-[calc(100%-150px)] min-h-[calc(100vh-150px)]' : 'h-[calc(100%-100px)] min-h-[calc(100vh-100px)]'}`"
+      >
+        <div class="flex flex-col gap-6 py-6">
+          <a-skeleton animation>
+            <a-skeleton-line :rows="2" :line-height="20" :line-spacing="8" />
+          </a-skeleton>
+          <a-skeleton animation>
+            <a-skeleton-line :rows="3" :line-height="20" :line-spacing="8" />
+          </a-skeleton>
         </div>
       </div>
       <!-- 对话列表为空时展示的对话开场白 -->
