@@ -2,7 +2,7 @@
 // @ts-ignore
 import { DynamicScroller, DynamicScrollerItem } from 'vue-virtual-scroller'
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
-import { nextTick, onMounted, onUnmounted, type PropType, ref } from 'vue'
+import { onMounted, onUnmounted, type PropType, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import AudioRecorder from 'js-audio-recorder'
 import {
@@ -69,7 +69,8 @@ const { loading: stopDebugChatLoading, handleStopDebugChat } = useStopDebugChat(
 const { suggested_questions, handleGenerateSuggestedQuestions } = useGenerateSuggestedQuestions()
 const { loading: audioToTextLoading, text, handleAudioToText } = useAudioToText()
 const { startAudioStream, stopAudioStream } = useAudioPlayer()
-const { scrollToBottomUntilStable } = useScrollToBottomUntilStable(scroller)
+const { createPendingId, scrollToBottom, scrollToBottomUntilStable } =
+  useScrollToBottomUntilStable(scroller)
 
 // 2.定义保存滚动高度函数
 const saveScrollHeight = () => {
@@ -110,9 +111,9 @@ const handleSubmit = async () => {
   message_id.value = ''
   task_id.value = ''
   stopAudioStream()
-  // 5.4 往消息列表中添加基础人类消息
+  // 5.4 往消息列表中添加基础人类消息，id使用临时值避免虚拟滚动key冲突
   messages.value.unshift({
-    id: '',
+    id: createPendingId(),
     conversation_id: '',
     query: query.value,
     answer: '',
@@ -123,14 +124,17 @@ const handleSubmit = async () => {
     created_at: 0,
   })
 
-  // 5.5 初始化推理过程数据，并清空输入数据
+  // 5.5 等待新消息渲染后滚动到底部，避免发送后视口停在原位
+  await scrollToBottomUntilStable()
+
+  // 5.6 初始化推理过程数据，并清空输入数据
   let position = 0
   const humanQuery = query.value
   const humanImageUrls = image_urls.value
   query.value = ''
   image_urls.value = []
 
-  // 5.6 调用hooks发起请求
+  // 5.7 调用hooks发起请求
   await handleDebugChat(props.app?.id, humanQuery, humanImageUrls, (event_response) => {
     console.log(JSON.stringify(event_response, null, 2))
     // 5.7 提取流式事件响应数据以及事件名称
@@ -213,16 +217,20 @@ const handleSubmit = async () => {
       // 5.16 直接修改数组触发响应式更新
       messages.value[0].agent_thoughts = [...agent_thoughts]
 
-      scroller.value.scrollToBottom()
+      // 5.17 等待DOM更新后再滚动，避免高度未重算导致滚不到底部
+      scrollToBottom()
     }
   })
 
-  // 5.7 判断是否开启建议问题生成，如果开启了则发起api请求获取数据
+  // 5.18 响应结束后再次滚动到稳定位置，覆盖建议问题渲染带来的高度变化
+  await scrollToBottomUntilStable()
+
+  // 5.19 判断是否开启建议问题生成，如果开启了则发起api请求获取数据
   if (props.suggested_after_answer.enable && message_id.value) {
     await handleGenerateSuggestedQuestions(message_id.value)
-    setTimeout(() => scroller.value && scroller.value.scrollToBottom(), 100)
+    await scrollToBottomUntilStable()
   }
-  // 5.8 检测是否自动播放，如果是则调用hooks播放音频
+  // 5.20 检测是否自动播放，如果是则调用hooks播放音频
   if (props.text_to_speech.enable && props.text_to_speech.auto_play && message_id.value) {
     startAudioStream(message_id.value)
   }
@@ -318,9 +326,7 @@ const handleStopRecord = async () => {
 // 6.页面DOM加载完毕时初始化数据
 onMounted(async () => {
   await loadDebugConversationMessages(String(route.params?.app_id), true)
-  await nextTick(() => {
-    scrollToBottomUntilStable()
-  })
+  await scrollToBottomUntilStable()
 })
 
 // 11.页面卸载后停止播放
@@ -339,12 +345,16 @@ onUnmounted(() => {
       <dynamic-scroller
         ref="scroller"
         :items="messages.slice().reverse()"
-        :min-item-size="1"
+        :min-item-size="88"
         @scroll="handleScroll"
         class="h-full scrollbar-w-none"
       >
         <template v-slot="{ item, index, active }">
-          <dynamic-scroller-item :item="item" :active="active" :data-index="item.id">
+          <dynamic-scroller-item
+            :item="item"
+            :active="active"
+            :size-dependencies="[item.answer, item.agent_thoughts?.length]"
+          >
             <div class="flex flex-col gap-6 py-6">
               <human-message
                 :query="item.query"

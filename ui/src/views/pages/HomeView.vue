@@ -3,7 +3,7 @@
 import AudioRecorder from 'js-audio-recorder'
 import { DynamicScroller, DynamicScrollerItem } from 'vue-virtual-scroller'
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
-import { nextTick, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import {
   useAssistantAgentChat,
   useDeleteAssistantAgentConversation,
@@ -35,7 +35,8 @@ const scroller = ref<any>(null)
 const scrollHeight = ref(0)
 const accountStore = useAccountStore()
 const opening_questions = ['生成公证书', '查询赋强公证数量', '担保物权车辆最新进度']
-const { scrollToBottomUntilStable } = useScrollToBottomUntilStable(scroller)
+const { createPendingId, scrollToBottom, scrollToBottomUntilStable } =
+  useScrollToBottomUntilStable(scroller)
 const { suggested_questions, handleGenerateSuggestedQuestions } = useGenerateSuggestedQuestions()
 const { loading: assistantAgentChatLoading, handleAssistantAgentChat } = useAssistantAgentChat()
 const {
@@ -91,9 +92,9 @@ const handleSubmit = async () => {
   message_id.value = ''
   task_id.value = ''
 
-  // 5.4 往消息列表中添加基础人类消息
+  // 5.4 往消息列表中添加基础人类消息，id使用临时值避免虚拟滚动key冲突
   messages.value.unshift({
-    id: '',
+    id: createPendingId(),
     conversation_id: '',
     query: query.value,
     answer: '',
@@ -104,16 +105,19 @@ const handleSubmit = async () => {
     image_urls: image_urls.value,
   })
 
-  // 5.5 初始化推理过程数据，并清空输入数据
+  // 5.5 等待新消息渲染后滚动到底部，避免发送后视口停在原位
+  await scrollToBottomUntilStable()
+
+  // 5.6 初始化推理过程数据，并清空输入数据
   let position = 0
   const humanQuery = query.value
   const humanImageUrls = image_urls.value
   query.value = ''
   image_urls.value = []
 
-  // 5.6 调用hooks发起请求
+  // 5.7 调用hooks发起请求
   await handleAssistantAgentChat(humanQuery, humanImageUrls, (event_response) => {
-    // 5.7 提取流式事件响应数据以及事件名称
+    // 5.8 提取流式事件响应数据以及事件名称
     const event = event_response?.event
     const data = event_response?.data
     const event_id = data?.id
@@ -180,12 +184,17 @@ const handleSubmit = async () => {
       // 5.16 更新agent_thoughts
       messages.value[0].agent_thoughts = agent_thoughts
 
-      scroller.value.scrollToBottom()
+      // 5.17 等待DOM更新后再滚动，避免高度未重算导致滚不到底部
+      scrollToBottom()
     }
   })
+
+  // 5.18 响应结束后再次滚动到稳定位置
+  await scrollToBottomUntilStable()
+
   if (message_id.value) {
     await handleGenerateSuggestedQuestions(message_id.value)
-    setTimeout(() => scroller.value && scroller.value.scrollToBottom(), 100)
+    await scrollToBottomUntilStable()
   }
   // 5.7 发起API请求获取建议问题列表
 }
@@ -277,9 +286,7 @@ const handleSubmitQuestion = async (question: string) => {
 // 6.页面DOM加载完毕时初始化数据
 onMounted(async () => {
   await loadAssistantAgentMessages(true)
-  await nextTick(() => {
-    scrollToBottomUntilStable()
-  })
+  await scrollToBottomUntilStable()
 })
 </script>
 
@@ -298,12 +305,16 @@ onMounted(async () => {
         <dynamic-scroller
           ref="scroller"
           :items="messages.slice().reverse()"
-          :min-item-size="1"
+          :min-item-size="88"
           @scroll="handleScroll"
           class="h-full scrollbar-w-none"
         >
           <template v-slot="{ item, index, active }">
-            <dynamic-scroller-item :item="item" :active="active" :data-index="item.id">
+            <dynamic-scroller-item
+              :item="item"
+              :active="active"
+              :size-dependencies="[item.answer, item.agent_thoughts?.length]"
+            >
               <div class="flex flex-col gap-6 py-6">
                 <human-message :query="item.query" :account="accountStore.account" :image_urls="item.image_urls" />
                 <ai-message

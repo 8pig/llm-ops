@@ -73,7 +73,8 @@ const can_speech_to_text = computed(() => {
 })
 const { loading: audioToTextLoading, text, handleAudioToText } = useAudioToText()
 const { startAudioStream, stopAudioStream } = useAudioPlayer()
-const { scrollToBottomUntilStable } = useScrollToBottomUntilStable(scroller)
+const { createPendingId, scrollToBottom, scrollToBottomUntilStable } =
+  useScrollToBottomUntilStable(scroller)
 
 // 2.定义会话计算属性，动态展示当前选中会话
 const conversation = computed(() => {
@@ -213,9 +214,9 @@ const handleSubmit = async () => {
   stopAudioStream()
   const selectedConversationTmp = cloneDeep(selectedConversation.value)
 
-  // 11.4 往消息列表中添加基础人类消息
+  // 11.4 往消息列表中添加基础人类消息，id使用临时值避免虚拟滚动key冲突
   messages.value.unshift({
-    id: '',
+    id: createPendingId(),
     conversation_id: '',
     query: query.value,
     image_urls: image_urls.value,
@@ -226,14 +227,17 @@ const handleSubmit = async () => {
     created_at: 0,
   })
 
-  // 11.5 初始化推理过程数据，并清空输入数据
+  // 11.5 等待新消息渲染后滚动到底部，避免发送后视口停在原位
+  await scrollToBottomUntilStable()
+
+  // 11.6 初始化推理过程数据，并清空输入数据
   let position = 0
   const humanQuery = query.value
   const humanImageUrls = image_urls.value
   query.value = ''
   image_urls.value = []
 
-  // 11.6 调用hooks发起请求
+  // 11.7 调用hooks发起请求
   const req = {
     conversation_id:
       selectedConversation.value === 'new_conversation' ? '' : selectedConversation.value,
@@ -314,11 +318,15 @@ const handleSubmit = async () => {
       // 11.12 更新agent_thoughts
       messages.value[0].agent_thoughts = agent_thoughts
 
-      scroller.value.scrollToBottom()
+      // 11.13 等待DOM更新后再滚动，避免高度未重算导致滚不到底部
+      scrollToBottom()
     }
   })
 
-  // 11.13 消息正常判断结束的情况下，判断是否是新会话
+  // 11.13 响应结束后再次滚动到稳定位置，覆盖建议问题渲染带来的高度变化
+  await scrollToBottomUntilStable()
+
+  // 11.14 消息正常判断结束的情况下，判断是否是新会话
   if (messages.value.length > 0) {
     if (selectedConversationTmp === 'new_conversation') {
       // 11.14 将newConversation填充到会话列表中
@@ -334,10 +342,11 @@ const handleSubmit = async () => {
         selectedConversation.value = messages.value[0].conversation_id
       }
     }
-    // 11.16 判断是否开启建议问题生成，如果开启了则发起api请求获取数据
+    // 11.15 判断是否开启建议问题生成，如果开启了则发起api请求获取数据
     if (web_app.value?.app_config?.suggested_after_answer.enable && message_id.value) {
       handleGenerateSuggestedQuestions(message_id.value)
-      setTimeout(() => scroller.value && scroller.value.scrollToBottom(), 100)
+      await nextTick()
+      scrollToBottom()
     }
 
     // 11.17 判断是否自动播放
@@ -458,10 +467,8 @@ watch(
     } else if (newValue !== '') {
       // 15.3 选择了已有会话，获取对应会话的消息列表
       await loadConversationMessagesWithPage(newValue, true)
-      await nextTick(() => {
-        // 15.4 确保在视图更新完成后执行滚动操作
-        scrollToBottomUntilStable()
-      })
+      // 15.4 确保在视图更新完成后执行滚动操作
+      await scrollToBottomUntilStable()
     }
 
     // 15.5 切换会话时停止播放音频
@@ -630,12 +637,16 @@ onUnmounted(() => {
         <dynamic-scroller
           ref="scroller"
           :items="messages.slice().reverse()"
-          :min-item-size="1"
+          :min-item-size="88"
           @scroll="handleScroll"
           class="h-full scrollbar-w-none"
         >
           <template v-slot="{ item, index, active }">
-            <dynamic-scroller-item :item="item" :active="active" :data-index="item.id">
+            <dynamic-scroller-item
+              :item="item"
+              :active="active"
+              :size-dependencies="[item.answer, item.agent_thoughts?.length]"
+            >
               <div class="flex flex-col gap-6 py-6">
                 <human-message :query="item.query" :account="accountStore.account" />
                 <ai-message
