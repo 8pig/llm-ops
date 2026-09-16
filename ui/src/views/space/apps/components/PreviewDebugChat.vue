@@ -146,12 +146,9 @@ const handleSubmit = async () => {
 
   // 5.7 调用hooks发起请求
   await handleDebugChat(props.app?.id, humanQuery, humanImageUrls, (event_response) => {
-    console.log(JSON.stringify(event_response, null, 2))
     // 5.7 提取流式事件响应数据以及事件名称
-    const event = event_response?.event
     const data = event_response?.data
     const event_id = data?.id
-    const event_name = data?.event
 
     // 5.8 初始化数据检测与赋值
     if (message_id.value === '' && data?.message_id) {
@@ -163,22 +160,14 @@ const handleSubmit = async () => {
     }
 
     // 5.9 循环处理得到的事件，记录除ping之外的事件
-    if (event_name !== QueueEvent.ping) {
+    if (data?.event !== QueueEvent.ping) {
       // 每次都从 messages.value[0] 获取最新的 agent_thoughts
       const agent_thoughts = messages.value[0].agent_thoughts
 
       // 5.10 处理agent_message事件，相同id的消息进行累加
-      if (event_name === QueueEvent.agentMessage) {
+      if (data?.event === QueueEvent.agentMessage) {
         // 5.11 获取数据索引并检测是否存在
         const agent_thought_idx = agent_thoughts.findIndex((item: any) => item?.id === event_id)
-        console.log(
-          'event_id:',
-          event_id,
-          'findIndex:',
-          agent_thought_idx,
-          'total:',
-          agent_thoughts.length,
-        )
 
         // 5.12 数据不存在则添加新记录
         if (agent_thought_idx === -1) {
@@ -186,7 +175,7 @@ const handleSubmit = async () => {
           agent_thoughts.push({
             id: event_id,
             position: position,
-            event: event_name,
+            event: data?.event,
             thought: data?.thought || '',
             observation: data?.observation || '',
             tool: data?.tool || '',
@@ -209,13 +198,43 @@ const handleSubmit = async () => {
         messages.value[0].answer = (messages.value[0].answer || '') + (data?.thought || '')
         messages.value[0].latency = data?.latency || ''
         messages.value[0].total_token_count = data?.total_token_count || ''
+      } else if (data?.event === QueueEvent.agentReasoning) {
+        // 5.15 事件为思维链，同一个id下持续叠加推理内容
+        const reasoning_idx = agent_thoughts.findIndex((item: any) => item?.id === event_id)
+        if (reasoning_idx === -1) {
+          position += 1
+          agent_thoughts.push({
+            id: event_id,
+            position: position,
+            event: data?.event,
+            thought: data?.thought || '',
+            observation: '',
+            tool: '',
+            tool_input: {},
+            latency: data?.latency || 0,
+            created_at: 0,
+          })
+        } else {
+          const existingItem = agent_thoughts[reasoning_idx]
+          agent_thoughts[reasoning_idx] = {
+            ...existingItem,
+            thought: (existingItem.thought || '') + (data?.thought || ''),
+            latency: data?.latency || existingItem.latency,
+          }
+        }
+      } else if (data?.event === QueueEvent.error) {
+        // 事件为error，将错误信息(observation)填充到消息答案中进行展示
+        messages.value[0].answer = data?.observation
+      } else if (data?.event === QueueEvent.timeout) {
+        // 事件为timeout，则人工提示超时信息
+        messages.value[0].answer = '当前Agent执行已超时，无法得到答案，请重试'
       } else {
-        // 5.15 处理其他类型的事件，直接添加新记录
+        // 5.16 处理其他类型的事件，直接添加新记录
         position += 1
         agent_thoughts.push({
           id: event_id,
           position: position,
-          event: event_name,
+          event: data?.event,
           thought: data?.thought || '',
           observation: data?.observation || '',
           tool: data?.tool || '',
@@ -225,20 +244,20 @@ const handleSubmit = async () => {
         })
       }
 
-      // 5.16 直接修改数组触发响应式更新
+      // 5.17 直接修改数组触发响应式更新
       messages.value[0].agent_thoughts = [...agent_thoughts]
 
-      // 5.17 等待DOM更新后再滚动，避免高度未重算导致滚不到底部
+      // 5.18 等待DOM更新后再滚动，避免高度未重算导致滚不到底部
       scrollToBottom()
     }
   }).finally(() => {
     active_message_id.value = ''
   })
 
-  // 5.18 响应结束后再次滚动到稳定位置，覆盖建议问题渲染带来的高度变化
+  // 5.19 响应结束后再次滚动到稳定位置，覆盖建议问题渲染带来的高度变化
   await scrollToBottomUntilStable()
 
-  // 5.19 判断是否开启建议问题生成，如果开启了则非阻塞发起请求，生成期间展示占位
+  // 5.20 判断是否开启建议问题生成，如果开启了则非阻塞发起请求，生成期间展示占位
   if (props.suggested_after_answer.enable && message_id.value) {
     handleGenerateSuggestedQuestions(message_id.value)
       .catch(() => {})

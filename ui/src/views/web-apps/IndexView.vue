@@ -255,7 +255,6 @@ const handleSubmit = async () => {
   }
   await handleWebAppChat(String(route.params?.token), req, (event_response) => {
     // 11.7 提取流式事件响应数据以及事件名称
-    const event = event_response?.event
     const data = event_response?.data
     const event_id = data?.id
     let agent_thoughts = messages.value[0].agent_thoughts
@@ -270,9 +269,9 @@ const handleSubmit = async () => {
     }
 
     // 11.9 循环处理得到的事件，记录除ping之外的事件
-    if (event !== QueueEvent.ping) {
+    if (data?.event !== QueueEvent.ping) {
       // 11.10 除了agent_message数据为叠加，其他均为覆盖
-      if (event === QueueEvent.agentMessage) {
+      if (data?.event === QueueEvent.agentMessage) {
         // 5.11 获取数据索引并检测是否存在
         const agent_thought_idx = agent_thoughts.findIndex((item) => item?.id === event_id)
 
@@ -303,14 +302,37 @@ const handleSubmit = async () => {
         messages.value[0].answer += data?.thought
         messages.value[0].latency = data?.latency
         messages.value[0].total_token_count = data?.total_token_count
-      } else if (event === QueueEvent.error) {
+      } else if (data?.event === QueueEvent.agentReasoning) {
+        // 11.11 事件为思维链，同一个id下持续叠加推理内容
+        const reasoning_idx = agent_thoughts.findIndex((item) => item?.id === event_id)
+        if (reasoning_idx === -1) {
+          position += 1
+          agent_thoughts.push({
+            id: event_id,
+            position: position,
+            event: data?.event,
+            thought: data?.thought,
+            observation: '',
+            tool: '',
+            tool_input: {},
+            latency: data?.latency,
+            created_at: 0,
+          })
+        } else {
+          agent_thoughts[reasoning_idx] = {
+            ...agent_thoughts[reasoning_idx],
+            thought: (agent_thoughts[reasoning_idx]?.thought ?? '') + (data?.thought ?? ''),
+            latency: data?.latency,
+          }
+        }
+      } else if (data?.event === QueueEvent.error) {
         // 5.15 事件为error，将错误信息(observation)填充到消息答案中进行展示
         messages.value[0].answer = data?.observation
-      } else if (event === QueueEvent.timeout) {
+      } else if (data?.event === QueueEvent.timeout) {
         // 5.16 事件为timeout，则人工提示超时信息
         messages.value[0].answer = '当前Agent执行已超时，无法得到答案，请重试'
       } else {
-        // 11.11 处理其他类型的事件，直接填充覆盖数据
+        // 11.12 处理其他类型的事件，直接填充覆盖数据
         position += 1
         agent_thoughts.push({
           id: event_id,
@@ -325,10 +347,10 @@ const handleSubmit = async () => {
         })
       }
 
-      // 11.12 更新agent_thoughts
+      // 11.13 更新agent_thoughts
       messages.value[0].agent_thoughts = agent_thoughts
 
-      // 11.13 等待DOM更新后再滚动，避免高度未重算导致滚不到底部
+      // 11.14 等待DOM更新后再滚动，避免高度未重算导致滚不到底部
       scrollToBottom()
     }
   }).finally(() => {

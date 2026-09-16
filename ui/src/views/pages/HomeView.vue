@@ -129,7 +129,6 @@ const handleSubmit = async () => {
   // 5.7 调用hooks发起请求
   await handleAssistantAgentChat(humanQuery, humanImageUrls, (event_response) => {
     // 5.8 提取流式事件响应数据以及事件名称
-    const event = event_response?.event
     const data = event_response?.data
     const event_id = data?.id
     let agent_thoughts = messages.value[0].agent_thoughts
@@ -177,8 +176,37 @@ const handleSubmit = async () => {
         messages.value[0].answer += data?.thought
         messages.value[0].latency = data?.latency || ''
         messages.value[0].total_token_count = data?.total_token_count || ''
+      } else if (data?.event === QueueEvent.agentReasoning) {
+        // 5.15 事件为思维链，同一个id下持续叠加推理内容
+        const reasoning_idx = agent_thoughts.findIndex((item) => item?.id === event_id)
+        if (reasoning_idx === -1) {
+          position += 1
+          agent_thoughts.push({
+            id: event_id,
+            position: position,
+            event: data?.event,
+            thought: data?.thought,
+            observation: '',
+            tool: '',
+            tool_input: {},
+            latency: data?.latency,
+            created_at: 0,
+          })
+        } else {
+          agent_thoughts[reasoning_idx] = {
+            ...agent_thoughts[reasoning_idx],
+            thought: (agent_thoughts[reasoning_idx]?.thought ?? '') + (data?.thought ?? ''),
+            latency: data?.latency,
+          }
+        }
+      } else if (data?.event === QueueEvent.error) {
+        // 事件为error，将错误信息(observation)填充到消息答案中进行展示
+        messages.value[0].answer = data?.observation
+      } else if (data?.event === QueueEvent.timeout) {
+        // 事件为timeout，则人工提示超时信息
+        messages.value[0].answer = '当前Agent执行已超时，无法得到答案，请重试'
       } else {
-        // 5.15 处理其他类型的事件，直接填充覆盖数据
+        // 5.16 处理其他类型的事件，直接填充覆盖数据
         position += 1
         agent_thoughts.push({
           id: event_id,
@@ -193,10 +221,10 @@ const handleSubmit = async () => {
         })
       }
 
-      // 5.16 更新agent_thoughts
+      // 5.17 更新agent_thoughts
       messages.value[0].agent_thoughts = agent_thoughts
 
-      // 5.17 等待DOM更新后再滚动，避免高度未重算导致滚不到底部
+      // 5.18 等待DOM更新后再滚动，避免高度未重算导致滚不到底部
       scrollToBottom()
     }
   }).finally(() => {

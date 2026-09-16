@@ -19,7 +19,8 @@ const event_meta_map: Record<string, { title: string; icon: string; accent: stri
     icon: 'icon-history',
     accent: 'text-purple-600',
   },
-  [QueueEvent.agentThought]: { title: '思考', icon: 'icon-bulb', accent: 'text-amber-600' },
+  [QueueEvent.agentReasoning]: { title: '深度思考', icon: 'icon-bulb', accent: 'text-amber-600' },
+  [QueueEvent.agentThought]: { title: '决策', icon: 'icon-bulb', accent: 'text-amber-600' },
   [QueueEvent.datasetRetrieval]: {
     title: '检索知识库',
     icon: 'icon-search',
@@ -102,6 +103,9 @@ const steps = computed(() => {
     const is_last = idx === thoughts.length - 1
     const status = item.event === QueueEvent.error ? 'error' : props.loading && is_last ? 'running' : 'done'
 
+    // 10.思维链事件直接展示推理原文，不做JSON格式化
+    const is_reasoning = item.event === QueueEvent.agentReasoning
+
     return {
       key: `${item.id ?? ''}-${idx}`,
       index: item.position ?? idx + 1,
@@ -110,14 +114,18 @@ const steps = computed(() => {
       icon: meta.icon,
       accent: meta.accent,
       status: status,
+      is_reasoning: is_reasoning,
+      reasoning_text: is_reasoning ? item.thought ?? '' : '',
       tool_name: get_tool_name(item),
       tool_args: get_tool_args(item),
       latency: format_latency(item.latency),
-      detail: [
-        { label: '入参', content: format_content(JSON.stringify(item.tool_input ?? {})) },
-        { label: '返回', content: format_content(item.observation ?? '') },
-        { label: '内容', content: format_content(item.thought ?? '') },
-      ].filter((detail) => detail.content !== '' && detail.content !== '{}'),
+      detail: is_reasoning
+        ? []
+        : [
+            { label: '入参', content: format_content(JSON.stringify(item.tool_input ?? {})) },
+            { label: '返回', content: format_content(item.observation ?? '') },
+            { label: '内容', content: format_content(item.thought ?? '') },
+          ].filter((detail) => detail.content !== '' && detail.content !== '{}'),
     }
   })
 })
@@ -199,6 +207,14 @@ const toggle_detail = (key: string) => {
                 :title="step.tool_args"
               >
                 {{ step.tool_args }}
+              </div>
+
+              <!-- 思维链内容，直接展示模型推断过程，默认展开 -->
+              <div
+                v-if="step.is_reasoning && step.reasoning_text"
+                class="mt-1 text-xs text-gray-500 bg-amber-50/60 border border-amber-100 rounded-lg p-2 max-h-60 overflow-auto whitespace-pre-wrap break-words leading-relaxed"
+              >
+                {{ step.reasoning_text }}
               </div>
             </div>
             <div class="flex items-center gap-1 flex-shrink-0">

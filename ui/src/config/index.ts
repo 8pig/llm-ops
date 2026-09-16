@@ -23,6 +23,7 @@ export const typeMap: { [key: string]: string } = {
 export const QueueEvent = {
   longTermMemoryRecall: 'long_term_memory_recall',
   agentThought: 'agent_thought',
+  agentReasoning: 'agent_reasoning',
   agentMessage: 'agent_message',
   agentAction: 'agent_action',
   datasetRetrieval: 'dataset_retrieval',
