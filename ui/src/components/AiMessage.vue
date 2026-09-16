@@ -18,6 +18,10 @@ const props = defineProps({
   loading: { type: Boolean, default: false, required: false },
   latency: { type: Number, default: 0, required: false },
   total_token_count: { type: Number, default: 0, required: false },
+  message_id: { type: String, default: '', required: false },
+  enable_text_to_speech: { type: Boolean, default: false, required: false },
+  is_playing: { type: Boolean, default: false, required: false },
+  text_to_audio_loading: { type: Boolean, default: false, required: false },
   agent_thoughts: {
     type: Array as PropType<Record<string, any>[]>,
     default: () => [],
@@ -27,7 +31,7 @@ const props = defineProps({
   suggested_questions_loading: { type: Boolean, default: false, required: false },
   message_class: { type: String, default: '!bg-gray-100', required: false },
 })
-const emits = defineEmits(['selectSuggestedQuestion'])
+const emits = defineEmits(['selectSuggestedQuestion', 'playAudio', 'stopAudio'])
 const md = MarkdownIt()
 const compiledMarkdown = computed(() => {
   return md.render(props.answer)
@@ -38,7 +42,7 @@ const show_meta = computed(() => !props.loading && (has_latency.value || has_tok
 </script>
 
 <template>
-  <div class="flex gap-2">
+  <div class="flex gap-2 group">
     <!-- 左侧图标 -->
     <a-avatar
       v-if="props.app?.icon"
@@ -69,7 +73,7 @@ const show_meta = computed(() => !props.loading && (has_latency.value || has_tok
         v-html="compiledMarkdown"
       ></div>
       <!-- 消息展示与操作 -->
-      <div class="flex items-center justify-between">
+      <div class="w-full flex items-center justify-between">
         <!-- 消息数据额外展示 -->
         <a-space v-if="show_meta" class="text-xs">
           <template #split>
@@ -81,18 +85,27 @@ const show_meta = computed(() => !props.loading && (has_latency.value || has_tok
           </div>
           <div v-if="has_tokens" class="text-gray-500">{{ props.total_token_count }} Tokens</div>
         </a-space>
-        <!-- 操作 -->
-      </div>
-      <!-- 建议问题生成中的占位 -->
-      <div
-        v-if="props.suggested_questions_loading && props.suggested_questions.length === 0"
-        class="flex items-center gap-2 text-xs text-gray-400"
-      >
-        正在生成建议问题
-        <dot-flashing />
+        <!-- 播放音频&暂停播放 -->
+        <div v-if="props.enable_text_to_speech" class="flex items-center gap-2">
+          <template v-if="props.text_to_audio_loading">
+            <icon-loading class="hidden group-hover:block text-gray-500" />
+          </template>
+          <template v-else>
+            <icon-pause
+              v-if="props.is_playing"
+              class="hidden group-hover:block text-blue-700 cursor-pointer hover:text-blue-700"
+              @click="() => emits('stopAudio')"
+            />
+            <icon-play-circle
+              v-else
+              class="hidden group-hover:block text-gray-400 cursor-pointer hover:text-gray-700"
+              @click="() => emits('playAudio', props.message_id)"
+            />
+          </template>
+        </div>
       </div>
       <!-- 建议问题列表 -->
-      <div v-else-if="props.suggested_questions.length > 0" class="flex flex-col gap-2">
+      <div v-if="props.suggested_questions.length > 0" class="flex flex-col gap-2">
         <div
           v-for="(suggested_question, idx) in props.suggested_questions"
           :key="idx"

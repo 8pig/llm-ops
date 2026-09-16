@@ -64,6 +64,7 @@ onMounted(async () => await loadDraftAppConfig(<string>route.params?.app_id))
           :opening_questions="draftAppConfigForm.opening_questions"
           :opening_statement="draftAppConfigForm.opening_statement"
           :app="props.app"
+          :text_to-speech="draftAppConfigForm.text_to_speech"
           :app_id="props.app?.id"
         />
       </div>

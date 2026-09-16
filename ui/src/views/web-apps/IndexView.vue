@@ -27,7 +27,6 @@ import { useScrollToBottomUntilStable } from '@/hooks/use-auto-scroll'
 import { QueueEvent } from '@/config'
 import { uploadImage } from '@/services/upload-file'
 import AudioRecorder from 'js-audio-recorder'
-
 // 1.定义页面所需数据
 const route = useRoute()
 const updateConversationNameModalVisible = ref(false)
@@ -74,7 +73,13 @@ const can_speech_to_text = computed(() => {
   return false
 })
 const { loading: audioToTextLoading, text, handleAudioToText } = useAudioToText()
-const { startAudioStream, stopAudioStream } = useAudioPlayer()
+const {
+  isPlaying,
+  textToAudioLoading,
+  playingMessageId,
+  startAudioStream,
+  stopAudioStream,
+} = useAudioPlayer()
 const { createPendingId, scrollToBottom, scrollToBottomUntilStable } =
   useScrollToBottomUntilStable(scroller)
 
@@ -657,6 +662,10 @@ onUnmounted(() => {
               <div class="flex flex-col gap-6 py-6">
                 <human-message :query="item.query" :account="accountStore.account" />
                 <ai-message
+                  :message_id="item.id"
+                  :enable_text_to_speech="web_app?.app_config?.text_to_speech?.enable"
+                  :is_playing="playingMessageId === item.id && isPlaying"
+                  :text_to_audio_loading="playingMessageId === item.id && textToAudioLoading"
                   :agent_thoughts="item.agent_thoughts"
                   :answer="item.answer"
                   :app="{ name: web_app.name, icon: web_app.icon }"
@@ -666,6 +675,8 @@ onUnmounted(() => {
                   :latency="item.latency"
                   :total_token_count="item.total_token_count"
                   @select-suggested-question="handleSubmitQuestion"
+                  @play-audio="startAudioStream"
+                  @stop-audio="stopAudioStream"
                   message_class="max-w-[513px]"
                 />
               </div>

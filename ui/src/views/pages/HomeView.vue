@@ -3,14 +3,14 @@
 import AudioRecorder from 'js-audio-recorder'
 import { DynamicScroller, DynamicScrollerItem } from 'vue-virtual-scroller'
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import {
   useAssistantAgentChat,
   useDeleteAssistantAgentConversation,
   useGetAssistantAgentMessagesWithPage,
   useStopAssistantAgentChat,
 } from '@/hooks/use-assistant-agent'
-import { useAudioToText } from '@/hooks/use-audio'
+import { useAudioPlayer, useAudioToText } from '@/hooks/use-audio'
 import { useGenerateSuggestedQuestions } from '@/hooks/use-ai'
 import { useScrollToBottomUntilStable } from '@/hooks/use-auto-scroll'
 import { useAccountStore } from '@/stores/account'
@@ -54,6 +54,13 @@ const { loading: deleteAssistantAgentConversationLoading, handleDeleteAssistantA
   useDeleteAssistantAgentConversation()
 
 const { loading: audioToTextLoading, text, handleAudioToText } = useAudioToText()
+const {
+  isPlaying,
+  textToAudioLoading,
+  playingMessageId,
+  startAudioStream,
+  stopAudioStream,
+} = useAudioPlayer()
 
 // 2.定义保存滚动高度函数
 const saveScrollHeight = () => {
@@ -296,6 +303,11 @@ onMounted(async () => {
   await loadAssistantAgentMessages(true)
   await scrollToBottomUntilStable()
 })
+
+// 页面卸载后停止播放
+onUnmounted(() => {
+  stopAudioStream()
+})
 </script>
 
 <template>
@@ -326,6 +338,10 @@ onMounted(async () => {
               <div class="flex flex-col gap-6 py-6">
                 <human-message :query="item.query" :account="accountStore.account" :image_urls="item.image_urls" />
                 <ai-message
+                  :message_id="item.id"
+                  :enable_text_to_speech="true"
+                  :is_playing="playingMessageId === item.id && isPlaying"
+                  :text_to_audio_loading="playingMessageId === item.id && textToAudioLoading"
                   :agent_thoughts="item.agent_thoughts"
                   :answer="item.answer"
                   :app="{ name: '辅助Agent' }"
@@ -334,6 +350,8 @@ onMounted(async () => {
                   :loading="item.id === active_message_id"
                   message_class="bg-white"
                   @select-suggested-question="handleSubmitQuestion"
+                  @play-audio="startAudioStream"
+                  @stop-audio="stopAudioStream"
                   :total_token_count="item.total_token_count"
                   :latency="item.latency"
                 />

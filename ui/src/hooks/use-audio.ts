@@ -50,6 +50,7 @@ export const useAudioPlayer = () => {
   const sourceBuffer = ref<SourceBuffer>() // 资源缓冲
   const isAudioLoaded = ref(false) // 是否加载音频完毕
   const isPlaying = ref(false) // 是否正在播放
+  const playingMessageId = ref('') // 当前正在播放/加载音频的消息id
   const { loading: textToAudioLoading, handleMessageToAudio } = useMessageToAudio() // 使用消息转音频hook
 
   // 2.定义资源打开监听事件
@@ -105,8 +106,12 @@ export const useAudioPlayer = () => {
 
   // 5.定义开始播放音频流函数
   const startAudioStream = (messageId: string) => {
-    // 5.1 如果数据已经加载过且正在播放，则无需重复请求
-    if (isAudioLoaded.value && audioElement.value?.paused === false) {
+    // 5.1 如果同一条消息已经加载且正在播放，则无需重复请求，直接重播(重置播放时间为0)
+    if (
+      playingMessageId.value === messageId &&
+      isAudioLoaded.value &&
+      audioElement.value?.paused === false
+    ) {
       // 5.2 音频已加载并且正在播放，直接播放(重置播放时间为0)
       if (audioElement.value instanceof HTMLAudioElement) {
         audioElement.value.currentTime = 0
@@ -117,7 +122,11 @@ export const useAudioPlayer = () => {
       return
     }
 
-    // 5.3 如果音频数据尚未加载，则初始化 AudioContext 和 MediaSource
+    // 5.3 切换到新的消息，先停止旧音频再初始化
+    stopAudioStream()
+    playingMessageId.value = messageId
+
+    // 5.4 初始化 AudioContext 和 MediaSource
     audioContext.value = new AudioContext()
     mediaSource.value = new MediaSource()
 
@@ -156,6 +165,9 @@ export const useAudioPlayer = () => {
 
       isPlaying.value = false
     }
+
+    // 6.2 清空当前播放的消息id
+    playingMessageId.value = ''
   }
 
   // 7.定义音频开始播放监听处理器
@@ -172,6 +184,7 @@ export const useAudioPlayer = () => {
     isAudioLoaded,
     isPlaying,
     textToAudioLoading,
+    playingMessageId,
     startAudioStream,
     stopAudioStream,
   }

@@ -70,7 +70,13 @@ const { loading: stopDebugChatLoading, handleStopDebugChat } = useStopDebugChat(
 const { loading: suggestedQuestionsLoading, suggested_questions, handleGenerateSuggestedQuestions } =
   useGenerateSuggestedQuestions()
 const { loading: audioToTextLoading, text, handleAudioToText } = useAudioToText()
-const { startAudioStream, stopAudioStream } = useAudioPlayer()
+const {
+  isPlaying,
+  textToAudioLoading,
+  playingMessageId,
+  startAudioStream,
+  stopAudioStream,
+} = useAudioPlayer()
 const { createPendingId, scrollToBottom, scrollToBottomUntilStable } =
   useScrollToBottomUntilStable(scroller)
 
@@ -370,6 +376,10 @@ onUnmounted(() => {
                 :account="accountStore.account"
               />
               <ai-message
+                :message_id="item.id"
+                :enable_text_to_speech="props.text_to_speech.enable"
+                :is_playing="playingMessageId === item.id && isPlaying"
+                :text_to_audio_loading="playingMessageId === item.id && textToAudioLoading"
                 :agent_thoughts="item.agent_thoughts"
                 :answer="item.answer"
                 :app="props.app"
@@ -377,6 +387,8 @@ onUnmounted(() => {
                 :suggested_questions_loading="item.id === message_id && suggestedQuestionsLoading"
                 :loading="item.id === active_message_id"
                 @select-suggested-question="handleSubmitQuestion"
+                @play-audio="startAudioStream"
+                @stop-audio="stopAudioStream"
                 :latency="item.latency"
                 :total_token_count="item.total_token_count"
               />
