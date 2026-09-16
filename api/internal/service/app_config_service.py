@@ -367,7 +367,7 @@ class AppConfigService(BaseService):
                         parameter_value = parameter.default
 
             # 12.判断参数是否存在options，如果存在则数值必须在options中选择
-            if parameter.options and parameter_value not in parameter.options:
+            if parameter.options and parameter_value not in [option.value for option in parameter.options]:
                 parameter_value = parameter.default
 
             # 13.参数类型为int/float，如果存在min/max时候需要校验

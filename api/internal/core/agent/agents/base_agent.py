@@ -67,8 +67,8 @@ class BaseAgent(Serializable, Runnable):
 
             #  除了ping事件，其他事件全部记录
             if agent_thought.event != QueueEvent.PING:
-                #  单独处理agent_message事件，因为该事件为数据叠加
-                if agent_thought.event == QueueEvent.AGENT_MESSAGE:
+                #  单独处理agent_message/agent_reasoning事件，因为这两个事件为数据叠加
+                if agent_thought.event in (QueueEvent.AGENT_MESSAGE, QueueEvent.AGENT_REASONING):
                     #  检测是否已存储了事件
                     if event_id not in agent_thoughts:
                         # 6.初始化智能体消息事件
@@ -136,3 +136,33 @@ class BaseAgent(Serializable, Runnable):
     def agent_queue_manager(self) -> AgentQueueManager:
         """只读属性，返回智能体队列管理器"""
         return self._agent_queue_manager
+
+    @classmethod
+    def _extract_reasoning_content(cls, message: Any) -> str:
+        """从消息中提取模型原生思维链内容(reasoning_content/thinking)
+
+        不同provider对思维链的存放位置不同，依次尝试：
+        1.additional_kwargs中的reasoning_content(tongyi/ollama/deepseek/mimo等)
+        2.additional_kwargs中的thinking
+        3.content_blocks中type为reasoning的内容块(anthropic/google等翻译器)
+        未提取到时返回空字符串，不影响主流程。
+        """
+        # 1.读取additional_kwargs中的思维链内容
+        additional_kwargs = getattr(message, "additional_kwargs", None) or {}
+        for key in ("reasoning_content", "thinking"):
+            reasoning_content = additional_kwargs.get(key)
+            if isinstance(reasoning_content, str) and reasoning_content:
+                return reasoning_content
+
+        # 2.读取content_blocks中的reasoning内容块
+        try:
+            content_blocks = getattr(message, "content_blocks", None) or []
+        except Exception:
+            content_blocks = []
+        for block in content_blocks:
+            if isinstance(block, dict) and block.get("type") == "reasoning":
+                text = block.get("reasoning") or block.get("text") or ""
+                if isinstance(text, str) and text:
+                    return text
+
+        return ""

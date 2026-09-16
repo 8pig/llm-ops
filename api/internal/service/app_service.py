@@ -549,8 +549,8 @@ class AppService(BaseService):
 
             # 12.将数据填充到agent_thought，便于存储到数据库服务中
             if agent_thought.event != QueueEvent.PING:
-                # 13.除了agent_message数据为叠加，其他均为覆盖
-                if agent_thought.event == QueueEvent.AGENT_MESSAGE:
+                # 13.除了agent_message/agent_reasoning数据为叠加，其他均为覆盖
+                if agent_thought.event in (QueueEvent.AGENT_MESSAGE, QueueEvent.AGENT_REASONING):
                     if event_id not in agent_thoughts:
                         # 14.初始化智能体消息事件
                         agent_thoughts[event_id] = agent_thought

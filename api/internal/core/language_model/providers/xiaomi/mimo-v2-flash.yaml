@@ -21,6 +21,8 @@ parameters:
     use_template: max_tokens
     default: 4096
     max: 65536
+  - name: reasoning_effort
+    use_template: reasoning_effort
 metadata:
   pricing:
     input: 0.0120

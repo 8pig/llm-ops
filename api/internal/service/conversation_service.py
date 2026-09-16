@@ -196,6 +196,7 @@ class ConversationService(BaseService):
             if agent_thought.event in [
                 QueueEvent.LONG_TERM_MEMORY_RECALL,
                 QueueEvent.AGENT_THOUGHT,
+                QueueEvent.AGENT_REASONING,
                 QueueEvent.AGENT_MESSAGE,
                 QueueEvent.AGENT_ACTION,
                 QueueEvent.DATASET_RETRIEVAL,

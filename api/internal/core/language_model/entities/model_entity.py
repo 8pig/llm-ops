@@ -15,6 +15,9 @@ class DefaultModelParameterName(str, Enum):
     PRESENCE_PENALTY = "presence_penalty"  # 存在惩罚
     FREQUENCY_PENALTY = "frequency_penalty"  # 频率惩罚
     MAX_TOKENS = "max_tokens"  # 要生成的内容的最大tokens数
+    REASONING_EFFORT = "reasoning_effort"  # 思考强度(OpenAI兼容系，对应reasoning_effort字段)
+    REASONING = "reasoning"  # 思考强度(Ollama，对应reasoning字段)
+    ENABLE_THINKING = "enable_thinking"  # 是否开启思考(通义千问，对应enable_thinking字段)
 
 
 class ModelType(str, Enum):

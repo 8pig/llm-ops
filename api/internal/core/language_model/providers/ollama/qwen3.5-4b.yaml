@@ -19,6 +19,8 @@ parameters:
     use_template: max_tokens
     default: 4096
     max: 8196
+  - name: reasoning
+    use_template: reasoning
 metadata:
   pricing:
     input: 0.0000

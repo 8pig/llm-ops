@@ -149,6 +149,7 @@ class FunctionCallAgent(BaseAgent):
 
         # 2.从智能体配置中提取大语言模型
         id = uuid.uuid4()
+        reasoning_id = uuid.uuid4()
         start_at = time.perf_counter()
         llm = self.llm
 
@@ -165,6 +166,7 @@ class FunctionCallAgent(BaseAgent):
         gathered = None
         is_first_chunk = True
         generation_type = ""
+        reasoning_content = ""
         try:
             for chunk in llm.stream(state["messages"]):
                 if is_first_chunk:
@@ -173,16 +175,28 @@ class FunctionCallAgent(BaseAgent):
                 else:
                     gathered += chunk
 
-                # 5.检测生成类型是工具参数还是文本生成
+                # 5.提取模型原生思维链(reasoning_content)并实时提交推理事件
+                chunk_reasoning = self._extract_reasoning_content(chunk)
+                if chunk_reasoning:
+                    reasoning_content += chunk_reasoning
+                    self.agent_queue_manager.publish(state["task_id"], AgentThought(
+                        id=reasoning_id,
+                        task_id=state["task_id"],
+                        event=QueueEvent.AGENT_REASONING,
+                        thought=chunk_reasoning,
+                        latency=(time.perf_counter() - start_at),
+                    ))
+
+                # 6.检测生成类型是工具参数还是文本生成
                 if not generation_type:
                     if chunk.tool_calls:
                         generation_type = "thought"
                     elif chunk.content:
                         generation_type = "message"
 
-                # 6.如果生成的是消息则提交智能体消息事件
+                # 7.如果生成的是消息则提交智能体消息事件
                 if generation_type == "message":
-                    # 7.提取片段内容并检测是否开启输出审核
+                    # 8.提取片段内容并检测是否开启输出审核
                     review_config = self.agent_config.review_config
                     content = chunk.content
                     if review_config["enable"] and review_config["outputs_config"]["enable"]:
@@ -203,18 +217,41 @@ class FunctionCallAgent(BaseAgent):
             self.agent_queue_manager.publish_error(state["task_id"], f"LLM节点发生错误, 错误信息: {str(e)}")
             raise e
 
-        # 8.计算LLM的输入+输出token总数
+        # 9.计算LLM的输入+输出token总数
         input_token_count = count_tokens_from_messages(state["messages"])
         output_token_count = count_tokens_from_messages([gathered])
 
-        # 9.获取输入/输出价格和单位
+        # 10.获取输入/输出价格和单位
         input_price, output_price, unit = self.llm.get_pricing()
 
-        # 10.计算总token+总成本
+        # 11.计算总token+总成本
         total_token_count = input_token_count + output_token_count
         total_price = (input_token_count * input_price + output_token_count * output_price) * unit
 
-        # 6.如果类型为推理则添加智能体推理事件
+        # 12.如果本轮产生了思维链，补充一条覆盖事件用于关联消息/统计信息
+        if reasoning_content:
+            self.agent_queue_manager.publish(state["task_id"], AgentThought(
+                id=reasoning_id,
+                task_id=state["task_id"],
+                event=QueueEvent.AGENT_REASONING,
+                thought="",
+                # 消息相关字段
+                message=messages_to_dict(state["messages"]),
+                message_token_count=input_token_count,
+                message_unit_price=input_price,
+                message_price_unit=unit,
+                # 答案相关字段
+                answer="",
+                answer_token_count=output_token_count,
+                answer_unit_price=output_price,
+                answer_price_unit=unit,
+                # Agent推理统计相关
+                total_token_count=total_token_count,
+                total_price=total_price,
+                latency=(time.perf_counter() - start_at),
+            ))
+
+        # 13.如果类型为推理则添加智能体推理事件
         if generation_type == "thought":
             self.agent_queue_manager.publish(state["task_id"], AgentThought(
                 id=id,
@@ -237,7 +274,7 @@ class FunctionCallAgent(BaseAgent):
                 latency=(time.perf_counter() - start_at),
             ))
         elif generation_type == "message":
-            # 7.如果LLM直接生成answer则表示已经拿到了最终答案，则停止监听
+            # 14.如果LLM直接生成answer则表示已经拿到了最终答案，则停止监听
             self.agent_queue_manager.publish(state["task_id"], AgentThought(
                 id=id,
                 task_id=state["task_id"],

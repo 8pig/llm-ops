@@ -68,6 +68,7 @@ class AssistantAgentService(BaseService):
             model=os.getenv("LLM_MODEL"),
             api_key=os.getenv("OPENAI_API_KEY"),
             base_url=os.getenv("OPENAI_API_BASE_URL"),
+            reasoning_effort=os.getenv("REASONING_EFFORT"),
         )
 
         # 5.实例化TokenBufferMemory用于提取短期记忆
@@ -105,8 +106,8 @@ class AssistantAgentService(BaseService):
 
             # 9.将数据填充到agent_thought，便于存储到数据库服务中
             if agent_thought.event != QueueEvent.PING:
-                # 10.除了agent_message数据为叠加，其他均为覆盖
-                if agent_thought.event == QueueEvent.AGENT_MESSAGE:
+                # 10.除了agent_message/agent_reasoning数据为叠加，其他均为覆盖
+                if agent_thought.event in (QueueEvent.AGENT_MESSAGE, QueueEvent.AGENT_REASONING):
                     if event_id not in agent_thoughts:
                         # 11.初始化智能体消息事件
                         agent_thoughts[event_id] = agent_thought

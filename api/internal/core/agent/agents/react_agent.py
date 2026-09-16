@@ -110,6 +110,7 @@ class ReACTAgent(FunctionCallAgent):
 
         # 3.从智能体配置中提取大语言模型
         id = uuid.uuid4()
+        reasoning_id = uuid.uuid4()
         start_at = time.perf_counter()
         llm = self.llm
 
@@ -117,6 +118,7 @@ class ReACTAgent(FunctionCallAgent):
         gathered = None
         is_first_chunk = True
         generation_type = ""
+        reasoning_content = ""
 
         # 5.流式输出调用LLM，并判断输出内容是否以"```json"为开头，用于区分工具调用和文本生成
         for chunk in llm.stream(state["messages"]):
@@ -126,6 +128,18 @@ class ReACTAgent(FunctionCallAgent):
                 is_first_chunk = False
             else:
                 gathered += chunk
+
+            # 6.1提取模型原生思维链(reasoning_content)并实时提交推理事件
+            chunk_reasoning = self._extract_reasoning_content(chunk)
+            if chunk_reasoning:
+                reasoning_content += chunk_reasoning
+                self.agent_queue_manager.publish(state["task_id"], AgentThought(
+                    id=reasoning_id,
+                    task_id=state["task_id"],
+                    event=QueueEvent.AGENT_REASONING,
+                    thought=chunk_reasoning,
+                    latency=(time.perf_counter() - start_at),
+                ))
 
             # 7.如果生成的是消息则提交智能体消息事件
             if generation_type == "message":
@@ -178,6 +192,28 @@ class ReACTAgent(FunctionCallAgent):
         total_token_count = input_token_count + output_token_count
         total_price = (input_token_count * input_price + output_token_count * output_price) * unit
 
+        # 11.如果本轮产生了思维链，补充一条覆盖事件用于关联消息/统计信息
+        if reasoning_content:
+            self.agent_queue_manager.publish(state["task_id"], AgentThought(
+                id=reasoning_id,
+                task_id=state["task_id"],
+                event=QueueEvent.AGENT_REASONING,
+                thought="",
+                # 消息相关字段
+                message=messages_to_dict(state["messages"]),
+                message_token_count=input_token_count,
+                message_unit_price=input_price,
+                message_price_unit=unit,
+                # 答案相关字段
+                answer="",
+                answer_token_count=output_token_count,
+                answer_unit_price=output_price,
+                answer_price_unit=unit,
+                # Agent推理统计相关
+                total_token_count=total_token_count,
+                total_price=total_price,
+                latency=(time.perf_counter() - start_at),
+            ))
 
         # 12.如果类型为推理则解析json，并添加智能体消息
         if generation_type == "thought":

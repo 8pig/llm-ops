@@ -63,4 +63,40 @@ DEFAULT_MODEL_PARAMETER_TEMPLATE = {
         "precision": 0,
         "options": [],
     },
+    # 思考强度(OpenAI兼容系，对应reasoning_effort字段)
+    DefaultModelParameterName.REASONING_EFFORT: {
+        "label": "思考强度",
+        "type": ModelParameterType.STRING,
+        "help": "控制模型思维链的推理强度，值越大推理越深入；不支持的模型会自动忽略该参数",
+        "required": False,
+        "default": None,
+        "options": [
+            {"label": "关闭", "value": "none"},
+            {"label": "低", "value": "low"},
+            {"label": "中", "value": "medium"},
+            {"label": "高", "value": "high"},
+        ],
+    },
+    # 思考强度(Ollama，对应reasoning字段，不设置则不会捕获思维链)
+    DefaultModelParameterName.REASONING: {
+        "label": "思考强度",
+        "type": ModelParameterType.STRING,
+        "help": "开启Ollama模型的思考模式并控制推理强度；不设置时模型默认行为不会单独返回思维链",
+        "required": False,
+        "default": None,
+        "options": [
+            {"label": "低", "value": "low"},
+            {"label": "中", "value": "medium"},
+            {"label": "高", "value": "high"},
+        ],
+    },
+    # 是否开启思考(通义千问，对应enable_thinking字段)
+    DefaultModelParameterName.ENABLE_THINKING: {
+        "label": "思考模式",
+        "type": ModelParameterType.BOOLEAN,
+        "help": "是否开启通义千问的深度思考模式；不支持的模型会自动忽略该参数",
+        "required": False,
+        "default": None,
+        "options": [],
+    },
 }

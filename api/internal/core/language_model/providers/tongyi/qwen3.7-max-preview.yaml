@@ -23,6 +23,8 @@ parameters:
     use_template: max_tokens
     default: 4096
     max: 8192
+  - name: enable_thinking
+    use_template: enable_thinking
 metadata:
   pricing:
     input: 0.0120
