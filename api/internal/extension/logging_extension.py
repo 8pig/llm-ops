@@ -27,6 +27,8 @@ NOISY_LOGGERS = [
     "fsspec",
     "jieba",
     "weaviate",
+    "sqlalchemy",
+    "sqlalchemy.engine",
 ]
 
 
