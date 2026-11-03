@@ -1,5 +1,6 @@
 
 import os
+from threading import Lock
 
 from injector import inject
 from langchain_community.vectorstores import FAISS
@@ -14,6 +15,11 @@ from .embeddings_service import EmbeddingsService
 @inject
 class FaissService:
     """Faiss向量数据库服务"""
+    # 索引只读，进程内加载一次即可。injector默认非单例，每个请求都会新建本服务，
+    # 若不缓存则每次请求都要重新反序列化索引文件(index.faiss + index.pkl)。
+    _faiss_cache: FAISS | None = None
+    _faiss_lock = Lock()
+
     faiss: FAISS
     embeddings_service: EmbeddingsService
 
@@ -26,12 +32,16 @@ class FaissService:
         internal_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         faiss_vector_store_path = os.path.join(internal_path, "core", "vector_store")
 
-        # 3.初始化faiss向量数据库
-        self.faiss = FAISS.load_local(
-            folder_path=faiss_vector_store_path,
-            embeddings=self.embeddings_service.embeddings,
-            allow_dangerous_deserialization=True,
-        )
+        # 3.初始化faiss向量数据库，命中类级缓存时直接复用
+        if FaissService._faiss_cache is None:
+            with FaissService._faiss_lock:
+                if FaissService._faiss_cache is None:
+                    FaissService._faiss_cache = FAISS.load_local(
+                        folder_path=faiss_vector_store_path,
+                        embeddings=self.embeddings_service.embeddings,
+                        allow_dangerous_deserialization=True,
+                    )
+        self.faiss = FaissService._faiss_cache
 
     def convert_faiss_to_tool(self) -> BaseTool:
         """将Faiss向量数据库检索器转换成LangChain工具"""

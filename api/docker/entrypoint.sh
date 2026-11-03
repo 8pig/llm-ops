@@ -4,9 +4,10 @@
 set -e
 
 # 2.判断是否启用的迁移数据同步，如果是则将数据库迁移同步到数据库中
+#   迁移是一次性命令，进程会立刻退出，没必要预热，否则白白多等一次初始化
 if [[ "${MIGRATION_ENABLED}" == "true" ]]; then
   echo "Runnable migrations"
-  flask --app app.http.app db upgrade
+  WARMUP_DISABLED=1 flask --app app.http.app db upgrade
 fi
 
 # 3.检测运行的模式(api/celery)，以执行不同的脚本

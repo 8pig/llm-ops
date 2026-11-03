@@ -1,6 +1,5 @@
 from datetime import datetime
 import logging
-import os
 from dataclasses import dataclass
 from threading import Thread
 from typing import Any
@@ -10,7 +9,6 @@ from flask import Flask
 from injector import inject
 from langchain_core.output_parsers import StrOutputParser, JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI
 from sqlalchemy import desc
 from sqlalchemy.orm import joinedload
 
@@ -29,6 +27,7 @@ from internal.core.agent.entities.queue_entity import QueueEvent, AgentThought
 from internal.model import MessageAgentThought, Conversation, Message, Account
 from internal.exception import NotFoundException, FailException
 from internal.lib.llm_error import friendly_llm_error
+from internal.lib.llm_factory import get_text_chat
 from internal.schema.conversation_schema import GetConversationMessagesWithPageReq
 
 
@@ -45,13 +44,8 @@ class ConversationService(BaseService):
         prompt = ChatPromptTemplate.from_template(SUMMARIZER_TEMPLATE)
 
         # 2.构建大语言模型实例，并且将大语言模型的温度调低，降低幻觉的概率
-
-        llm = ChatOpenAI(
-            model=os.getenv("LLM_MODEL"),
-            api_key=os.getenv("OPENAI_API_KEY"),
-            base_url=os.getenv("OPENAI_API_BASE_URL"),
-            temperature=0.5
-        )
+        #   复用工厂提供的客户端，避免每次调用重建httpx连接
+        llm = get_text_chat(temperature=0.5)
 
         # 3.构建链应用
         summary_chain = prompt | llm | StrOutputParser()
@@ -81,12 +75,7 @@ class ConversationService(BaseService):
         ])
 
         # 2.构建大语言模型实例，并且将大语言模型的温度调低，降低幻觉的概率
-        llm = ChatOpenAI(
-            model=os.getenv("LLM_MODEL"),
-            api_key=os.getenv("OPENAI_API_KEY"),
-            base_url=os.getenv("OPENAI_API_BASE_URL"),
-            temperature=0,
-        )
+        llm = get_text_chat(temperature=0)
 
         # 3.构建链应用（使用 JsonOutputParser 替代 with_structured_output，避免模型 response_format 兼容问题）
         chain = prompt | llm | JsonOutputParser(pydantic_object=ConversationInfo)
@@ -133,12 +122,7 @@ class ConversationService(BaseService):
         ])
 
         # 2.构建大语言模型实例，并且将大语言模型的温度调低，降低幻觉的概率
-        llm = ChatOpenAI(
-            model=os.getenv("LLM_MODEL"),
-            api_key=os.getenv("OPENAI_API_KEY"),
-            base_url=os.getenv("OPENAI_API_BASE_URL"),
-            temperature=0
-        )
+        llm = get_text_chat(temperature=0)
         structured_llm = prompt | llm | JsonOutputParser(pydantic_object=SuggestedQuestions)
 
         # 3.构建链应用

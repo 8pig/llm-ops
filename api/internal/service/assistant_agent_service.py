@@ -1,6 +1,5 @@
 
 import json
-import os
 from dataclasses import dataclass
 from datetime import datetime
 from threading import Thread
@@ -18,10 +17,9 @@ from sqlalchemy.orm import joinedload
 from internal.core.agent.agents import AgentQueueManager, FunctionCallAgent
 from internal.core.agent.entities.agent_entity import AgentConfig
 from internal.core.agent.entities.queue_entity import QueueEvent
-from internal.core.language_model.entities.model_entity import ModelFeature
-from internal.core.language_model.providers.openai.chat import Chat
 from internal.core.memory import TokenBufferMemory
 from internal.entity.conversation_entity import InvokeFrom, MessageStatus
+from internal.lib.llm_factory import get_assistant_chat
 from internal.model import Account, Message
 from internal.schema.assistant_agent_schema import GetAssistantAgentMessagesWithPageReq, AssistantAgentChat
 from internal.task.app_task import auto_create_app
@@ -60,16 +58,9 @@ class AssistantAgentService(BaseService):
             status=MessageStatus.NORMAL,
         )
 
-        # 4.使用GPT模型作为辅助Agent的LLM大脑
-        llm = Chat(
-            temperature=0.5,
-            features=[ModelFeature.TOOL_CALL, ModelFeature.AGENT_THOUGHT, ModelFeature.IMAGE_INPUT],
-            metadata={},
-            model=os.getenv("LLM_MODEL"),
-            api_key=os.getenv("OPENAI_API_KEY"),
-            base_url=os.getenv("OPENAI_API_BASE_URL"),
-            reasoning_effort=os.getenv("REASONING_EFFORT"),
-        )
+        # 4.使用复用的GPT模型作为辅助Agent的LLM大脑
+        #   统一由工厂创建，避免每次请求重建httpx连接(Windows下单次约2.5s)
+        llm = get_assistant_chat()
 
         # 5.实例化TokenBufferMemory用于提取短期记忆
         token_buffer_memory = TokenBufferMemory(

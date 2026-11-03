@@ -40,7 +40,11 @@ const { createPendingId, scrollToBottom, scrollToBottomUntilStable } =
   useScrollToBottomUntilStable(scroller)
 const { loading: suggestedQuestionsLoading, suggested_questions, handleGenerateSuggestedQuestions } =
   useGenerateSuggestedQuestions()
-const { loading: assistantAgentChatLoading, handleAssistantAgentChat } = useAssistantAgentChat()
+const {
+  loading: assistantAgentChatLoading,
+  handleAssistantAgentChat,
+  abortAssistantAgentChat,
+} = useAssistantAgentChat()
 const {
   loading: stopAssistantAgentChatLoading,
   handleStopAssistantAgentChat, //
@@ -313,7 +317,10 @@ const handleStop = async () => {
   // 6.1 如果没有任务id或者未在加载中，则直接停止
   if (task_id.value === '' || !assistantAgentChatLoading.value) return
 
-  // 6.2 调用api接口中断请求
+  // 6.2 先中断本地流式连接，立即释放浏览器并发槽位
+  abortAssistantAgentChat()
+
+  // 6.3 再通知服务端停止生成
   await handleStopAssistantAgentChat(task_id.value)
 }
 

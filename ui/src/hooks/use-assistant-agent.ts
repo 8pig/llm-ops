@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { onUnmounted, ref } from 'vue'
 import {
   assistantAgentChat,
   deleteAssistantAgentConversation,
@@ -12,21 +12,47 @@ export const useAssistantAgentChat = () => {
   // 1.定义自定义hooks所需数据
   const loading = ref(false)
 
-  // 2.定义辅助Agent会话处理器
+  // 2.记录当前进行中的流式请求
+  //  SSE响应带Connection: close，不主动中断会一直占用浏览器对同一host的并发槽位，
+  //  占满(HTTP/1.1为6条)后新请求会一直卡在Stalled状态
+  let controller: AbortController | null = null
+
+  // 3.中断当前正在进行的流式请求并释放连接
+  const abortAssistantAgentChat = () => {
+    controller?.abort()
+    controller = null
+  }
+
+  // 4.定义辅助Agent会话处理器
   const handleAssistantAgentChat = async (
     query: string,
     image_urls: string[] =[],
     onData: (event_response: Record<string, any>) => void,
   ) => {
+    // 4.1 发起新请求前先结束上一条，避免连接堆积
+    abortAssistantAgentChat()
+    const current = new AbortController()
+    controller = current
+
     try {
       loading.value = true
-      await assistantAgentChat(query, image_urls, onData)
+      await assistantAgentChat(query, image_urls, onData, current.signal)
+    } catch (e) {
+      // 4.2 主动取消属于预期行为，不向上抛出
+      if ((e as Error)?.name !== 'AbortError') throw e
     } finally {
-      loading.value = false
+      // 4.3 仅当自己仍是当前请求时才复位状态，避免影响后续新请求
+      if (controller === current) {
+        controller = null
+        loading.value = false
+      }
     }
   }
 
-  return { loading, handleAssistantAgentChat }
+  // 5.组件卸载时释放连接
+  onUnmounted(abortAssistantAgentChat)
+
+  return { loading, handleAssistantAgentChat, abortAssistantAgentChat }
 }
 
 export const useStopAssistantAgentChat = () => {

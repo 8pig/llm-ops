@@ -14,8 +14,9 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+# 仅忽略仓库根目录的构建产物，避免误伤 api/internal/lib 等源码目录
+/lib/
+/lib64/
 parts/
 sdist/
 var/
@@ -205,7 +206,8 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
-llmops-api/.env
+# 历史遗留目录名：旧版 TIKTOKEN_CACHE_DIR 配置错误时 tiktoken 会自动重建此目录
+llmops-api/
 *.env
 *.log.*
 

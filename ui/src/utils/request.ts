@@ -102,12 +102,21 @@ export const ssePost = async (
   url: string,
   fetchOptions: FetchOptionType,
   onData: (data: { [key: string]: any }) => void,
+  signal?: AbortSignal,
 ) => {
   // 5.1 组装基础的fetch请求配置
-  const options = Object.assign({}, baseFetchOptions, { method: 'POST' }, fetchOptions)
+  // 注意：headers 必须重新克隆，直接浅拷贝会污染 baseFetchOptions 中的共享 Headers 实例
+  const headers = new Headers(baseFetchOptions.headers)
+  new Headers(fetchOptions.headers ?? {}).forEach((value, key) => headers.set(key, value))
+  const options: typeof baseFetchOptions & FetchOptionType = {
+    ...baseFetchOptions,
+    ...fetchOptions,
+    method: 'POST',
+    headers,
+  }
   const { credential } = useCredentialStore()
   const access_token = credential.access_token
-  if (access_token) options.headers.set('Authorization', `Bearer ${access_token}`)
+  if (access_token) headers.set('Authorization', `Bearer ${access_token}`)
 
   // 5.2 组装请求URL
   const urlWithPrefix = `${apiPrefix}${url.startsWith('/') ? url : `/${url}`}`
@@ -116,27 +125,33 @@ export const ssePost = async (
   const { body } = fetchOptions
   if (body) options.body = JSON.stringify(body)
 
-  // 5.4 发起fetch请求并处理流式事件响应
+  // 5.4 透传中断信号，允许调用方取消正在进行的流式请求
+  if (signal) options.signal = signal
+
+  // 5.5 发起fetch请求并处理流式事件响应
   const response = await globalThis.fetch(urlWithPrefix, options as RequestInit)
 
-  // 5.5 获取响应内容类型并判断类型
+  // 5.6 获取响应内容类型并判断类型
   const contentType = response.headers.get('Content-Type')
   if (contentType?.includes('application/json')) {
-    // 5.6 接口为json输出，意味着出错，直接返回json数据
+    // 5.7 接口为json输出，意味着出错，直接返回json数据
+    response.body?.cancel().catch(() => {})
     return await response.json()
   }
 
-  // 5.7 否则获取流式输出数据
-  return await handleStream(response, onData)
+  // 5.8 否则获取流式输出数据
+  return await handleStream(response, onData, signal)
 }
 
 const handleStream = (
   response: Response,
   onData: (data: Record<string, any>) => void,
+  signal?: AbortSignal,
 ): Promise<void> => {
   return new Promise((resolve, reject) => {
     // 1.检测网络请求是否正常
     if (!response.ok) {
+      response.body?.cancel().catch(() => {})
       reject(new Error('网络请求失败'))
       return
     }
@@ -147,49 +162,81 @@ const handleStream = (
     let buffer = ''
     let event = ''
     let data = ''
+    let settled = false
 
-    // 3.构建read函数用于去读取数据
-    const read = () => {
-      reader?.read().then((result: any) => {
-        if (result.done) {
-          resolve()
-          return
-        }
-
-        buffer += decoder.decode(result.value, { stream: true })
-        const lines = buffer.split('\n')
-
-        try {
-          lines.forEach((line) => {
-            line = line.trim()
-            if (line.startsWith('event:')) {
-              event = line.slice(6).trim()
-            } else if (line.startsWith('data:')) {
-              data = line.slice(5).trim()
-            }
-
-            // 每个事件以空行结束，只有event和data同时存在，才表示一次流式事件的数据完整获取到了
-            if (line === '') {
-              if (event !== '' && data !== '') {
-                onData({
-                  event: event,
-                  data: JSON.parse(data),
-                })
-                event = ''
-                data = ''
-              }
-            }
-          })
-          buffer = lines.pop() || ''
-        } catch (e) {
-          reject(e)
-        }
-
-        read()
-      })
+    // 3.统一收尾：无论正常结束、异常还是中断，都必须取消reader
+    //   SSE响应携带 Connection: close，若不主动cancel，连接会持续占用浏览器
+    //   对同一host的并发槽位(HTTP/1.1为6条)，占满后新请求会一直卡在Stalled
+    const cleanup = () => {
+      if (settled) return
+      settled = true
+      reader?.cancel().catch(() => {})
     }
 
-    // 4.调用read函数去执行获取对应的数据
+    const onAbort = () => {
+      cleanup()
+      reject(new DOMException('请求已取消', 'AbortError'))
+    }
+
+    // 4.已经中断则直接结束，避免残留连接
+    if (signal?.aborted) {
+      onAbort()
+      return
+    }
+    signal?.addEventListener('abort', onAbort, { once: true })
+
+    // 5.构建read函数用于去读取数据
+    const read = () => {
+      reader
+        ?.read()
+        .then((result: any) => {
+          if (result.done) {
+            cleanup()
+            resolve()
+            return
+          }
+
+          buffer += decoder.decode(result.value, { stream: true })
+          const lines = buffer.split('\n')
+
+          try {
+            lines.forEach((line) => {
+              line = line.trim()
+              if (line.startsWith('event:')) {
+                event = line.slice(6).trim()
+              } else if (line.startsWith('data:')) {
+                data = line.slice(5).trim()
+              }
+
+              // 每个事件以空行结束，只有event和data同时存在，才表示一次流式事件的数据完整获取到了
+              if (line === '') {
+                if (event !== '' && data !== '') {
+                  onData({
+                    event: event,
+                    data: JSON.parse(data),
+                  })
+                  event = ''
+                  data = ''
+                }
+              }
+            })
+            buffer = lines.pop() || ''
+          } catch (e) {
+            // 解析失败必须终止接收，否则会带着脏buffer继续读且连接不释放
+            cleanup()
+            reject(e)
+            return
+          }
+
+          read()
+        })
+        .catch((err) => {
+          cleanup()
+          reject(err)
+        })
+    }
+
+    // 6.调用read函数去执行获取对应的数据
     read()
   })
 }

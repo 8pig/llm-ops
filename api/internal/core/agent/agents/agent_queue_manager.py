@@ -37,7 +37,9 @@ class AgentQueueManager:
     def listen(self, task_id: UUID) -> Generator:
         """监听队列返回的生成式数据"""
         # 1.定义基础数据记录超时时间、开始时间、最后一次ping通时间
-        listen_timeout = 600
+        # 正常对话秒级完成，600秒过长会让客户端异常断开后的僵尸任务占用连接与线程，
+        # 这里收敛到180秒作为兜底；前端已接入AbortController主动取消
+        listen_timeout = 180
         start_time = time.time()
         last_ping_time = 0
 
