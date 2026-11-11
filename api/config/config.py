@@ -28,7 +28,7 @@ class Config:
         self.WEAVIATE_HTTP_PORT= _get_env("WEAVIATE_HTTP_PORT")
         self.WEAVIATE_GRPC_HOST= _get_env("WEAVIATE_GRPC_HOST")
         self.WEAVIATE_GRPC_HOST= _get_env("WEAVIATE_HTTP_HOST")
-        self.WEAVIATE_API_KEY = _get_env("WEAVIATE_API_KEY")
+        self.WEAVIATE_API_KEY = _get_env("WEAVIATE_API_KEY") or None  # 空字符串视为未配置，否则会发出非法的 Bearer 空头
 
 
         #REDIS
