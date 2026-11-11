@@ -91,8 +91,18 @@ services:
       qianfan_sk: ${QIANFAN_SK}
       # 月之暗面服务提供者
       MOONSHOT_API_KEY: ${MOONSHOT_API_KEY}
-      # 通义千问服务提供者
+      MOONSHOT_API_BASE_URL: ${MOONSHOT_API_BASE_URL}
+      # 通义千问服务提供者(DashScope)
       DASHSCOPE_API_KEY: ${DASHSCOPE_API_KEY}
+      DASHSCOPE_API_BASE_URL: ${DASHSCOPE_API_BASE_URL}
+      # DeepSeek服务提供者
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
+      DEEPSEEK_API_BASE_URL: ${DEEPSEEK_API_BASE_URL}
+      # 小米MiMo服务提供者
+      XIAOMI_API_KEY: ${XIAOMI_API_KEY}
+      XIAOMI_API_BASE_URL: ${XIAOMI_API_BASE_URL}
+      # 本地Ollama服务提供者(无需key)
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
       # 高德工具API秘钥
       GAODE_API_KEY: ${GAODE_API_KEY}
       # 谷歌Serper搜索API秘钥
@@ -182,8 +192,18 @@ services:
       qianfan_sk: ${QIANFAN_SK}
       # 月之暗面服务提供者
       MOONSHOT_API_KEY: ${MOONSHOT_API_KEY}
-      # 通义千问服务提供者
+      MOONSHOT_API_BASE_URL: ${MOONSHOT_API_BASE_URL}
+      # 通义千问服务提供者(DashScope)
       DASHSCOPE_API_KEY: ${DASHSCOPE_API_KEY}
+      DASHSCOPE_API_BASE_URL: ${DASHSCOPE_API_BASE_URL}
+      # DeepSeek服务提供者
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
+      DEEPSEEK_API_BASE_URL: ${DEEPSEEK_API_BASE_URL}
+      # 小米MiMo服务提供者
+      XIAOMI_API_KEY: ${XIAOMI_API_KEY}
+      XIAOMI_API_BASE_URL: ${XIAOMI_API_BASE_URL}
+      # 本地Ollama服务提供者(无需key)
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
       # 高德工具API秘钥
       GAODE_API_KEY: ${GAODE_API_KEY}
       # 谷歌Serper搜索API秘钥

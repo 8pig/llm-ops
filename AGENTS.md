@@ -140,7 +140,8 @@ Create `api/.env`. Key vars:
 
 | Variable | Purpose |
 |---|---|
-| `OPENAI_API_KEY`, `OPENAI_API_BASE_URL`, `LLM_MODEL` | LLM provider |
+| `OPENAI_API_KEY`, `OPENAI_API_BASE_URL`, `LLM_MODEL` | 全局模型凭证（各 provider 未单独配置时的兜底） |
+| `DASHSCOPE_API_KEY/BASE_URL`、`DEEPSEEK_API_KEY/BASE_URL`、`XIAOMI_API_KEY/BASE_URL`、`MOONSHOT_API_KEY/BASE_URL`、`OLLAMA_BASE_URL` | 按 provider 的独立凭证，优先级高于全局（映射见 `language_model_service.PROVIDER_ENV_PREFIX_MAP`） |
 | `SQLALCHEMY_DATABASE_URI`, `SQLALCHEMY_POOL_SIZE`, `SQLALCHEMY_POOL_RECYCLE` | PostgreSQL |
 | `REDIS_HOST`, `REDIS_PORT`, `REDIS_DB`, `REDIS_USERNAME`, `REDIS_PASSWORD` | Redis（Celery + 缓存）|
 | `CELERY_BROKER_DB`, `CELERY_RESULT_BACKEND_DB`, … | Celery（broker/backend 复用 Redis）|

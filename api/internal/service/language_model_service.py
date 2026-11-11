@@ -16,6 +16,45 @@ from pkg.db import SQLAlchemy
 from .base_service import BaseService
 
 
+# 服务提供者名称与环境变量前缀的映射，用于读取各家的api_key/base_url。
+# 注意：tongyi(通义千问)走的是DashScope的凭证，名称不一致必须显式映射。
+PROVIDER_ENV_PREFIX_MAP: dict[str, str] = {
+    "openai": "OPENAI",
+    "tongyi": "DASHSCOPE",
+    "deepseek": "DEEPSEEK",
+    "xiaomi": "XIAOMI",
+    "moonshot": "MOONSHOT",
+}
+
+
+def _get_provider_credentials(provider_name: str) -> tuple[str | None, str | None]:
+    """读取服务提供者对应的api_key与base_url，缺失时回落到全局OPENAI_*配置
+
+    环境变量在调用时读取而不是模块导入时，因为dotenv.load_dotenv()在业务模块
+    import之后才执行，模块级读取会拿到空值。
+    """
+    # 1.优先读取提供者自己的变量，如 DASHSCOPE_API_KEY / DASHSCOPE_API_BASE_URL
+    prefix = PROVIDER_ENV_PREFIX_MAP.get(provider_name)
+    api_key = os.getenv(f"{prefix}_API_KEY") if prefix else None
+    base_url = None
+    if prefix:
+        base_url = os.getenv(f"{prefix}_API_BASE_URL") or os.getenv(f"{prefix}_BASE_URL")
+
+    # 2.Ollama优先使用自己的地址，未配置时再回落到全局配置
+    if provider_name == "ollama":
+        base_url = os.getenv("OLLAMA_BASE_URL") or base_url
+
+    # 3.回落到全局配置，兼容只有一套凭证(或统一网关)的历史部署
+    api_key = api_key or os.getenv("OPENAI_API_KEY")
+    base_url = base_url or os.getenv("OPENAI_API_BASE_URL")
+
+    # 4.Ollama为本地模型无需真实key，给占位值避免客户端初始化失败
+    if not api_key and provider_name == "ollama":
+        api_key = "ollama"
+
+    return api_key, base_url
+
+
 @inject
 @dataclass
 class LanguageModelService(BaseService):
@@ -109,9 +148,19 @@ class LanguageModelService(BaseService):
             model_entity = provider.get_model_entity(model_name)
             model_class = provider.get_model_class(model_entity.model_type)
 
-            # 3.实例化模型后并返回
+            # 3.读取该提供者对应的凭证配置
+            api_key, base_url = _get_provider_credentials(provider_name)
+
+            # 4.构建模型构造参数，凭证非空时才覆盖，避免破坏yaml中的默认属性
+            model_kwargs = dict(model_entity.attributes)
+            if api_key:
+                model_kwargs["api_key"] = api_key
+            if base_url:
+                model_kwargs["base_url"] = base_url
+
+            # 5.实例化模型后并返回
             return model_class(
-                **model_entity.attributes,
+                **model_kwargs,
                 **parameters,
                 features=model_entity.features,
                 metadata=model_entity.metadata,
@@ -135,9 +184,17 @@ class LanguageModelService(BaseService):
         model_entity = provider.get_model_entity("mimo-v2.5-pro")
         model_class = provider.get_model_class(model_entity.model_type)
 
-        # 2.实例化模型并返回
+        # 2.读取该提供者对应的凭证配置
+        api_key, base_url = _get_provider_credentials("xiaomi")
+        model_kwargs = dict(model_entity.attributes)
+        if api_key:
+            model_kwargs["api_key"] = api_key
+        if base_url:
+            model_kwargs["base_url"] = base_url
+
+        # 3.实例化模型并返回
         return model_class(
-            **model_entity.attributes,
+            **model_kwargs,
             temperature=1,
             max_tokens=8192,
             features=model_entity.features,
