@@ -173,6 +173,12 @@ npm run dev                                       # Vite :5173，/api 代理到 
 
 ---
 
+<p align="center">
+  <img src="./docs/知识库_RAG_索引与检索链路.png" alt="preview-7" width="100%">
+</p>
+
+
+
 ## ⚠️ 说明
 
 - 本仓库主要用于学习与二次开发参考；请勿在生产环境直接使用示例密钥，部署前务必替换 `docker/.env` 与 `docker/docker-compose.yaml` 中所有默认凭证。

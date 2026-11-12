@@ -186,8 +186,10 @@ class DocumentService(BaseService):
         if document.dataset_id != dataset_id or document.account_id != account_id:
             raise ForbiddenException("document不存在或无权限修改")
         # 判断是否可修改  只有构建完成才可以
+        # 注意：这里是"状态未就绪"的业务失败，不是权限问题，必须用 FailException，
+        # 否则前端 request.ts 会把 forbidden 当成无权限并直接跳转 /errors/403 页面。
         if document.status != DocumentStatus.COMPLETED:
-            raise ForbiddenException("文档状态未构建完成，稍后重试")
+            raise FailException("文档状态未构建完成，稍后重试")
 
         if document.enabled == enabled:
             raise FailException("当前状态无需修改")

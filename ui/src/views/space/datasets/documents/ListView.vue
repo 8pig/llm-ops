@@ -27,6 +27,14 @@ const { loading, documents, paginator, loadDocuments } = useGetDocumentsWithPage
 
 const { handleDelete } = useDeleteDocument()
 const { handleUpdate: handleUpdateEnabled } = useUpdateDocumentEnabled()
+
+// 文档构建中时的状态文案，用于禁用开关的悬浮提示
+const STATUS_TEXT: Record<string, string> = {
+  waiting: '排队等待构建',
+  splitting: '正在分割文本',
+  indexing: '正在索引中',
+}
+const buildTip = (record: any) => `${STATUS_TEXT[record.status] ?? '构建中'}，构建完成后可操作`
 </script>
 
 <template>
@@ -221,6 +229,14 @@ const { handleUpdate: handleUpdateEnabled } = useUpdateDocumentEnabled()
                   :content="`错误信息: ${record.error}`"
                 >
                   <a-switch size="small" type="round" :default-checked="false" disabled />
+                </a-tooltip>
+                <!-- 构建中（waiting/splitting/indexing）不允许切换启用状态，直接禁用避免误点 -->
+                <a-tooltip
+                  v-else-if="record.status !== 'completed'"
+                  position="left"
+                  :content="buildTip(record)"
+                >
+                  <a-switch size="small" type="round" :model-value="record.enabled" disabled />
                 </a-tooltip>
                 <a-switch
                   v-else

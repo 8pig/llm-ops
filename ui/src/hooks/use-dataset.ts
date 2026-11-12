@@ -293,9 +293,10 @@ export const useUpdateDocumentEnabled = () => {
     try {
       const resp = await updateDocumentEnabled(dataset_id, document_id, enabled)
       Message.success(resp.message)
-    } finally {
-      // 2.调用callback函数指定回调功能
+      // 只有接口成功后才同步本地状态，失败时保持原样避免界面与后端不一致
       callback && callback()
+    } catch {
+      // 失败提示已由 request.ts 统一处理，这里保持原状态即可
     }
   }
 

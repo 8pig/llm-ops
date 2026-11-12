@@ -83,7 +83,12 @@ const baseFetch = <T>(url: string, fetchOptions: FetchOptionType): Promise<T> =>
           }else if(json.code ===httpCode.notFound){
             await router.push({ name: 'errors-not-found' })
           }else if (json.code === httpCode.forbidden){
-            await router.push({ name: 'errors-forbidden' })
+            // 先提示具体失败原因，避免用户被直接踢到 403 页面后完全不知道发生了什么
+            Message.error(json.message)
+            await router.push({
+              name: 'errors-forbidden',
+              query: { reason: json.message },
+            })
           }else {
             Message.error(json.message)
             reject(new Error(json.message))
