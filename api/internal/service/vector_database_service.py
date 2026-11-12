@@ -30,23 +30,28 @@ class VectorDatabaseService:
     embedding_service: EmbeddingsService
 
     def _ensure_collection(self) -> None:
-        """确保向量集合存在，如果不存在则创建"""
+        """确保向量集合存在，如果不存在则创建
+
+        属性表必须与写入侧 metadata(indexing_service / segment_service)以及
+        检索过滤字段(SemanticRetriever)保持一致，否则集合重建后语义检索会因
+        过滤字段 document_enabled / segment_enabled 不存在而直接报错。
+        """
         try:
             if not self.weaviate.client.collections.exists(COLLECTION_NAME):
-                test_embedding = self.embedding_service.embeddings.embed_query("test")
-                vector_dim = len(test_embedding)
-
-                print(f"Creating collection '{COLLECTION_NAME}' with vector dimension: {vector_dim}")
+                print(f"Creating collection '{COLLECTION_NAME}'")
 
                 self.weaviate.client.collections.create(
                     name=COLLECTION_NAME,
                     vectorizer_config=Configure.Vectorizer.none(),
                     properties=[
                         Property(name="text", data_type=DataType.TEXT),
+                        Property(name="account_id", data_type=DataType.UUID),
                         Property(name="dataset_id", data_type=DataType.UUID),
                         Property(name="document_id", data_type=DataType.UUID),
                         Property(name="segment_id", data_type=DataType.UUID),
-                        Property(name="enabled", data_type=DataType.BOOL),
+                        Property(name="node_id", data_type=DataType.UUID),
+                        Property(name="document_enabled", data_type=DataType.BOOL),
+                        Property(name="segment_enabled", data_type=DataType.BOOL),
                     ],
                     vector_index_config=Configure.VectorIndex.hnsw(
                         distance_metric=Configure.VectorIndex.Distance.COSINE
