@@ -24,6 +24,7 @@ import HumanMessage from '@/components/HumanMessage.vue'
 import AiMessage from '@/components/AiMessage.vue'
 import { useGenerateSuggestedQuestions } from '@/hooks/use-ai'
 import { useScrollToBottomUntilStable } from '@/hooks/use-auto-scroll'
+import { getConversationName } from '@/services/conversation'
 import { QueueEvent } from '@/config'
 import { uploadImage } from '@/services/upload-file'
 import AudioRecorder from 'js-audio-recorder'
@@ -149,6 +150,30 @@ const successUpdateNameCallback = (conversation_id: string, conversation_name: s
     idx = unpinned_conversations.value.findIndex((item) => item.id === conversation_id)
     if (idx !== -1) unpinned_conversations.value[idx]['name'] = conversation_name
   }
+}
+
+// 6.后端在对话结束后异步生成会话名称，这里轮询获取并同步到会话列表
+const syncConversationName = (conversation_id: string) => {
+  const max_attempts = 8
+  let attempts = 0
+  const tick = async () => {
+    attempts += 1
+    try {
+      const resp = await getConversationName(conversation_id)
+      const name = resp.data?.name
+      // 已生成名称则更新列表并结束轮询
+      if (name && name !== 'New Conversation') {
+        successUpdateNameCallback(conversation_id, name)
+        return
+      }
+    } catch {
+      // 命名尚未完成或请求失败，继续重试
+    }
+    if (attempts < max_attempts) {
+      setTimeout(tick, 1500)
+    }
+  }
+  setTimeout(tick, 1500)
 }
 
 // 7.定义删除回话处理器
@@ -364,8 +389,9 @@ const handleSubmit = async () => {
   if (messages.value.length > 0) {
     if (selectedConversationTmp === 'new_conversation') {
       // 11.14 将newConversation填充到会话列表中
+      const conversation_id = messages.value[0].conversation_id
       unpinned_conversations.value.unshift({
-        id: messages.value[0].conversation_id,
+        id: conversation_id,
         name: 'New Conversation',
         summary: '',
         created_at: messages.value[0].created_at,
@@ -373,7 +399,11 @@ const handleSubmit = async () => {
       // 11.15 清空newConversation并修改选中
       newConversation.value = null
       if (selectedConversation.value === 'new_conversation') {
-        selectedConversation.value = messages.value[0].conversation_id
+        selectedConversation.value = conversation_id
+      }
+      // 11.16 后端异步生成名称，轮询同步到列表
+      if (conversation_id) {
+        syncConversationName(conversation_id)
       }
     }
     // 11.15 判断是否开启建议问题生成，如果开启了则非阻塞发起请求，生成期间展示占位

@@ -74,30 +74,26 @@ class ConversationService(BaseService):
             ("human", "{query}")
         ])
 
-        # 2.构建大语言模型实例，并且将大语言模型的温度调低，降低幻觉的概率
-        llm = get_text_chat(temperature=0)
-
-        # 3.构建链应用（使用 JsonOutputParser 替代 with_structured_output，避免模型 response_format 兼容问题）
-        chain = prompt | llm | JsonOutputParser(pydantic_object=ConversationInfo)
-
-        # 4.提取并整理query，截取长度过长的部分
+        # 2.提取并整理query，截取长度过长的部分
         if len(query) > 2000:
             query = query[:300] + "...[TRUNCATED]..." + query[-300:]
         query = query.replace("\n", " ")
 
-        # 5.调用链并获取会话信息
+        # 3.构建链并调用，命名在后台线程中执行，模型构建/调用异常都必须兜底，
+        #   否则线程直接退出，会话会一直停留在"New Conversation"，前端列表也就看不到变化
+        conversation_info = None
         try:
+            # 构建大语言模型实例，并且将大语言模型的温度调低，降低幻觉的概率
+            llm = get_text_chat(temperature=0)
+            # 使用 JsonOutputParser 替代 with_structured_output，避免模型 response_format 兼容问题
+            chain = prompt | llm | JsonOutputParser(pydantic_object=ConversationInfo)
             conversation_info = chain.invoke({"query": query})
         except Exception as e:
-            message = friendly_llm_error(e)
-            if message is None:
-                raise
+            message = friendly_llm_error(e) or str(e)
             logging.warning("会话命名失败，使用默认名称: %s", message)
-            conversation_info = None
-        print(conversation_info)
-        # 6.提取会话名称
 
-        name = "新的会话"
+        # 4.提取会话名称
+        name = ""
         try:
             #  防止获取不到   如果用到中转站大模型不对应 或者 大模型也有随机性不对应会出错
             if conversation_info and isinstance(conversation_info, dict) and conversation_info.get("subject"):
@@ -106,9 +102,14 @@ class ConversationService(BaseService):
                 name = conversation_info.subject
         except Exception as e:
             logging.exception("提取会话名称出错, conversation_info: %s, 错误信息: %s", conversation_info, str(e))
+
+        # 5.模型没有返回可用名称时，退化为用户query，保证名称一定能落地
+        if not name and query.strip():
+            name = query.strip()
+        if not name:
+            name = "新的会话"
         if len(name) > 75:
             name = name[:75] + "..."
-
 
         return name
 
@@ -305,17 +306,28 @@ class ConversationService(BaseService):
     ) -> None:
         """生成会话名字并更新"""
         with flask_app.app_context():
-            # 1.根据会话id获取会话
-            conversation = self.get(Conversation, conversation_id)
+            try:
+                # 1.根据会话id获取会话
+                conversation = self.get(Conversation, conversation_id)
+                if conversation is None:
+                    logging.warning("更新会话名称失败，会话不存在: %s", conversation_id)
+                    return
 
-            # 2.计算获取新会话名字
-            new_conversation_name = self.generate_conversation_name(query)
+                # 2.计算获取新会话名字
+                new_conversation_name = self.generate_conversation_name(query)
 
-            # 3.调用更新服务更新会话名称
-            self.update(
-                conversation,
-                name=new_conversation_name,
-            )
+                # 3.调用更新服务更新会话名称
+                self.update(
+                    conversation,
+                    name=new_conversation_name,
+                )
+            except Exception as e:
+                # 后台线程没有调用方接异常，统一记录日志，避免静默失败
+                logging.exception(
+                    "生成/更新会话名称失败, conversation_id: %s, 错误信息: %s",
+                    conversation_id,
+                    str(e),
+                )
 
 
     def get_conversation_messages_with_page(
