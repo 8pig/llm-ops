@@ -1,0 +1,232 @@
+version: '3'
+services:
+  llmops-ui:
+    image: llmops-ui:0.1.0
+    build:
+      context: ../ui
+      dockerfile: Dockerfile
+    container_name: llmops-ui
+    restart: always
+    environment: [ ]
+    ports:
+      - "3000:3000"
+  llmops-api:
+    image: llmops-api:0.1.0
+    build:
+      context: ../api
+      dockerfile: Dockerfile
+    container_name: llmops-api
+    restart: always
+    volumes:
+      - ./volumes/app/storage:/app/api/storage
+    environment:
+      # 模式为API，代表启用API服务
+      MODE: api
+      SERVER_WORKER_AMOUNT: 4
+      SERVER_THREAD_AMOUNT: 4
+      # 数据库迁移：外部库已有表结构但没有 alembic 版本记录，关闭自动升级避免重复建表
+      MIGRATION_ENABLED: 'false'
+      # JWT加密秘钥
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      # CSRF校验开关
+      WTF_CSRF_ENABLED: 'false'
+      # SQLAlchemy数据库配置
+      SQLALCHEMY_DATABASE_URI: ${SQLALCHEMY_DATABASE_URI}
+      SQLALCHEMY_POOL_SIZE: 30
+      SQLALCHEMY_POOL_RECYCLE: 3600
+      SQLALCHEMY_ECHO: ${SQLALCHEMY_ECHO}
+      # Redis缓存数据库配置
+      # Redis 走外部实例（compose 不自带），地址/密码全部来自 .env
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_USERNAME: ${REDIS_USERNAME}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_DB: ${REDIS_DB}
+      REDIS_USE_SSL: ${REDIS_USE_SSL}
+      # Weaviate向量数据库配置
+      # Weaviate 走开发机上的外部实例（compose 不自带）
+      WEAVIATE_HTTP_HOST: ${WEAVIATE_HTTP_HOST}
+      WEAVIATE_HTTP_PORT: ${WEAVIATE_HTTP_PORT}
+      WEAVIATE_GRPC_HOST: ${WEAVIATE_GRPC_HOST}
+      WEAVIATE_GRPC_PORT: ${WEAVIATE_GRPC_PORT}
+      WEAVIATE_API_KEY: ${WEAVIATE_API_KEY}
+      # 腾讯云COS对象存储
+      COS_SECRET_ID: ${COS_SECRET_ID}
+      COS_SECRET_KEY: ${COS_SECRET_KEY}
+      COS_REGION: ${COS_REGION}
+      COS_SCHEME: ${COS_SCHEME}
+      COS_BUCKET: ${COS_BUCKET}
+      COS_DOMAIN: ${COS_DOMAIN}
+      # Celery异步队列任务配置
+      CELERY_BROKER_DB: 1
+      CELERY_RESULT_BACKEND_DB: 1
+      CELERY_TASK_IGNORE_RESULT: 'true'
+      CELERY_RESULT_EXPIRES: 3600
+      CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP: 'true'
+      # Github OAuth应用秘钥
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
+      GITHUB_REDIRECT_URI: ${GITHUB_REDIRECT_URI}
+      # LangSmith配置
+      LANGCHAIN_TRACING_V2: ${LANGSMITH_TRACING}
+      LANGCHAIN_ENDPOINT: https://api.smith.langchain.com
+      LANGCHAIN_API_KEY: ${LANGSMITH_API_KEY}
+      LANGCHAIN_PROJECT: llmops
+      # HuggingFace配置
+      TRANSFORMERS_OFFLINE: 1
+      # tiktoken编码缓存目录
+      TIKTOKEN_CACHE_DIR: /app/api/tiktoken_cache
+      # 辅助Agent智能体应用id标识
+      ASSISTANT_AGENT_ID: ${ASSISTANT_AGENT_ID}
+      # OpenAI服务提供者
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_API_BASE_URL: ${OPENAI_API_BASE_URL}
+      OPENAI_BASE_URL: ${OPENAI_API_BASE_URL}
+      OPENAI_API_BASE: ${OPENAI_API_BASE_URL}
+      LLM_MODEL: ${LLM_MODEL}
+      # 自建音频服务（Whisper语音识别 + TTS）
+      AUDIO_API_BASE_URL: ${AUDIO_API_BASE_URL}
+      AUDIO_API_KEY: ${AUDIO_API_KEY}
+      WHISPER_MODEL: ${WHISPER_MODEL}
+      # 百度千帆服务提供者
+      qianfan_ak: ${QIANFAN_AK}
+      qianfan_sk: ${QIANFAN_SK}
+      # 月之暗面服务提供者
+      MOONSHOT_API_KEY: ${MOONSHOT_API_KEY}
+      MOONSHOT_API_BASE_URL: ${MOONSHOT_API_BASE_URL}
+      # 通义千问服务提供者(DashScope)
+      DASHSCOPE_API_KEY: ${DASHSCOPE_API_KEY}
+      DASHSCOPE_API_BASE_URL: ${DASHSCOPE_API_BASE_URL}
+      # DeepSeek服务提供者
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
+      DEEPSEEK_API_BASE_URL: ${DEEPSEEK_API_BASE_URL}
+      # 小米MiMo服务提供者
+      XIAOMI_API_KEY: ${XIAOMI_API_KEY}
+      XIAOMI_API_BASE_URL: ${XIAOMI_API_BASE_URL}
+      # 本地Ollama服务提供者(无需key)
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL}
+      # 高德工具API秘钥
+      GAODE_API_KEY: ${GAODE_API_KEY}
+      # 谷歌Serper搜索API秘钥
+      SERPER_API_KEY: ${SERPER_API_KEY}
+      # Tavily搜索工具
+      TAVILY_API_KEY: ${TAVILY_API_KEY}
+    ports:
+      - "5001:5001"
+  llmops-celery:
+    image: llmops-api:0.1.0
+    build:
+      context: ../api
+      dockerfile: Dockerfile
+    container_name: llmops-celery
+    restart: always
+    volumes:
+      - ./volumes/app/storage:/app/api/storage
+    environment:
+      # 模式为celery，代表启用Celery异步任务队列
+      MODE: celery
+      CELERY_WORKER_AMOUNT: 4
+      # 数据库迁移配置
+      MIGRATION_ENABLED: 'false'
+      # JWT加密秘钥
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      # CSRF校验开关
+      WTF_CSRF_ENABLED: 'false'
+      # SQLAlchemy数据库配置
+      SQLALCHEMY_DATABASE_URI: ${SQLALCHEMY_DATABASE_URI}
+      SQLALCHEMY_POOL_SIZE: 30
+      SQLALCHEMY_POOL_RECYCLE: 3600
+      SQLALCHEMY_ECHO: ${SQLALCHEMY_ECHO}
+      # Redis缓存数据库配置
+      # Redis 走外部实例（compose 不自带），地址/密码全部来自 .env
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_USERNAME: ${REDIS_USERNAME}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_DB: ${REDIS_DB}
+      REDIS_USE_SSL: ${REDIS_USE_SSL}
+      # Weaviate向量数据库配置
+      # Weaviate 走开发机上的外部实例（compose 不自带）
+      WEAVIATE_HTTP_HOST: ${WEAVIATE_HTTP_HOST}
+      WEAVIATE_HTTP_PORT: ${WEAVIATE_HTTP_PORT}
+      WEAVIATE_GRPC_HOST: ${WEAVIATE_GRPC_HOST}
+      WEAVIATE_GRPC_PORT: ${WEAVIATE_GRPC_PORT}
+      WEAVIATE_API_KEY: ${WEAVIATE_API_KEY}
+      # 腾讯云COS对象存储
+      COS_SECRET_ID: ${COS_SECRET_ID}
+      COS_SECRET_KEY: ${COS_SECRET_KEY}
+      COS_REGION: ${COS_REGION}
+      COS_SCHEME: ${COS_SCHEME}
+      COS_BUCKET: ${COS_BUCKET}
+      COS_DOMAIN: ${COS_DOMAIN}
+      # Celery异步队列任务配置
+      CELERY_BROKER_DB: 1
+      CELERY_RESULT_BACKEND_DB: 1
+      CELERY_TASK_IGNORE_RESULT: 'true'
+      CELERY_RESULT_EXPIRES: 3600
+      CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP: 'true'
+      # Github OAuth应用秘钥
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
+      GITHUB_REDIRECT_URI: ${GITHUB_REDIRECT_URI}
+      # LangSmith配置
+      LANGCHAIN_TRACING_V2: ${LANGSMITH_TRACING}
+      LANGCHAIN_ENDPOINT: https://api.smith.langchain.com
+      LANGCHAIN_API_KEY: ${LANGSMITH_API_KEY}
+      LANGCHAIN_PROJECT: LLMOpsDev
+      # HuggingFace配置
+      TRANSFORMERS_OFFLINE: 1
+      # tiktoken编码缓存目录
+      TIKTOKEN_CACHE_DIR: /app/api/tiktoken_cache
+      # 辅助Agent智能体应用id标识
+      ASSISTANT_AGENT_ID: ${ASSISTANT_AGENT_ID}
+      # OpenAI服务提供者
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_API_BASE_URL: ${OPENAI_API_BASE_URL}
+      OPENAI_BASE_URL: ${OPENAI_API_BASE_URL}
+      OPENAI_API_BASE: ${OPENAI_API_BASE_URL}
+      LLM_MODEL: ${LLM_MODEL}
+      # 自建音频服务（Whisper语音识别 + TTS）
+      AUDIO_API_BASE_URL: ${AUDIO_API_BASE_URL}
+      AUDIO_API_KEY: ${AUDIO_API_KEY}
+      WHISPER_MODEL: ${WHISPER_MODEL}
+      # 百度千帆服务提供者
+      qianfan_ak: ${QIANFAN_AK}
+      qianfan_sk: ${QIANFAN_SK}
+      # 月之暗面服务提供者
+      MOONSHOT_API_KEY: ${MOONSHOT_API_KEY}
+      MOONSHOT_API_BASE_URL: ${MOONSHOT_API_BASE_URL}
+      # 通义千问服务提供者(DashScope)
+      DASHSCOPE_API_KEY: ${DASHSCOPE_API_KEY}
+      DASHSCOPE_API_BASE_URL: ${DASHSCOPE_API_BASE_URL}
+      # DeepSeek服务提供者
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
+      DEEPSEEK_API_BASE_URL: ${DEEPSEEK_API_BASE_URL}
+      # 小米MiMo服务提供者
+      XIAOMI_API_KEY: ${XIAOMI_API_KEY}
+      XIAOMI_API_BASE_URL: ${XIAOMI_API_BASE_URL}
+      # 本地Ollama服务提供者(无需key)
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL}
+      # 高德工具API秘钥
+      GAODE_API_KEY: ${GAODE_API_KEY}
+      # 谷歌Serper搜索API秘钥
+      SERPER_API_KEY: ${SERPER_API_KEY}
+      # Tavily搜索工具
+      TAVILY_API_KEY: ${TAVILY_API_KEY}
+  llmops-nginx:
+    image: nginx:latest
+    restart: always
+    container_name: llmops-nginx
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/proxy.conf:/etc/nginx/proxy.conf
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/ssl:/etc/ssl
+    depends_on:
+      - llmops-ui
+      - llmops-api
+    ports:
+      - "80:80"
+      - "443:443"

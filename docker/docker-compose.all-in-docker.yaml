@@ -1,0 +1,124 @@
+# =============================================================================
+# 全 Docker 模式（叠加层）
+#
+# 本文件不单独使用，必须叠在 docker-compose.yaml 之上：
+#   docker compose -f docker-compose.yaml -f docker-compose.all-in-docker.yaml up -d --build
+#
+# 作用：
+#   - 自带 postgres / redis / weaviate 三个容器（数据落在 ./volumes 下）
+#   - 覆盖 api / celery 的连接地址，改为容器服务名
+#   - 全新数据库由 api 容器启动时执行 db upgrade 建表
+#   - 外部自建服务模式（不带本文件）下，本文件的变量不会生效
+#
+# 需要的 .env 变量（见 .env.example 末尾）：
+#   POSTGRES_PASSWORD       postgres 容器密码
+#   WEAVIATE_LOCAL_API_KEY  本模式 weaviate 容器的 API key
+# =============================================================================
+services:
+  llmops-api:
+    environment:
+      # 全新库自动建表；已有数据卷时 db upgrade 为空操作
+      MIGRATION_ENABLED: 'true'
+      # 覆盖外部自建服务模式下的连接地址，改走容器内网
+      SQLALCHEMY_DATABASE_URI: postgresql://postgres:${POSTGRES_PASSWORD:?全 Docker 模式需要设置 POSTGRES_PASSWORD}@llmops-db:5432/llmops?client_encoding=utf8
+      REDIS_HOST: llmops-redis
+      REDIS_PORT: '6379'
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      WEAVIATE_HTTP_HOST: llmops-weaviate
+      WEAVIATE_HTTP_PORT: '8080'
+      WEAVIATE_GRPC_HOST: llmops-weaviate
+      WEAVIATE_GRPC_PORT: '50051'
+      WEAVIATE_API_KEY: ${WEAVIATE_LOCAL_API_KEY:?全 Docker 模式需要设置 WEAVIATE_LOCAL_API_KEY}
+    depends_on:
+      llmops-db:
+        condition: service_healthy
+      llmops-redis:
+        condition: service_started
+      llmops-weaviate:
+        condition: service_started
+
+  llmops-celery:
+    environment:
+      # 建表交给 api 容器，celery 与服务端同时启动，避免两边并发执行迁移
+      MIGRATION_ENABLED: 'false'
+      SQLALCHEMY_DATABASE_URI: postgresql://postgres:${POSTGRES_PASSWORD:?全 Docker 模式需要设置 POSTGRES_PASSWORD}@llmops-db:5432/llmops?client_encoding=utf8
+      REDIS_HOST: llmops-redis
+      REDIS_PORT: '6379'
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      WEAVIATE_HTTP_HOST: llmops-weaviate
+      WEAVIATE_HTTP_PORT: '8080'
+      WEAVIATE_GRPC_HOST: llmops-weaviate
+      WEAVIATE_GRPC_PORT: '50051'
+      WEAVIATE_API_KEY: ${WEAVIATE_LOCAL_API_KEY:?全 Docker 模式需要设置 WEAVIATE_LOCAL_API_KEY}
+    depends_on:
+      llmops-db:
+        condition: service_healthy
+      llmops-redis:
+        condition: service_started
+      llmops-weaviate:
+        condition: service_started
+
+  llmops-db:
+    image: postgres:15-alpine
+    restart: always
+    container_name: llmops-db
+    # CentOS7 + kernel3.10 默认 seccomp 会拦 postgres 写 postmaster.pid/pg_wal(EPERM)，故关闭 seccomp
+    security_opt:
+      - seccomp:unconfined
+    environment:
+      PGUSER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?全 Docker 模式需要设置 POSTGRES_PASSWORD}
+      POSTGRES_DB: llmops
+    volumes:
+      # 挂载到镜像声明的 VOLUME 路径，避免 PGDATA 子目录造成匿名卷叠加(EPERM)
+      - ./volumes/db/data:/var/lib/postgresql/data
+      # 初始化脚本只在空数据目录时执行，仅创建 uuid-ossp 扩展；建表由 api 的 db upgrade 完成
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: [ "CMD", "pg_isready" ]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+    # 需要宿主机/外部直连时打开（注意不要与宿主机已有的 postgres 端口冲突）
+    # ports:
+    #   - "5432:5432"
+
+  llmops-redis:
+    image: redis:6-alpine
+    restart: always
+    container_name: llmops-redis
+    # 本模式的 redis 必须设密码：拒绝空密码导致 --requirepass 缺少参数
+    command: redis-server --requirepass ${REDIS_PASSWORD:?全 Docker 模式需要设置 REDIS_PASSWORD}
+    volumes:
+      - ./volumes/redis/data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-a", "${REDIS_PASSWORD:?全 Docker 模式需要设置 REDIS_PASSWORD}", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    # 需要宿主机/外部直连时打开（本机若已有原生 redis 占用 6379，打开会冲突）
+    # ports:
+    #   - "6379:6379"
+
+  llmops-weaviate:
+    image: semitechnologies/weaviate:1.35.3
+    restart: always
+    container_name: llmops-weaviate
+    environment:
+      QUERY_DEFAULTS_LIMIT: 25
+      # 需要 API key 才能访问
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'false'
+      PERSISTENCE_DATA_PATH: /var/lib/weaviate
+      DEFAULT_VECTORIZER_MODULE: 'none'
+      CLUSTER_HOSTNAME: 'node1'
+      AUTHENTICATION_APIKEY_ENABLED: 'true'
+      AUTHENTICATION_APIKEY_ALLOWED_KEYS: ${WEAVIATE_LOCAL_API_KEY:?全 Docker 模式需要设置 WEAVIATE_LOCAL_API_KEY}
+      AUTHENTICATION_APIKEY_USERS: 'zz@zz.com'
+      AUTHORIZATION_ADMINLIST_ENABLED: 'true'
+      AUTHORIZATION_ADMINLIST_USERS: 'zz@zz.com'
+    volumes:
+      - ./volumes/weaviate:/var/lib/weaviate
+    # 需要宿主机/外部直连时打开
+    # ports:
+    #   - "8080:8080"
+    #   - "50051:50051"
